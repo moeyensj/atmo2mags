@@ -124,8 +124,8 @@ def plot_throughputs(bpDict1, bpDict2, newfig=True, label=True, othercolor=None)
 
 def read_kurucz():
     # read kurucz model MS, g40 stars SEDs
-    homedir = os.getenv("HOME")    # "SIMS_SED_LIBRARY_DIR"
-    stardir = os.path.join(homedir, "starSED/kuruczSample/")  # "starSED/kurucz/"
+    homedir = os.getenv("SIMS_SED_LIBRARY_DIR")    # "SIMS_SED_LIBRARY_DIR"
+    stardir = os.path.join(homedir, "starSED/kurucz/")  # "starSED/kurucz/"
     allfilelist = os.listdir(stardir)
     starlist = []
     # make preliminary cut for ms, g40 stars
