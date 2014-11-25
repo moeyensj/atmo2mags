@@ -55,7 +55,6 @@ class atmo:
                 if (float(lineEle[0]) < 0):
                     break
                 if (float(lineEle[0]) > self.wavelengthRange[0]) | (float(lineEle[0]) > self.wavelengthRange[1]):
-                    print lineEle[0]
                     wavelenTemp.append(float(lineEle[0]))
                     transTemp['H2O'].append(float(lineEle[2]))
                     transTemp['O2'].append(float(lineEle[3]))
@@ -73,7 +72,7 @@ class atmo:
             self.atmoTrans[airmass] = copy.deepcopy(trans)
         if self.atmoTrans != None:
             print "MODTRAN files have been read."
-return
+        return
     
     def genAtmo(self,w,P,X=1.0,aerosolNormCoeff=0.1):
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
