@@ -15,6 +15,7 @@ class atmo:
         self.parametersPlot = ['$t_{H_2O}$','$t_{O_2}$','$t_{O_3}$','$t_{Rayleigh}$','$t_{Aerosol}$','$alpha$']
         self.componentsColor = ['blue','green','red','purple','cyan']
         self.wavelength = None
+        self.wavelengthRange = [300,1100]
         self.airmasses = None
         self.atmoTrans = None
     
@@ -53,12 +54,14 @@ class atmo:
                 lineEle = line.split()
                 if (float(lineEle[0]) < 0):
                     break
-                wavelenTemp.append(float(lineEle[0]))
-                transTemp['H2O'].append(float(lineEle[2]))
-                transTemp['O2'].append(float(lineEle[3]))
-                transTemp['O3'].append(float(lineEle[4]))
-                transTemp['Rayleigh'].append(float(lineEle[8]))
-                transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]),airmass))
+                if (float(lineEle[0]) > self.wavelengthRange[0]) | (float(lineEle[0]) > self.wavelengthRange[1]):
+                    print lineEle[0]
+                    wavelenTemp.append(float(lineEle[0]))
+                    transTemp['H2O'].append(float(lineEle[2]))
+                    transTemp['O2'].append(float(lineEle[3]))
+                    transTemp['O3'].append(float(lineEle[4]))
+                    transTemp['Rayleigh'].append(float(lineEle[8]))
+                    transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]),airmass))
             fin.close()
             wavelenTemp = numpy.array(wavelenTemp,dtype='float')
             trans = {}
@@ -70,7 +73,7 @@ class atmo:
             self.atmoTrans[airmass] = copy.deepcopy(trans)
         if self.atmoTrans != None:
             print "MODTRAN files have been read."
-        return
+return
     
     def genAtmo(self,w,P,X=1.0,aerosolNormCoeff=0.1):
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
