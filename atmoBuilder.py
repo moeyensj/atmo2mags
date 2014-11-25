@@ -2,8 +2,14 @@ import numpy
 import pylab
 import os
 import copy
+import plot_dmagsMod
+from AtmoCompMod import AtmoComp as ac
 
-class atmo:
+WMIN = 300
+WMAX = 1100
+WSTEP = 0.5
+
+class atmoBuilder:
     def __init__(self):
         # List of strings containing component names
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
@@ -13,13 +19,16 @@ class atmo:
         self.parameters = [1.0,1.0,1.0,1.0,1.0,1.7]
         # List of parameters used for plotting
         self.parametersPlot = ['$t_{H_2O}$','$t_{O_2}$','$t_{O_3}$','$t_{Rayleigh}$','$t_{Aerosol}$','$alpha$']
+        # List of colors for each parameter to be used for plotting
         self.componentsColor = ['blue','green','red','purple','cyan']
         self.wavelength = None
-        self.wavelengthRange = [300,1100]
+        self.wavelengthRange = [WMIN,WMAX]
         self.airmasses = None
         self.atmoTrans = None
     
     def readModtranFiles(self, modtranDir='.', modtranRoot='Pachon_MODTRAN',modtranSuffix='.7sc'):
+        """ Reads MODTRAN files in a given directory and stores component transmission in a dictionary for each airmass. """
+        # Taken from AtmoComp by Lynne Jones and modified for research purposes
         files = os.listdir('.')
         modtranFiles = []
         
@@ -30,7 +39,7 @@ class atmo:
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
     
-        self.wavelength = numpy.arange(300,1100.5,0.5,dtype='float')
+        self.wavelength = numpy.arange(WMIN,WMAX + 0.5,WSTEP,dtype='float')
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
@@ -75,6 +84,7 @@ class atmo:
         return
     
     def genAtmo(self,w,P,X=1.0,aerosolNormCoeff=0.1):
+        """ Returns combined transmission for an atmosphere using given a list of parameters."""
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
         O3comp = self.atmoTrans[X]['O3']**(X*P[2])
@@ -106,6 +116,7 @@ class atmo:
         return
 
     def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1):
+        """ Returns aerosol transmission for a given wavelength, airmass with the option to set alpha and the normalization coefficient """
         return numpy.e**(-aerosolNormCoeff*X*(550.0/w)*alpha)
     
     def airmassToString(self,airmass):
