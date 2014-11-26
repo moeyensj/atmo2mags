@@ -6,7 +6,7 @@ import plot_dmagsMod
 from AtmoCompMod import AtmoComp as ac
 
 WMIN = 300
-WMAX = 1100
+WMAX = 1100.5
 WSTEP = 0.5
 
 class atmoBuilder:
@@ -39,7 +39,7 @@ class atmoBuilder:
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
     
-        self.wavelength = numpy.arange(WMIN,WMAX + 0.5,WSTEP,dtype='float')
+        self.wavelength = numpy.arange(WMIN,WMAX,WSTEP,dtype='float')
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
