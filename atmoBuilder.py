@@ -32,10 +32,12 @@ class atmoBuilder:
         files = os.listdir('.')
         modtranFiles = []
         
+        # In directory find which files are MODTRAN files and add them a list
         for f in files:
             if (f.startswith(modtranRoot)) & (f.endswith(modtranSuffix)):
                 modtranFiles.append(f)
-        
+    
+        # Let user know how many, if any, MODTRAN files were found
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
     
@@ -43,7 +45,8 @@ class atmoBuilder:
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
-        
+
+        # Read each MODTRAN file and store individual component transmissions per wavelength into a dictionary
         for file in modtranFiles:
             print file
             fin = open(file,'r')
