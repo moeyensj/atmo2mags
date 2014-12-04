@@ -11,8 +11,8 @@ import lsst.sims.photUtils.photUtils as photUtils
 import AtmoCompMod as ac
 
 WMIN = 300
-WMAX = 1150.1
-WSTEP = 0.1
+WMAX = 1100
+WSTEP = 0.5
 filterlist = ['u', 'g', 'r', 'i', 'z', 'y4']
 colors = ['b', 'g', 'y', 'r', 'm', 'k']
 
@@ -130,9 +130,9 @@ def read_kurucz():
     starlist = []
     # make preliminary cut for ms, g40 stars
     for filename in allfilelist:
-        if filename[-8:-5] == 'g40':
+        if filename[-11:-8] == 'g40':
             starlist.append(filename)
-        if filename[-8:-5] == 'g20':
+        if filename[-11:-8] == 'g20':
             starlist.append(filename)
     atemperature = []
     amet = []
