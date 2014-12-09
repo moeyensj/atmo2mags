@@ -232,9 +232,9 @@ class atmoBuilder:
             ax.plot(w,phi2[p],alpha=phi2Alpha,color=phi2Color)
         
         ax.set_xlim(300,1100);
-        ax.set_ylabel("Transmission");
+        ax.set_ylabel("$\phi_b$");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("LSST $S^{sys}_b$ Filters and Hardware");
+        ax.set_title("Bandpass Normalization Response");
         
         return
     
