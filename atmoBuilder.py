@@ -3,8 +3,9 @@ import numpy
 import pylab
 import os
 import copy
-from AtmoCompMod import AtmoComp as ac
-import plot_dmagsMod as dm
+import lsst.sims.photUtils.Sed as Sed
+import lsst.sims.photUtils.Bandpass as Bandpass
+import lsst.sims.photUtils.photUtils as photUtils
 
 # Global wavelength variables set to MODTRAN defaults
 WMIN = 300
@@ -45,6 +46,17 @@ class atmoBuilder:
         self.filters = None
         # Filter-keyed dictionary of filter and hardware
         self.sys = None
+        # List of filters
+        self.filterlist = ['u', 'g', 'r', 'i', 'z', 'y4']
+        
+        # Kurucz model data
+        self.stars = None
+        self.starlist = None
+        self.temperature = None
+        self.met = None
+        self.logg = None
+        
+        # Readers
         self.readModtranFiles()
         self.readFilters()
         self.readHardware()
@@ -107,26 +119,126 @@ class atmoBuilder:
             print "MODTRAN files have been read."
         return
     
-    def readHardware(self):
-        """Reads in the hardware data."""
-        sys = dm.read_hardware()
-        self.sys = sys
-        return sys
-    
-    def readFilters(self):
-        """Reads in the filer data only."""
-        filters = dm.read_filtersonly()
+    def readFilters(self,shift_perc=None):
+        """Reads LSST filter data only and returns a filter-keyed dictionary."""
+        ### Taken from plot_dmags and modified to suit specific needs.
+        # read the filter throughput curves only (called from read_hardware as well)
+        # apply a shift of +shift_perc/100 * eff_wavelength to the wavelengths of the filter.
+        filterdir = os.getenv("LSST_THROUGHPUTS_DEFAULT")
+        filters = {}
+        for f in self.filterlist:
+            filters[f] = Bandpass()
+            filters[f].readThroughput(os.path.join(filterdir, "filter_" + f + ".dat"))
+            effwavelenphi, effwavelensb = filters[f].calcEffWavelen()
+            if shift_perc != None:
+                shift = effwavelensb * shift_perc/100.0
+                print f, shift
+                filters[f].wavelen = filters[f].wavelen + shift
+                filters[f].resampleBandpass()
         self.filters = filters
-        return filters
+        return
+    
+    def readHardware(self,shift_perc=None):
+        """Reads LSST hardware data and returns a filter-keyed dictionary."""
+        ### Taken from plot_dmags and modified to suit specific needs.
+        # read system (hardware) transmission, return dictionary of system hardware (keyed to filter)
+        filterdir = os.getenv("LSST_THROUGHPUTS_DEFAULT")
+        hardware = ("detector.dat", "m1.dat", "m2.dat", "m3.dat", "lens1.dat", "lens2.dat", "lens3.dat")
+        # Read in the standard components, but potentially shift the filter by shift_perc percent.
+        self.readFilters(shift_perc=shift_perc)
+        filters = self.filters
+        sys = {}
+        for f in self.filterlist:
+            sys[f] = Bandpass()
+            # put together the standard component list
+            tlist = []
+            for t in hardware:
+                tlist.append(os.path.join(filterdir, t))
+            # read in the standard components, combine into sys
+            sys[f].readThroughputList(tlist)
+            # multiply by the filter throughput for final hardware throughput (no atmosphere)
+            sys[f].wavelen, sys[f].sb = sys[f].multiplyThroughputs(filters[f].wavelen, filters[f].sb)
+        self.sys = sys
+        return
+
+    def readKurucz(self):
+        """Reads kurucz model data from LSST stack, returns stars, starlist, temperature, metallicity and log of surface
+            gravity."""
+        ### Taken from plot_dmags and modified to suit specific needs.
+        # read kurucz model MS, g40 stars SEDs
+        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")    # "SIMS_SED_LIBRARY_DIR"
+        stardir = os.path.join(homedir, "starSED/kurucz/")  # "starSED/kurucz/"
+        allfilelist = os.listdir(stardir)
+        starlist = []
+        # make preliminary cut for ms, g40 stars
+        for filename in allfilelist:
+            if filename[-11:-8] == 'g40':
+                starlist.append(filename)
+            if filename[-11:-8] == 'g20':
+                starlist.append(filename)
+        atemperature = []
+        amet = []
+        alogg = []
+        starlist2 = []
+        # make secondary cut for stars with temperature > 4000 deg
+        for s in starlist:
+            tmp = s.split('_')
+            met = float(tmp[0][2:])
+            if tmp[0][1] == 'm':
+                met = -1 * met
+            met = met/10.0
+            temperature = float(tmp[1][:5])
+            logg = float(tmp[2][1:])
+            logg = logg / 10.0
+            if (temperature > 4000.0):
+                amet.append(met)
+                atemperature.append(temperature)
+                alogg.append(logg)
+                starlist2.append(s)
+        temperature = numpy.array(atemperature)
+        met = numpy.array(amet)
+        logg = numpy.array(alogg)
+        starlist = starlist2
+        # actually read the stars SEDS from disk
+        stars = {}
+        for s in starlist:
+            stars[s] = Sed()
+            stars[s].readSED_flambda(os.path.join(stardir,s))
+        print "# Read %d MS stars from %s" %(len(starlist), stardir)
+        # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
+        for s in starlist:
+            stars[s].synchronizeSED(wavelen_min=WMIN, wavelen_max=WMAX, wavelen_step=WSTEP)
+
+        self.stars = stars
+        self.starlist = starlist
+        self.temperature = temperature
+        self.met = met
+        self.logg = logg
+
+        return
     
     def genAtmo(self,P,X=1.0,aerosolNormCoeff=0.1):
         """Builds an atmospheric transmission profile given a set of component parameters."""
+        self.parameterCheck(P)
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
         O3comp = self.atmoTrans[X]['O3']**(X*P[2])
         rayleighComp = self.atmoTrans[X]['Rayleigh']**(X*P[3])
         aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff)**P[4]
-        return H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
+        totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
+        return Bandpass(wavelen=self.wavelength,sb=totalTrans)
+    
+    def combineThroughputs(self,atmos,sys=None):
+        ### Taken from plot_dmags and modified to suit specific needs.
+        # Set up the total throughput for this system bandpass
+        if sys == None:
+            sys = self.sys
+        total = {}
+        for f in self.filterlist:
+            wavelen, sb = sys[f].multiplyThroughputs(atmos.wavelen, atmos.sb)
+            total[f] = Bandpass(wavelen, sb)
+            total[f].sbTophi()
+        return total
     
     def phi(self,atmo,sys=None):
         """Calculates the normalized bandpass response function for a given sys and atmo, returns a
@@ -136,34 +248,73 @@ class atmoBuilder:
         phi = {}
         newSys = {}
         for filter in sys:
-            newSys[filter] = atmo*sys[filter].sb
+            newSys[filter] = atmo.sb*sys[filter].sb
             
-            newSys[filter]= newSys[filter]/sys[filter].wavelen
+            newSys[filter] = newSys[filter]/sys[filter].wavelen
             norm = numpy.sum(newSys[filter])*WSTEP
             phi[filter] = newSys[filter]/norm
         
         return phi
     
-    
     def dPhi(self,phi1,phi2):
         """Returns a filter-keyed dictionary of delta phi values"""
-        phi = {}
+        dphi = {}
         for p in phi1:
-            phi[p]=phi1[p]-phi2[p]
-        return phi
+            dphi[p]=phi1[p]-phi2[p]
+        return dphi
+    
+    
+    def mags(self,bpDict):
+        ### Taken from plot_dmags and modified to suit specific needs.
+        # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
+        # pass the sedkeylist so you know what order the magnitudes are arranged in
+        
+        self.kuruczCheck()
+        
+        seds=self.stars
+        sedkeylist=self.starlist
+        filterlist=self.filterlist
+        
+        mags = {}
+        for f in self.filterlist:
+            mags[f] = numpy.zeros(len(sedkeylist), dtype='float')
+            i = 0
+            for key in sedkeylist:
+                mags[f][i] = seds[key].calcMag(bpDict[f])
+                if numpy.isnan(mags[f][i]):
+                    print key, f, mags[f][i]
+                i = i + 1
+            print f, mags[f].max(), mags[f].min()
+        return mags
+    
+    def dmags(self,mags1,mags2):
+        ### Taken from plot_dmags and modified to suit specific needs.
+        dmags = {}
+        for f in self.filterlist:
+            # difference, in millimags
+            dmags[f] = (mags1[f] - mags2[f]) * 1000.0
+        return dmags
+    
+    def gi(self,mags_std):
+        ### Taken from plot_dmags and modified to suit specific needs.
+        # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
+        gi = mags_std['g'] - mags_std['i']
+        return gi
     
     ### Plotting functions
     
     def transPlot(self,P,X=1.0,aerosolNormCoeff=0.1,wavelengthRange=[WMIN,WMAX],includeStdAtmo=True,
                   stdAtmoAirmass=1.0,genAtmoColor='blue',stdAtmoColor='black',stdAtmoColorAlpha=0.5,
-                  stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1):
+                  stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1,figName=None):
         
         w=self.wavelength
         
         fig,ax = pylab.subplots(1,1)
         fig.set_size_inches(12,6)
         
-        ax.plot(w,self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff),color=genAtmoColor,label=self.labelGen(P));
+        atmo = self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff)
+        
+        ax.plot(w,atmo.sb,color=genAtmoColor,label=self.labelGen(P));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
         ax.set_ylabel("Transmission")
         ax.set_title("$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$");
@@ -172,21 +323,24 @@ class atmoBuilder:
         
         if includeStdAtmo == True:
             stdAtmoParams = [1.0,1.0,1.0,1.0,1.0,1.7]
-            ax.plot(w,self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff),
+            atmoStd = self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff)
+            ax.plot(w,atmoStd.sb,
                     label=self.labelGen(stdAtmoParams),alpha=stdAtmoColorAlpha,color=stdAtmoColor);
         
         ax.legend(loc='lower right',shadow=False)
+        
+        if figName!=None:
+            title = figName + "-transPlot.png"
+            pylab.savefig(title,format='png')
         return
-
+    
     def filterPlot(self,plotWidth=12,plotHeight=6):
         """Plots the filter response curve from LSST filter data."""
-        if self.filters == None:
-            self.readFilters()
         
         fig,ax = pylab.subplots(1,1)
         fig.set_size_inches(plotWidth,plotHeight)
         
-        for f in self.filters:
+        for f in self.filterlist:
             ax.plot(self.filters[f].wavelen,self.filters[f].sb,label=str(f));
         
         ax.set_xlim(300,1100);
@@ -216,7 +370,7 @@ class atmoBuilder:
         ax.legend(loc=4,shadow=False);
         return
     
-    def phiPlot(self,phi1,phi2=None,plotWidth=12,plotHeight=6,phi2Alpha=0.5,phi2Color='black'):
+    def phiPlot(self,phi1,phi2=None,plotWidth=12,plotHeight=6,phi2Alpha=0.5,phi2Color='black',figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         w = self.wavelength
@@ -227,19 +381,23 @@ class atmoBuilder:
         if phi2 != None:
             phi2 = self.phi(self.genAtmo([1.0,1.0,1.0,1.0,1.0,1.7]))
         
-        for p in phi1:
-            ax.plot(w,phi1[p])
-            ax.plot(w,phi2[p],alpha=phi2Alpha,color=phi2Color)
+        for f in self.filterlist:
+            ax.plot(w,phi1[f],label=str(f))
+            ax.plot(w,phi2[f],alpha=phi2Alpha,color=phi2Color)
         
         ax.set_xlim(300,1100);
-        ax.set_ylabel("$\phi_b$");
+        ax.set_ylabel("$\phi_b^{obs}(\lambda)$",fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("Bandpass Normalization Response");
+        ax.set_title("Normalized Bandpass Response");
+        ax.legend(loc=4,shadow=False);
         
+        if figName!=None:
+            title = figName + "-phiPlot.png"
+            pylab.savefig(title,format='png')
         return
     
-    def dPhiPlot(self,phi1,phi2,plotWidth=12,plotHeight=6):
-        """Plots delta normalized bandpass response function."""
+    def dPhiPlot(self,phi1,phi2,plotWidth=12,plotHeight=6,figName=None):
+        """Plots change in normalized bandpass response function given two phi functions."""
         
         w = self.wavelength
         
@@ -248,34 +406,127 @@ class atmoBuilder:
         
         phi = self.dPhi(phi1,phi2)
         
-        for p in phi:
-            ax.plot(w,phi[p],label=str(p))
+        for f in self.filterlist:
+            ax.plot(w,phi[f],label=str(f))
         
         ax.set_xlim(300,1100);
-        ax.set_ylabel("$\Phi");
+        ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$",fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("$\Delta\Phi$");
+        ax.set_title("Change in Normalized Bandpass Response");
         ax.legend(loc=4,shadow=False)
         
-        return
-
-    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,transPlot=True,phiPlot=True,dPhiPlot=True):
-        """Generates an atmo and plots a bunch of functions."""
-        atmo = self.genAtmo(P,X,aerosolNormCoeff)
-        phi = self.phi(atmo)
+        if figName!=None:
+            title = figName + "-dPhiPlot.png"
+            pylab.savefig(title,format='png')
         
+        return
+    
+    def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figname=None,verbose=False):
+        """Plots dmags with each filter in its own subplot."""
+        ### Taken from plot_dmags and modified to suit specific needs.
+        sedcolorkey = [self.met,self.logg]
+        plotfilterlist = self.filterlist
+        
+        # make figure of change in magnitude
+        if newfig:
+            pylab.figure(figsize=(10,15))
+        yplots = 3
+        xplots = 2
+        if len(plotfilterlist) == 1:
+            yplots = 1
+            xplots = 1
+        pylab.subplots_adjust(top=0.93, wspace=0.32, hspace=0.32, bottom=0.09, left=0.12, right=0.96)
+        # For Kurucz models
+        # set colors of data points based on their metallicity
+        metallicity = numpy.array(sedcolorkey[0])
+        logg = numpy.array(sedcolorkey[1])
+        metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
+        metbinsize = abs(metallicity.min() - metallicity.max())/6.0
+        metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
+        if verbose:
+            print metbinsize, metbins
+        
+        i = 1
+        # for each filter, use a different subplot
+        plot_logg2 = False
+        for f in plotfilterlist:
+            ax = pylab.subplot(yplots, xplots,i)
+            for metidx in range(len(metbins)):
+                condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
+                            & (logg>3.5))
+                mcolor = metcolors[metidx]
+                pylab.plot(gi[condition], dmags[f][condition], mcolor+'.')
+                if plot_logg2:
+                        condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
+                            & (logg<2.5))
+                        mcolor = metcolors[metidx]
+                        pylab.plot(gi[condition], dmags[f][condition], mcolor+'x')
+            i = i + 1
+        # set up generic items
+        for i in range(0, len(plotfilterlist)):
+            f = plotfilterlist[i]
+            ax = pylab.subplot(yplots,xplots,i+1)
+            pylab.xlabel("g-i")
+            pylab.ylabel(r"$\Delta$ %s (mmag)" %(f))
+            def axis_formatter(x, pos):
+                return "%.1f" %(x)
+            formatter = pylab.FuncFormatter(axis_formatter)
+            ax.yaxis.set_major_formatter(formatter)
+            # set axes limits
+            if ylims == None:
+                pass
+            else:
+                try:
+                    pylab.ylim(ylims[f][0], ylims[f][1])
+                except KeyError:
+                    pass
+            if xlims == None:
+                pass
+            else:
+                try:
+                    pylab.xlim(xlims[f][0], xlims[f][1])
+                except KeyError:
+                    pass
+        # put a grid in the background
+        if newfig:
+            for i in range(0, len(plotfilterlist)):
+                ax = pylab.subplot(yplots,xplots, i+1)
+                pylab.grid(True)
+            if titletext!=None:
+                pylab.suptitle("$\Delta$mmags for each LSST filter")
+        if figname!=None:
+            pylab.savefig(figname+'-dMagsPlot.png', format='png')
+        
+        return
+    
+    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,figName=None):
+        """Generates an atmosphere with given parameters and plots appropriate functions."""
+        
+        atmo = self.genAtmo(P,X,aerosolNormCoeff)
+        
+        phi = self.phi(atmo)
         atmoStd = self.genAtmo([1.0,1.0,1.0,1.0,1.0,1.7])
         phiStd = self.phi(atmoStd)
         
         if transPlot:
-            self.transPlot(P)
+            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName=figName)
         if phiPlot:
-            self.phiPlot(phi,phi2=phiStd)
+            self.phiPlot(phi,phi2=phiStd,figName=figName)
         if dPhiPlot:
-            self.dPhiPlot(phi,phiStd)
-        
+            self.dPhiPlot(phi,phiStd,figName=figName)
+        if dmagsPlot:
+            bp = self.combineThroughputs(atmo)
+            bpStd = self.combineThroughputs(atmoStd)
+            
+            mag = self.mags(bp)
+            magStd = self.mags(bpStd)
+            
+            dmags = self.dmags(mag,magStd)
+            gi = self.gi(magStd)
+            
+            self.dmagsPlot(gi,dmags,figname=figName)
         return
-    
+
     ### Secondary Functions
     
     def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1):
@@ -297,3 +548,15 @@ class atmoBuilder:
             labelEle = name + str(param)
             label.append(labelEle)
         return ' '.join(label)
+    
+    def parameterCheck(self,P):
+        """Checks if parameter array is of appropriate length."""
+        if len(P) != 6:
+            print "Need 6 parameters to build atmosphere!"
+        return
+    
+    def kuruczCheck(self):
+        """Checks if Kurucz model data has been read in."""
+        if self.stars == None:
+            print "No Kurucz model data found, please run self.readKurucz()"
+        return
