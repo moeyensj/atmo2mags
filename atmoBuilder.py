@@ -222,8 +222,8 @@ class atmoBuilder:
         self.parameterCheck(P)
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
-        O3comp = self.atmoTrans[X]['O3']**(X*P[2])
-        rayleighComp = self.atmoTrans[X]['Rayleigh']**(X*P[3])
+        O3comp = self.atmoTrans[X]['O3']**(P[2])   # linear
+        rayleighComp = self.atmoTrans[X]['Rayleigh']**(P[3])  # linear
         aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff)**P[4]
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
