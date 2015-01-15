@@ -570,11 +570,11 @@ class AtmoBuilder:
         phiStd = self.phi(atmoStd)
         
         if transPlot:
-            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName=figName)
+            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName='X'+str(int(X*10))+'-'+figName)
         if phiPlot:
-            self.phiPlot(phi,phi2=phiStd,figName=figName)
+            self.phiPlot(phi,phi2=phiStd,figName='X'+str(int(X*10))+'-'+figName)
         if dPhiPlot:
-            self.dPhiPlot(phi,phiStd,figName=figName)
+            self.dPhiPlot(phi,phiStd,figName='X'+str(int(X*10))+'-'+figName)
         if dmagsPlot:
             bp = self.combineThroughputs(atmo)
             bpStd = self.combineThroughputs(atmoStd)
