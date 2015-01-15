@@ -22,7 +22,7 @@ WSTEP = 0.5
     
     """
 
-class atmoBuilder:
+class AtmoBuilder:
     def __init__(self):
         # List of strings containing component names
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
@@ -222,8 +222,8 @@ class atmoBuilder:
         self.parameterCheck(P)
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
-        O3comp = self.atmoTrans[X]['O3']**(P[2])   # linear
-        rayleighComp = self.atmoTrans[X]['Rayleigh']**(P[3])  # linear
+        O3comp = self.atmoTrans[X]['O3']**P[2]   # linear
+        rayleighComp = self.atmoTrans[X]['Rayleigh']**P[3]  # linear
         aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff)**P[4]
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
@@ -421,6 +421,67 @@ class atmoBuilder:
         
         return
     
+    def colorcolorPlot(self, bpDict, newfig=True, titletext=None):
+        
+        seds = self.stars
+        sedkeylist = self.starlist
+        sedcolorkey = self.met
+        
+        mags = self.mags(bpDict)
+        gi = self.gi(mags)
+        magcolors = {}
+        colorlabels = numpy.chararray(len(self.filterlist))
+        for i in range(1-7):
+            colorlabels[i] = self.filterlist[i-1] + '-' + self.filterlist[i]
+            magscolors[colorlabels[i]] = mags[self.filterlist[i-1]] - mags[self.filterlist[i]]
+        # colors = ug, gr, ri, iz, zy
+        metallicity = sedcolorkey
+        metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
+        metbinsize = abs(sedcolorkey.min() - sedcolorkey.max())/6.0
+        metbins = numpy.arange(sedcolorkey.min(), sedcolorkey.max() + metbinsize, metbinsize)
+        print metbinsize, metbins
+        i = 1
+        # use a different subplot for each color/color combo
+        for i in range(len(colorlabels-1)):
+            ax = pylab.subplot(3,2,i)
+            for metidx in range(len(metbins)):
+                condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
+                mcolor = metcolors[metidx]
+                pylab.plot(magscolors[colorlabels[i]][condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
+            i = i + 1
+        ax = pylab.subplot(3,2,7)
+        for metidx in range(len(metbins)):
+            condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
+            mcolor = metcolors[metidx]
+            pylab.plot(gi[condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
+        # set up generic items
+        for i in range(1, 7):
+            f = filterlist[i-1]
+            ax = pylab.subplot(3,2,i)
+            #pylab.xlabel("g-i")
+            #pylab.ylabel(r"$\Delta$ %s (mmag)" %(f))
+            def axis_formatter(x, pos):
+                return "%.1f" %(x)
+            formatter = pylab.FuncFormatter(axis_formatter)
+            ax.yaxis.set_major_formatter(formatter)
+            # set axes limits
+            if ylims == None:
+                pass
+            else:
+                try:
+                    pylab.ylim(ylims[f][0], ylims[f][1])
+                except KeyError:
+                    pass
+        # put a grid in the background
+        if newfig:
+            for i in range(1, 7):
+                ax = pylab.subplot(3, 2, i)
+                pylab.grid(True)
+                #pylab.suptitle(titletext)
+                #pylab.savefig("delta_mags2.eps", format='eps')
+        return
+
+
     def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figname=None,verbose=False):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
