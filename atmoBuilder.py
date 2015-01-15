@@ -314,7 +314,7 @@ class AtmoBuilder:
         
         atmo = self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff)
         
-        ax.plot(w,atmo.sb,color=genAtmoColor,label=self.labelGen(P));
+        ax.plot(w,atmo.sb,color=genAtmoColor,label=self.labelGen(P,X));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
         ax.set_ylabel("Transmission")
         ax.set_title("$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$");
@@ -325,7 +325,7 @@ class AtmoBuilder:
             stdAtmoParams = [1.0,1.0,1.0,1.0,1.0,1.7]
             atmoStd = self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff)
             ax.plot(w,atmoStd.sb,
-                    label=self.labelGen(stdAtmoParams),alpha=stdAtmoColorAlpha,color=stdAtmoColor);
+                    label=self.labelGen(stdAtmoParams,X=stdAtmoAirmass),alpha=stdAtmoColorAlpha,color=stdAtmoColor);
         
         ax.legend(loc='lower right',shadow=False)
         
@@ -609,15 +609,14 @@ class AtmoBuilder:
         X = float(airmass)
         return "%.3f" % (X)
     
-    def labelGen(self,P):
+    def labelGen(self,P,X=1.0):
         """Generates label for use in plot legends."""
         label = []
         for paramNum,param in enumerate(P):
             name = self.parametersPlot[paramNum] + ':'
-            value = P
             labelEle = name + str(param)
             label.append(labelEle)
-        return ' '.join(label)
+        return ' '.join(label) + ' $X$:' + str(X)
     
     def parameterCheck(self,P):
         """Checks if parameter array is of appropriate length."""
