@@ -330,7 +330,7 @@ class AtmoBuilder:
         ax.legend(loc='lower right',shadow=False)
         
         if figName!=None:
-            title = figName + "-transPlot.png"
+            title = figName + "_transPlot.png"
             pylab.savefig(title,format='png')
         return
     
@@ -392,7 +392,7 @@ class AtmoBuilder:
         ax.legend(loc=4,shadow=False);
         
         if figName!=None:
-            title = figName + "-phiPlot.png"
+            title = figName + "_phiPlot.png"
             pylab.savefig(title,format='png')
         return
     
@@ -416,7 +416,7 @@ class AtmoBuilder:
         ax.legend(loc=4,shadow=False)
         
         if figName!=None:
-            title = figName + "-dPhiPlot.png"
+            title = figName + "_dPhiPlot.png"
             pylab.savefig(title,format='png')
         
         return
@@ -482,7 +482,7 @@ class AtmoBuilder:
         return
 
 
-    def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figname=None,verbose=False):
+    def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figName=None,verbose=False):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
         sedcolorkey = [self.met,self.logg]
@@ -555,12 +555,13 @@ class AtmoBuilder:
                 pylab.grid(True)
             if titletext!=None:
                 pylab.suptitle("$\Delta$mmags for each LSST filter")
-        if figname!=None:
-            pylab.savefig(figname+'-dMagsPlot.png', format='png')
+        if figName!=None:
+            title = figName+"_dMagsPlot.png"
+            pylab.savefig(title, format='png')
         
         return
     
-    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,figName=None):
+    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
         """Generates an atmosphere with given parameters and plots appropriate functions."""
         
         atmo = self.genAtmo(P,X,aerosolNormCoeff)
@@ -569,12 +570,20 @@ class AtmoBuilder:
         atmoStd = self.genAtmo([1.0,1.0,1.0,1.0,1.0,1.7])
         phiStd = self.phi(atmoStd)
         
+        if saveFig == True:
+            if figName != None:
+                figName='X'+str(int(X*10))+'_'+self.pToString(P)+'_'+figName
+            else:
+                figName='X'+str(int(X*10))+'_'+self.pToString(P)
+        else:
+            figName = None
+        
         if transPlot:
-            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName='X'+str(int(X*10))+'-'+figName)
+            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName=figName)
         if phiPlot:
-            self.phiPlot(phi,phi2=phiStd,figName='X'+str(int(X*10))+'-'+figName)
+            self.phiPlot(phi,phi2=phiStd,figName=figName)
         if dPhiPlot:
-            self.dPhiPlot(phi,phiStd,figName='X'+str(int(X*10))+'-'+figName)
+            self.dPhiPlot(phi,phiStd,figName=figName)
         if dmagsPlot:
             bp = self.combineThroughputs(atmo)
             bpStd = self.combineThroughputs(atmoStd)
@@ -585,7 +594,7 @@ class AtmoBuilder:
             dmags = self.dmags(mag,magStd)
             gi = self.gi(magStd)
             
-            self.dmagsPlot(gi,dmags,figname=figName)
+            self.dmagsPlot(gi,dmags,figName=figName)
         return
 
     ### Secondary Functions
@@ -615,6 +624,16 @@ class AtmoBuilder:
         if len(P) != 6:
             print "Need 6 parameters to build atmosphere!"
         return
+    
+    def pToString(self,P):
+        stringP = "P"
+        for i in P:
+            if i < 1.0:
+                stringP+="0"+str(int(i*10))
+            else:
+                stringP+=str(int(i*10))
+        return stringP
+    
     
     def kuruczCheck(self):
         """Checks if Kurucz model data has been read in."""
