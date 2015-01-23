@@ -13,14 +13,14 @@ WMAX = 1100.5
 WSTEP = 0.5
 
 """
-    #### IMPORTANT NOTE ####
-    WMIN,WMAX,WSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
-    be gridded properly and array multiplication errors will occur.
+#### IMPORTANT NOTE ####
+WMIN,WMAX,WSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
+be gridded properly and array multiplication errors will occur.
     
-    The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
-    atmospheres.
+The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
+atmospheres.
     
-    """
+"""
 
 class AtmoBuilder:
     def __init__(self):
@@ -120,7 +120,7 @@ class AtmoBuilder:
         return
     
     def readFilters(self,shift_perc=None):
-        """Reads LSST filter data only and returns a filter-keyed dictionary."""
+        """Reads LSST filter data only and returns a filter-keyed dictionary. (S^{filters})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read the filter throughput curves only (called from read_hardware as well)
         # apply a shift of +shift_perc/100 * eff_wavelength to the wavelengths of the filter.
@@ -139,7 +139,7 @@ class AtmoBuilder:
         return
     
     def readHardware(self,shift_perc=None):
-        """Reads LSST hardware data and returns a filter-keyed dictionary."""
+        """Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read system (hardware) transmission, return dictionary of system hardware (keyed to filter)
         filterdir = os.getenv("LSST_THROUGHPUTS_DEFAULT")
@@ -162,8 +162,7 @@ class AtmoBuilder:
         return
 
     def readKurucz(self):
-        """Reads kurucz model data from LSST stack, returns stars, starlist, temperature, metallicity and log of surface
-            gravity."""
+        """Reads Kurucz model data from LSST software stack and sets relevant class attributes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read kurucz model MS, g40 stars SEDs
         homedir = os.getenv("SIMS_SED_LIBRARY_DIR")    # "SIMS_SED_LIBRARY_DIR"
@@ -217,18 +216,20 @@ class AtmoBuilder:
 
         return
     
-    def genAtmo(self,P,X=1.0,aerosolNormCoeff=0.1):
-        """Builds an atmospheric transmission profile given a set of component parameters."""
+    def genAtmo(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0):
+        """Builds an atmospheric transmission profile given a set of component parameters and returns. (S^{atm})"""
         self.parameterCheck(P)
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
         O3comp = self.atmoTrans[X]['O3']**P[2]   # linear
         rayleighComp = self.atmoTrans[X]['Rayleigh']**P[3]  # linear
-        aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff)**P[4]
+        aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff,aerosolNormWavelength=aerosolNormWavelength)**P[4]
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
     
     def combineThroughputs(self,atmos,sys=None):
+        """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed
+        dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
         if sys == None:
@@ -561,10 +562,10 @@ class AtmoBuilder:
         
         return
     
-    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
+    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
         """Generates an atmosphere with given parameters and plots appropriate functions."""
         
-        atmo = self.genAtmo(P,X,aerosolNormCoeff)
+        atmo = self.genAtmo(P,X,aerosolNormCoeff,aerosolNormWavelength)
         
         phi = self.phi(atmo)
         atmoStd = self.genAtmo([1.0,1.0,1.0,1.0,1.0,1.7])
@@ -599,10 +600,10 @@ class AtmoBuilder:
 
     ### Secondary Functions
     
-    def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1):
+    def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0):
         """Standard aerosol transmission function, returns array of transmission values over a range of
-            wavelenghts"""
-        return numpy.e**(-aerosolNormCoeff*X*(550.0/w)*alpha)
+            wavelengths."""
+        return numpy.e**(-aerosolNormCoeff*X*(aerosolNormWavelengt/w)*alpha)
     
     def airmassToString(self,airmass):
         """Converts airmass to string"""
@@ -625,6 +626,7 @@ class AtmoBuilder:
         return
     
     def pToString(self,P):
+        """Returns string version of parameter array."""
         stringP = "P"
         for i in P:
             if i < 1.0:
@@ -632,7 +634,6 @@ class AtmoBuilder:
             else:
                 stringP+=str(int(i*10))
         return stringP
-    
     
     def kuruczCheck(self):
         """Checks if Kurucz model data has been read in."""
