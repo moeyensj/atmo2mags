@@ -217,7 +217,8 @@ class AtmoBuilder:
         return
     
     def genAtmo(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0):
-        """Builds an atmospheric transmission profile given a set of component parameters and returns. (S^{atm})"""
+        """Builds an atmospheric transmission profile given a set of component parameters and 
+        returns bandpass object. (S^{atm})"""
         self.parameterCheck(P)
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
@@ -228,7 +229,7 @@ class AtmoBuilder:
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
     
     def combineThroughputs(self,atmos,sys=None):
-        """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed
+        """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
         dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
@@ -243,7 +244,7 @@ class AtmoBuilder:
     
     def phi(self,atmo,sys=None):
         """Calculates the normalized bandpass response function for a given sys and atmo, returns a
-            filter-keyed dictionary of phi"""
+            filter-keyed dictionary of phi."""
         if sys == None:
             sys = self.sys
         phi = {}
@@ -258,7 +259,7 @@ class AtmoBuilder:
         return phi
     
     def dPhi(self,phi1,phi2):
-        """Returns a filter-keyed dictionary of delta phi values"""
+        """Returns a filter-keyed dictionary of delta phi values."""
         dphi = {}
         for p in phi1:
             dphi[p] = phi1[p] - phi2[p]
@@ -266,6 +267,7 @@ class AtmoBuilder:
     
     
     def mags(self,bpDict):
+        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
@@ -289,6 +291,7 @@ class AtmoBuilder:
         return mags
     
     def dmags(self,mags1,mags2):
+        """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         dmags = {}
         for f in self.filterlist:
@@ -297,6 +300,7 @@ class AtmoBuilder:
         return dmags
     
     def gi(self,mags_std):
+        """Returns standard color temperature given standard magnitude dictionary keyed on filters."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
         gi = mags_std['g'] - mags_std['i']
@@ -304,16 +308,17 @@ class AtmoBuilder:
     
     ### Plotting functions
     
-    def transPlot(self,P,X=1.0,aerosolNormCoeff=0.1,wavelengthRange=[WMIN,WMAX],includeStdAtmo=True,
+    def transPlot(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0,wavelengthRange=[WMIN,WMAX],includeStdAtmo=True,
                   stdAtmoAirmass=1.0,genAtmoColor='blue',stdAtmoColor='black',stdAtmoColorAlpha=0.5,
                   stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1,figName=None):
+        """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
         
         fig,ax = pylab.subplots(1,1)
         fig.set_size_inches(12,6)
         
-        atmo = self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff)
+        atmo = self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff,aerosolNormWavelength=aerosolNormWavelength)
         
         ax.plot(w,atmo.sb,color=genAtmoColor,label=self.labelGen(P,X));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
