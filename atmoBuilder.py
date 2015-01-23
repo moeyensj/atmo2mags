@@ -609,7 +609,7 @@ class AtmoBuilder:
     def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0):
         """Standard aerosol transmission function, returns array of transmission values over a range of
             wavelengths."""
-        return numpy.e**(-aerosolNormCoeff*X*(aerosolNormWavelengt/w)*alpha)
+        return numpy.e**(-aerosolNormCoeff*X*(aerosolNormWavelength/w)*alpha)
     
     def airmassToString(self,airmass):
         """Converts airmass to string"""
