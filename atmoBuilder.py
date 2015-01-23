@@ -261,7 +261,7 @@ class AtmoBuilder:
         """Returns a filter-keyed dictionary of delta phi values"""
         dphi = {}
         for p in phi1:
-            dphi[p]=phi1[p]-phi2[p]
+            dphi[p] = phi1[p] - phi2[p]
         return dphi
     
     
@@ -272,9 +272,9 @@ class AtmoBuilder:
         
         self.kuruczCheck()
         
-        seds=self.stars
-        sedkeylist=self.starlist
-        filterlist=self.filterlist
+        seds = self.stars
+        sedkeylist = self.starlist
+        filterlist = self.filterlist
         
         mags = {}
         for f in self.filterlist:
@@ -392,7 +392,7 @@ class AtmoBuilder:
         ax.set_title("Normalized Bandpass Response");
         ax.legend(loc=4,shadow=False);
         
-        if figName!=None:
+        if figName != None:
             title = figName + "_phiPlot.png"
             pylab.savefig(title,format='png')
         return
@@ -416,7 +416,7 @@ class AtmoBuilder:
         ax.set_title("Change in Normalized Bandpass Response");
         ax.legend(loc=4,shadow=False)
         
-        if figName!=None:
+        if figName != None:
             title = figName + "_dPhiPlot.png"
             pylab.savefig(title,format='png')
         
@@ -452,7 +452,7 @@ class AtmoBuilder:
             i = i + 1
         ax = pylab.subplot(3,2,7)
         for metidx in range(len(metbins)):
-            condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
+            condition = ((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
             mcolor = metcolors[metidx]
             pylab.plot(gi[condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
         # set up generic items
@@ -556,7 +556,8 @@ class AtmoBuilder:
                 pylab.grid(True)
             if titletext!=None:
                 pylab.suptitle("$\Delta$mmags for each LSST filter")
-        if figName!=None:
+                
+        if figName != None:
             title = figName+"_dMagsPlot.png"
             pylab.savefig(title, format='png')
         
