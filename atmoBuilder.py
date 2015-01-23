@@ -310,7 +310,7 @@ class AtmoBuilder:
     
     def transPlot(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0,wavelengthRange=[WMIN,WMAX],includeStdAtmo=True,
                   stdAtmoAirmass=1.0,genAtmoColor='blue',stdAtmoColor='black',stdAtmoColorAlpha=0.5,
-                  stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1,figName=None):
+                  stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1,stdAerosolNormWavelength=550.0,figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
@@ -329,13 +329,13 @@ class AtmoBuilder:
         
         if includeStdAtmo == True:
             stdAtmoParams = [1.0,1.0,1.0,1.0,1.0,1.7]
-            atmoStd = self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff)
+            atmoStd = self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff,aerosolNormWavelength=stdAerosolNormWavelength)
             ax.plot(w,atmoStd.sb,
                     label=self.labelGen(stdAtmoParams,X=stdAtmoAirmass),alpha=stdAtmoColorAlpha,color=stdAtmoColor);
         
         ax.legend(loc='lower right',shadow=False)
         
-        if figName!=None:
+        if figName != None:
             title = figName + "_transPlot.png"
             pylab.savefig(title,format='png')
         return
@@ -586,7 +586,7 @@ class AtmoBuilder:
             figName = None
         
         if transPlot:
-            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName=figName)
+            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,aerosolNormWavelength=aerosolNormWavelength,figName=figName)
         if phiPlot:
             self.phiPlot(phi,phi2=phiStd,figName=figName)
         if dPhiPlot:
