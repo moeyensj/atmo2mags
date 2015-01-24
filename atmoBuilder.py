@@ -8,13 +8,13 @@ import lsst.sims.photUtils.Bandpass as Bandpass
 import lsst.sims.photUtils.photUtils as photUtils
 
 # Global wavelength variables set to MODTRAN defaults
-WMIN = 300
-WMAX = 1100.5
-WSTEP = 0.5
+MINWAVELEN = 300
+MAXWAVELEN = 1100
+WAVELENSTEP = 0.5
 
 """
 #### IMPORTANT NOTE ####
-WMIN,WMAX,WSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
+MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
 be gridded properly and array multiplication errors will occur.
     
 The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
@@ -37,7 +37,7 @@ class AtmoBuilder:
         # Effective wavelength range, set in readModtranFiles
         self.wavelength = None
         # Min, max values of wavelength range
-        self.wavelengthRange = [WMIN,WMAX]
+        self.wavelengthRange = [MINWAVELEN,MAXWAVELEN]
         # List of airmasses for which we have profiles, set in readModtranFiles
         self.airmasses = None
         # List of transmission profiles for individual airmasses
@@ -75,7 +75,7 @@ class AtmoBuilder:
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
-        self.wavelength = numpy.arange(WMIN,WMAX,WSTEP,dtype='float')
+        self.wavelength = numpy.arange(MINWAVELEN,MAXWAVELEN+WAVELENSTEP,WAVELENSTEP,dtype='float')
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
