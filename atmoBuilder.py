@@ -555,7 +555,9 @@ class AtmoBuilder:
                 aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
                 aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
                 transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
-        """Generates an atmosphere with given parameters and plots appropriate functions."""
+        """Plots transmission profile, normalized bandpass function, change in normalized bandpass function and change in magnitude given
+        an array of parameters and a specific airmass against standard atmosphere. User can provide array of parameters and airmass for comparison
+        atmosphere if includeStdAtmo flag is set to False."""
         
         atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff1, aerosolNormWavelen1)
         bpDict1 = self.combineThroughputs(atmo1)
