@@ -37,7 +37,7 @@ class AtmoBuilder:
         # List of parameters (H2O,O2,O3,Rayleigh,Aerosol,Alpha).
         self.parameters = [1.0,1.0,1.0,1.0,1.0,1.7]
         # List of parameters used for plotting
-        self.parametersPlot = ['$t_{H_2O}$','$t_{O_2}$','$t_{O_3}$','$t_{Rayleigh}$','$t_{Aerosol}$','$alpha$']
+        self.parametersPlot = ['$t_{H_2O}$','$t_{O_2}$','$t_{O_3}$','$t_{Rayleigh}$','$t_{Aerosol}$',r'$\alpha$']
         # List of colors for used in plotting individual absorption components
         self.componentsColor = ['blue','green','red','purple','cyan']
         # Effective wavelength range, set in readModtranFiles
