@@ -290,10 +290,10 @@ class AtmoBuilder:
     
     ### Plotting functions
     
-    def transPlot(self,P1,X1,P2=None,X2=None,includeStdAtmo=True,
+    def transPlot(self,P1,X1,P2=None,X2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],
                   aerosolNormCoeff1=STDAEROSOLNORMCOEFF,aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
                   aerosolNormCoeff2=STDAEROSOLNORMCOEFF,aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-                  wavelengthRange=[MINWAVELEN,MAXWAVELEN],atmoColor1='blue',atmo2Color='black',atmo2Alpha=0.5,figName=None):
+                  atmoColor1='blue',atmo2Color='black',atmo2Alpha=0.5,figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
@@ -325,7 +325,7 @@ class AtmoBuilder:
             pylab.savefig(title,format='png')
         return
     
-    def filterPlot(self,plotWidth=12,plotHeight=6):
+    def filterPlot(self,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
         
         fig,ax = pylab.subplots(1,1)
@@ -334,7 +334,7 @@ class AtmoBuilder:
         for f in self.filterlist:
             ax.plot(self.filters[f].wavelen,self.filters[f].sb,label=str(f));
         
-        ax.set_xlim(300,1100);
+        ax.set_xlim(wavenlenghRange[0],wavenlengthRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
@@ -342,7 +342,7 @@ class AtmoBuilder:
         ax.legend(loc=4,shadow=False);
         return
     
-    def hardwarePlot(self,plotWidth=12,plotHeight=6):
+    def hardwarePlot(self,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the hardware response curve from LSST hardware data."""
         if self.sys == None:
             self.readHardware()
@@ -353,7 +353,7 @@ class AtmoBuilder:
         for f in self.sys:
             ax.plot(self.sys[f].wavelen,self.sys[f].sb,label=str(f));
         
-        ax.set_xlim(300,1100);
+        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
@@ -361,7 +361,8 @@ class AtmoBuilder:
         ax.legend(loc=4,shadow=False);
         return
     
-    def phiPlot(self,bpDict1,bpDict2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,phi2Alpha=0.5,phi2Color='black',figName=None):
+    def phiPlot(self,bpDict1,bpDict2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+                phi2Alpha=0.5,phi2Color='black',figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
@@ -374,7 +375,7 @@ class AtmoBuilder:
             ax.plot(w,bpDict1[f].phi,label=str(f))
             ax.plot(w,bpDict2[f].phi,alpha=phi2Alpha,color=phi2Color)
         
-        ax.set_xlim(300,1100);
+        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
         ax.set_ylabel("$\phi_b^{obs}(\lambda)$",fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Normalized Bandpass Response");
@@ -385,7 +386,7 @@ class AtmoBuilder:
             pylab.savefig(title,format='png')
         return
     
-    def dphiPlot(self,bpDict1,bpDict2,plotWidth=12,plotHeight=6,figName=None):
+    def dphiPlot(self,bpDict1,bpDict2,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         w = self.wavelength
@@ -396,7 +397,7 @@ class AtmoBuilder:
         for f in self.filterlist:
             ax.plot(w,bpDict1[f].phi-bpDict2[f].phi,label=str(f))
         
-        ax.set_xlim(300,1100);
+        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$",fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Change in Normalized Bandpass Response");
@@ -549,7 +550,7 @@ class AtmoBuilder:
         
         return
     
-    def allPlot(self,P1,X1,P2=None,X2=None,includeStdAtmo=True,
+    def allPlot(self,P1,X1,P2=None,X2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],
                 aerosolNormCoeff1=STDAEROSOLNORMCOEFF,aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
                 aerosolNormCoeff2=STDAEROSOLNORMCOEFF,aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
                 transPlot=True,phiPlot=True,dphiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
@@ -574,13 +575,13 @@ class AtmoBuilder:
             figName = None
         
         if transPlot:
-            self.transPlot(P1,X1,P2=P2,X2=X2,includeStdAtmo=includeStdAtmo,
+            self.transPlot(P1,X1,P2=P2,X2=X2,includeStdAtmo=includeStdAtmo,plotWidth=plotWidth,plotHeight=plotHeight,wavelengthRange=wavelengthRange,
                            aerosolNormCoeff1=aerosolNormCoeff1,aerosolNormWavelen1=aerosolNormWavelen1,
                            aerosolNormCoeff2=aerosolNormCoeff2,aerosolNormWavelen2=aerosolNormWavelen2,figName=figName)
         if phiPlot:
-            self.phiPlot(bpDict1,bpDict2,figName=figName)
+            self.phiPlot(bpDict1,bpDict2,plotWidth=plotWidth,plotHeight=plotHeight,wavelengthRange=wavelengthRange,figName=figName)
         if dphiPlot:
-            self.dphiPlot(bpDict1,bpDict2,figName=figName)
+            self.dphiPlot(bpDict1,bpDict2,plotWidth=plotWidth,plotHeight=plotHeight,wavelengthRange=wavelengthRange,figName=figName)
         if dmagsPlot:
             mag1 = self.mags(bpDict1)
             mag2 = self.mags(bpDict2)
