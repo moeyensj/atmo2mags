@@ -34,7 +34,7 @@ class AtmoBuilder:
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
         # List of strings containing components names to be used when plotting
         self.componentsPlot = ['$H_2O$','$O_2$','$O_3$','Rayleigh','Aerosol']
-        # List of parameters (H2O,O2,O3,Rayleigh,Aerosol,Alpha).
+        # List of parameters (H2O,O2,O3,Rayleigh,Aerosol,Alpha)
         self.parameters = [1.0,1.0,1.0,1.0,1.0,1.7]
         # List of parameters used for plotting
         self.parametersPlot = [r'$t_{H_2O}$',r'$t_{O_2}$',r'$t_{O_3}$',r'$t_{Rayleigh}$',r'$t_{Aerosol}$',r'$\alpha$']
@@ -248,7 +248,7 @@ class AtmoBuilder:
             total[f].sbTophi()
         return total
     
-    def mags(self,bpDict):
+    def mags(self,bpDict,verbose=False):
         """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
@@ -269,7 +269,8 @@ class AtmoBuilder:
                 if numpy.isnan(mags[f][i]):
                     print key, f, mags[f][i]
                 i = i + 1
-            print f, mags[f].max(), mags[f].min()
+            if verbose == True:
+                print f, mags[f].max(), mags[f].min()
         return mags
     
     def dmags(self,mags1,mags2):
@@ -492,7 +493,7 @@ class AtmoBuilder:
         metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
         metbinsize = abs(metallicity.min() - metallicity.max())/6.0
         metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
-        if verbose:
+        if verbose == True:
             print metbinsize, metbins
         
         i = 1
