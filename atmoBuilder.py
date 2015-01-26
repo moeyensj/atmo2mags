@@ -67,7 +67,7 @@ class AtmoBuilder:
         self.readFilters()
         self.readHardware()
     
-    def readModtranFiles(self, modtranDir='.', modtranRoot='Pachon_MODTRAN',modtranSuffix='.7sc'):
+    def readModtranFiles(self, modtranDir='.', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """Reads in atmospheric absorption data from MODTRAN files into an airmass-keyed directory."""
         ### Taken from AtmoComp and modified to suit specific needs.
         
@@ -125,7 +125,7 @@ class AtmoBuilder:
             print "MODTRAN files have been read."
         return
     
-    def readFilters(self,shift_perc=None):
+    def readFilters(self, shift_perc=None):
         """Reads LSST filter data only and returns a filter-keyed dictionary. (S^{filters})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read the filter throughput curves only (called from read_hardware as well)
@@ -144,7 +144,7 @@ class AtmoBuilder:
         self.filters = filters
         return
     
-    def readHardware(self,shift_perc=None):
+    def readHardware(self, shift_perc=None):
         """Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read system (hardware) transmission, return dictionary of system hardware (keyed to filter)
@@ -222,7 +222,7 @@ class AtmoBuilder:
 
         return
     
-    def genAtmo(self,P,X,aerosolNormCoeff=STDAEROSOLNORMCOEFF,aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
+    def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
         self.parameterCheck(P)
@@ -234,7 +234,7 @@ class AtmoBuilder:
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
     
-    def combineThroughputs(self,atmo,sys=None):
+    def combineThroughputs(self, atmo, sys=None):
         """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
         dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
@@ -248,7 +248,7 @@ class AtmoBuilder:
             total[f].sbTophi()
         return total
     
-    def mags(self,bpDict,verbose=False):
+    def mags(self, bpDict, verbose=False):
         """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
@@ -273,7 +273,7 @@ class AtmoBuilder:
                 print f, mags[f].max(), mags[f].min()
         return mags
     
-    def dmags(self,mags1,mags2):
+    def dmags(self, mags1, mags2):
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         dmags = {}
@@ -282,7 +282,7 @@ class AtmoBuilder:
             dmags[f] = (mags1[f] - mags2[f]) * 1000.0
         return dmags
     
-    def gi(self,mags_std):
+    def gi(self, mags_std):
         """Returns standard color temperature given standard magnitude dictionary keyed on filters."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
@@ -291,122 +291,122 @@ class AtmoBuilder:
     
     ### Plotting functions
     
-    def transPlot(self,P1,X1,P2=None,X2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-                  aerosolNormCoeff1=STDAEROSOLNORMCOEFF,aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
-                  aerosolNormCoeff2=STDAEROSOLNORMCOEFF,aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-                  atmoColor1='blue',atmo2Color='black',atmo2Alpha=0.5,figName=None):
+    def transPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+                  aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
+                  aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
+                  atmoColor1='blue', atmo2Color='black', atmo2Alpha=0.5, figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
 
-        atmo1 = self.genAtmo(P1,X1,aerosolNormCoeff=aerosolNormCoeff1,aerosolNormWavelen=aerosolNormWavelen1)
+        atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff=aerosolNormCoeff1, aerosolNormWavelen=aerosolNormWavelen1)
         
         fig,ax = pylab.subplots(1,1)
         fig.set_size_inches(12,6)
         
-        ax.plot(w,atmo1.sb,color=atmoColor1,label=self.labelGen(P1,X1));
+        ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(P1,X1));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
         ax.set_ylabel("Transmission")
         ax.set_title("$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$");
-        ax.legend(loc='lower right',shadow=False)
-        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
+        ax.legend(loc='lower right', shadow=False)
+        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         
         if (P2 != None) & (X2 != None):
             self.parameterCheck(P2)
-            atmo2 = self.genAtmo(P2,X2,aerosolNormCoeff=aerosolNormCoeff2,aerosolNormWavelen=aerosolNormWavelen2)
-            ax.plot(w,atmo2.sb,label=self.labelGen(P2,X2),alpha=atmo2Alpha,color=atmo2Color)
+            atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
+            ax.plot(w,atmo2.sb,label=self.labelGen(P2, X2), alpha=atmo2Alpha, color=atmo2Color)
         elif includeStdAtmo == True:
-            atmo2 = self.genAtmo(STDPARAMETERS,STDAIRMASS,aerosolNormCoeff=STDAEROSOLNORMCOEFF,aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
-            ax.plot(w,atmo2.sb,label=self.labelGen(STDPARAMETERS,STDAIRMASS),alpha=atmo2Alpha,color=atmo2Color);
+            atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
+            ax.plot(w, atmo2.sb, label=self.labelGen(STDPARAMETERS, STDAIRMASS), alpha=atmo2Alpha, color=atmo2Color);
         
-        ax.legend(loc='lower right',shadow=False)
+        ax.legend(loc='lower right', shadow=False)
         
         if figName != None:
             title = figName + "_transPlot.png"
-            pylab.savefig(title,format='png')
+            pylab.savefig(title, format='png')
         return
     
-    def filterPlot(self,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def filterPlot(self, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
         
         fig,ax = pylab.subplots(1,1)
-        fig.set_size_inches(plotWidth,plotHeight)
+        fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.filterlist:
-            ax.plot(self.filters[f].wavelen,self.filters[f].sb,label=str(f));
+            ax.plot(self.filters[f].wavelen, self.filters[f].sb,label=str(f));
         
-        ax.set_xlim(wavenlenghRange[0],wavenlengthRange[1]);
+        ax.set_xlim(wavenlenghRange[0], wavenlengthRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("LSST $S^{sys}_b$ Filters Only");
-        ax.legend(loc=4,shadow=False);
+        ax.legend(loc=4, shadow=False);
         return
     
-    def hardwarePlot(self,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def hardwarePlot(self, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the hardware response curve from LSST hardware data."""
         if self.sys == None:
             self.readHardware()
         
         fig,ax = pylab.subplots(1,1)
-        fig.set_size_inches(plotWidth,plotHeight)
+        fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.sys:
-            ax.plot(self.sys[f].wavelen,self.sys[f].sb,label=str(f));
+            ax.plot(self.sys[f].wavelen, self.sys[f].sb,label=str(f));
         
-        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
+        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("LSST $S^{sys}_b$ Filters and Hardware");
-        ax.legend(loc=4,shadow=False);
+        ax.legend(loc=4, shadow=False);
         return
     
-    def phiPlot(self,bpDict1,bpDict2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-                phi2Alpha=0.5,phi2Color='black',figName=None):
+    def phiPlot(self, bpDict1, bpDict2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+                phi2Alpha=0.5, phi2Color='black', figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
         w = self.wavelength
         
         fig,ax = pylab.subplots(1,1)
-        fig.set_size_inches(plotWidth,plotHeight)
+        fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.filterlist:
-            ax.plot(w,bpDict1[f].phi,label=str(f))
-            ax.plot(w,bpDict2[f].phi,alpha=phi2Alpha,color=phi2Color)
+            ax.plot(w, bpDict1[f].phi, label=str(f))
+            ax.plot(w, bpDict2[f].phi, alpha=phi2Alpha, color=phi2Color)
         
-        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
-        ax.set_ylabel("$\phi_b^{obs}(\lambda)$",fontsize=15);
+        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+        ax.set_ylabel("$\phi_b^{obs}(\lambda)$", fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Normalized Bandpass Response");
-        ax.legend(loc=4,shadow=False);
+        ax.legend(loc=4, shadow=False);
         
         if figName != None:
             title = figName + "_phiPlot.png"
-            pylab.savefig(title,format='png')
+            pylab.savefig(title, format='png')
         return
     
-    def dphiPlot(self,bpDict1,bpDict2,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],figName=None):
+    def dphiPlot(self, bpDict1, bpDict2, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         w = self.wavelength
         
         fig,ax = pylab.subplots(1,1)
-        fig.set_size_inches(plotWidth,plotHeight)
+        fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.filterlist:
-            ax.plot(w,bpDict1[f].phi-bpDict2[f].phi,label=str(f))
+            ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f))
         
-        ax.set_xlim(wavelengthRange[0],wavelengthRange[1]);
-        ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$",fontsize=15);
+        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+        ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Change in Normalized Bandpass Response");
-        ax.legend(loc=4,shadow=False)
+        ax.legend(loc=4, shadow=False)
         
         if figName != None:
             title = figName + "_dPhiPlot.png"
-            pylab.savefig(title,format='png')
+            pylab.savefig(title, format='png')
         
         return
     
@@ -471,7 +471,7 @@ class AtmoBuilder:
         return
 
 
-    def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figName=None,verbose=False):
+    def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figName=None, verbose=False):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
         sedcolorkey = [self.met,self.logg]
@@ -551,20 +551,20 @@ class AtmoBuilder:
         
         return
     
-    def allPlot(self,P1,X1,P2=None,X2=None,includeStdAtmo=True,plotWidth=12,plotHeight=6,wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-                aerosolNormCoeff1=STDAEROSOLNORMCOEFF,aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
-                aerosolNormCoeff2=STDAEROSOLNORMCOEFF,aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-                transPlot=True,phiPlot=True,dphiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
+    def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+                aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
+                aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
+                transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
         """Generates an atmosphere with given parameters and plots appropriate functions."""
         
-        atmo1 = self.genAtmo(P1,X1,aerosolNormCoeff1,aerosolNormWavelen1)
+        atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff1, aerosolNormWavelen1)
         bpDict1 = self.combineThroughputs(atmo1)
 
         if includeStdAtmo == True:
-            atmo2 = self.genAtmo(STDPARAMETERS,STDAIRMASS,STDAEROSOLNORMCOEFF,STDAEROSOLNORMWAVELEN)
+            atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
             bpDict2 = self.combineThroughputs(atmo2)
         else:
-            atmo2 = self.genAtmo(P2,X2,aerosolNormCoeff=aerosolNormCoeff2,aerosolNormWavelen=aerosolNormWavelen2)
+            atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
             bpDict2 = self.combineThroughputs(atmo2)
         
         if saveFig == True:
@@ -576,36 +576,36 @@ class AtmoBuilder:
             figName = None
         
         if transPlot:
-            self.transPlot(P1,X1,P2=P2,X2=X2,includeStdAtmo=includeStdAtmo,plotWidth=plotWidth,plotHeight=plotHeight,wavelengthRange=wavelengthRange,
-                           aerosolNormCoeff1=aerosolNormCoeff1,aerosolNormWavelen1=aerosolNormWavelen1,
-                           aerosolNormCoeff2=aerosolNormCoeff2,aerosolNormWavelen2=aerosolNormWavelen2,figName=figName)
+            self.transPlot(P1, X1, P2=P2, X2=X2, includeStdAtmo=includeStdAtmo, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange,
+                           aerosolNormCoeff1=aerosolNormCoeff1, aerosolNormWavelen1=aerosolNormWavelen1,
+                           aerosolNormCoeff2=aerosolNormCoeff2, aerosolNormWavelen2=aerosolNormWavelen2, figName=figName)
         if phiPlot:
-            self.phiPlot(bpDict1,bpDict2,plotWidth=plotWidth,plotHeight=plotHeight,wavelengthRange=wavelengthRange,figName=figName)
+            self.phiPlot(bpDict1, bpDict2, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange, figName=figName)
         if dphiPlot:
-            self.dphiPlot(bpDict1,bpDict2,plotWidth=plotWidth,plotHeight=plotHeight,wavelengthRange=wavelengthRange,figName=figName)
+            self.dphiPlot(bpDict1, bpDict2, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange, figName=figName)
         if dmagsPlot:
             mag1 = self.mags(bpDict1)
             mag2 = self.mags(bpDict2)
             
-            dmags = self.dmags(mag1,2)
+            dmags = self.dmags(mag1, mag2)
             gi = self.gi(mag2)
             
-            self.dmagsPlot(gi,dmags,figName=figName)
+            self.dmagsPlot(gi, dmags, figName=figName)
         return
 
     ### Secondary Functions
     
-    def aerosol(self,w,X,alpha,aerosolNormCoeff,aerosolNormWavelen):
+    def aerosol(self, w, X, alpha, aerosolNormCoeff, aerosolNormWavelen):
         """Standard aerosol transmission function, returns array of transmission values over a range of
             wavelengths."""
-        return numpy.e**(-aerosolNormCoeff*X*(aerosolNormWavelen/w)*alpha)
+        return numpy.e**(-aerosolNormCoeff * X * (aerosolNormWavelen / w)*alpha)
     
-    def airmassToString(self,airmass):
+    def airmassToString(self, airmass):
         """Converts airmass to string"""
         X = float(airmass)
         return "%.3f" % (X)
     
-    def labelGen(self,P,X):
+    def labelGen(self, P, X):
         """Generates label for use in plot legends."""
         label = []
         for paramNum,param in enumerate(P):
@@ -614,20 +614,20 @@ class AtmoBuilder:
             label.append(labelEle)
         return ' '.join(label) + ' $X$:' + str(X)
     
-    def parameterCheck(self,P):
+    def parameterCheck(self, P):
         """Checks if parameter array is of appropriate length."""
         if len(P) != 6:
             print "Need 6 parameters to build atmosphere!"
         return
     
-    def pToString(self,P):
+    def pToString(self, P):
         """Returns string version of parameter array."""
         stringP = "P"
         for i in P:
             if i < 1.0:
-                stringP+="0"+str(int(i*10))
+                stringP+="0"+str(int(i * 10))
             else:
-                stringP+=str(int(i*10))
+                stringP+=str(int(i * 10))
         return stringP
     
     def kuruczCheck(self):
