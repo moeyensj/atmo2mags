@@ -306,7 +306,7 @@ class AtmoBuilder:
         atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff=aerosolNormCoeff1, aerosolNormWavelen=aerosolNormWavelen1)
         
         fig,ax = pylab.subplots(1,1)
-        fig.set_size_inches(12,6)
+        fig.set_size_inches(plotWidth,plotHeight)
         
         ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(P1,X1));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
