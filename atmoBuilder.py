@@ -225,13 +225,17 @@ class AtmoBuilder:
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
+        
         self.parameterCheck(P)
+        self.airmassCheck(X)
+        
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
         O3comp = self.atmoTrans[X]['O3']**P[2]   # linear
         rayleighComp = self.atmoTrans[X]['Rayleigh']**P[3]  # linear
         aerosolComp = self.aerosol(self.wavelength,X,P[5],aerosolNormCoeff,aerosolNormWavelen)**P[4]
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
+        
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
     
     def combineThroughputs(self, atmo, sys=None):
@@ -313,6 +317,7 @@ class AtmoBuilder:
         
         if (P2 != None) & (X2 != None):
             self.parameterCheck(P2)
+            self.airmassCheck(X2)
             atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
             ax.plot(w,atmo2.sb,label=self.labelGen(P2, X2), alpha=atmo2Alpha, color=atmo2Color)
         elif includeStdAtmo == True:
@@ -555,16 +560,17 @@ class AtmoBuilder:
                 aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
                 aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
                 transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
-        """Plots transmission profile, normalized bandpass function, change in normalized bandpass function and change in magnitude given
-        an array of parameters and a specific airmass against standard atmosphere. User can provide array of parameters and airmass for comparison
-        atmosphere if includeStdAtmo flag is set to False."""
+        """Plots transmission profile, normalized bandpass response function, change in normalized bandpass response function and change in magnitude 
+        against standard atmosphere given an array of parameters and a specific airmass. User can provide array of parameters and airmass in order to 
+        override the comparison to the standard atmosphere."""
         
         atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff1, aerosolNormWavelen1)
         bpDict1 = self.combineThroughputs(atmo1)
 
-        if includeStdAtmo == True:
-            atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
-            bpDict2 = self.combineThroughputs(atmo2)
+        if (P2 == None) & (X2 == None):
+            if includeStdAtmo == True:
+                atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
+                bpDict2 = self.combineThroughputs(atmo2)
         else:
             atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
             bpDict2 = self.combineThroughputs(atmo2)
@@ -600,12 +606,22 @@ class AtmoBuilder:
     def aerosol(self, w, X, alpha, aerosolNormCoeff, aerosolNormWavelen):
         """Standard aerosol transmission function, returns array of transmission values over a range of
             wavelengths."""
-        return numpy.e**(-aerosolNormCoeff * X * (aerosolNormWavelen / w)*alpha)
+        return numpy.e**(-aerosolNormCoeff * X * (aerosolNormWavelen / w) * alpha)
     
     def airmassToString(self, airmass):
         """Converts airmass to string"""
         X = float(airmass)
         return "%.3f" % (X)
+
+    def pToString(self, P):
+        """Returns string version of parameter array."""
+        stringP = "P"
+        for i in P:
+            if i < 1.0:
+                stringP+="0"+str(int(i * 10))
+            else:
+                stringP+=str(int(i * 10))
+        return stringP    
     
     def labelGen(self, P, X):
         """Generates label for use in plot legends."""
@@ -619,21 +635,16 @@ class AtmoBuilder:
     def parameterCheck(self, P):
         """Checks if parameter array is of appropriate length."""
         if len(P) != 6:
-            print "Need 6 parameters to build atmosphere!"
+            raise ValueError('Need 6 parameters to build atmosphere!')
         return
-    
-    def pToString(self, P):
-        """Returns string version of parameter array."""
-        stringP = "P"
-        for i in P:
-            if i < 1.0:
-                stringP+="0"+str(int(i * 10))
-            else:
-                stringP+=str(int(i * 10))
-        return stringP
+
+    def airmassCheck(self, X):
+        if self.airmassToString(X) not in self.airmasses:
+            raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
+        return
     
     def kuruczCheck(self):
         """Checks if Kurucz model data has been read in."""
         if self.stars == None:
-            print "No Kurucz model data found, please run self.readKurucz()"
+            raise ValueError('No Kurucz model data found, please run self.readKurucz()')
         return
