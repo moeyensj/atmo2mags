@@ -295,8 +295,6 @@ class AtmoBuilder:
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
         gi = mags_std['g'] - mags_std['i']
         return gi
-
-    def computeLogL(
     
     ### Plotting functions
     
@@ -415,7 +413,7 @@ class AtmoBuilder:
         ax.legend(loc=4, shadow=False)
         
         if figName != None:
-            title = figName + "_dPhiPlot.png"
+            title = figName + "_dphiPlot.png"
             pylab.savefig(title, format='png')
         
         return
@@ -556,7 +554,7 @@ class AtmoBuilder:
                 pylab.suptitle("$\Delta$mmags for each LSST filter")
                 
         if figName != None:
-            title = figName+"_dMagsPlot.png"
+            title = figName+"_dmagsPlot.png"
             pylab.savefig(title, format='png')
         
         return
@@ -576,17 +574,11 @@ class AtmoBuilder:
             if includeStdAtmo == True:
                 atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
                 bpDict2 = self.combineThroughputs(atmo2)
+                figName = self.figNameGen(saveFig, figName, P1, X1, STDPARAMETERS, STDAIRMASS)
         else:
             atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
             bpDict2 = self.combineThroughputs(atmo2)
-        
-        if saveFig == True:
-            if figName != None:
-                figName='X'+str(int(X*10))+'_'+self.pToString(P)+'_'+figName
-            else:
-                figName='X'+str(int(X*10))+'_'+self.pToString(P)
-        else:
-            figName = None
+            figName = self.figNameGen(saveFig, figName, P1, X1, P2, X2)
         
         if transPlot:
             self.transPlot(P1, X1, P2=P2, X2=X2, includeStdAtmo=includeStdAtmo, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange,
@@ -636,7 +628,18 @@ class AtmoBuilder:
             labelEle = name + str(param)
             label.append(labelEle)
         return ' '.join(label) + ' $X$:' + str(X)
-    
+
+    def figNameGen(self, saveFig, figName, P1, X1, P2, X2):
+        """Generates a string for figure names."""
+        if saveFig == True:
+            if figName != None:
+                figName='X'+str(int(X1*10))+'_'+self.pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self.pToString(P2)+'_'+figName
+            else:
+                figName='X'+str(int(X1*10))+'_'+self.pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self.pToString(P2)
+        else:
+            figName = None
+        return figName
+        
     def parameterCheck(self, P):
         """Checks if parameter array is of appropriate length."""
         if len(P) != 6:
