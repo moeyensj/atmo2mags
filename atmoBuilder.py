@@ -7,6 +7,9 @@ import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 import lsst.sims.photUtils.photUtils as photUtils
 
+from astroML.plotting.mcmc import convert_to_stdev
+from astroML.decorators import pickle_results
+
 # Global wavelength variables set to MODTRAN defaults
 MINWAVELEN = 300
 MAXWAVELEN = 1100
@@ -292,6 +295,8 @@ class AtmoBuilder:
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
         gi = mags_std['g'] - mags_std['i']
         return gi
+
+    def computeLogL(
     
     ### Plotting functions
     
