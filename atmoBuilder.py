@@ -23,7 +23,7 @@ STDAEROSOLALPHA = 1.7
 
 """
 #### IMPORTANT NOTE ####
-MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
+MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
 be gridded properly and array multiplication errors will occur.
     
 The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
