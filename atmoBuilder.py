@@ -630,7 +630,7 @@ class AtmoBuilder:
         return ' '.join(label) + ' $X$:' + str(X)
 
     def figNameGen(self, saveFig, figName, P1, X1, P2, X2):
-        """Generates a string for figure names."""
+        """Generates a string for figure names: 'X1_P1_X2_P2_figName' """
         if saveFig == True:
             if figName != None:
                 figName='X'+str(int(X1*10))+'_'+self.pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self.pToString(P2)+'_'+figName
