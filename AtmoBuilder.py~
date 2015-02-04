@@ -231,8 +231,6 @@ class AtmoBuilder:
         
         self.parameterCheck(P)
         self.airmassCheck(X)
-
-        P = numpy.array(P)
         
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
@@ -299,7 +297,7 @@ class AtmoBuilder:
         return gi
 
     ### Regression Functions
-
+    
     def compute_logL(self, P, X, err, f, magsStd):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
         atmo = self.genAtmo(P,X)
@@ -308,126 +306,39 @@ class AtmoBuilder:
     
         return -numpy.sum(0.5 * ((mags[f] - magsStd[f]) / err) ** 2)
 
-    def compute_mag_color_nonlinear(self, comp1, comp2, P=STDPARAMETERS, X=STDAIRMASS, err=0.02, Nbins=50, generateFig=True, pickleString=None, filters=None, verbose=True):
-
+    def compute_mag_color_nonlinear(self, comp1, comp2, P=STDPARAMETERS, X=STDAIRMASS, err=0.02, Nbins=50, filters=None):
         range1, pNum1 = self.componentCheck(comp1,Nbins)
         range2, pNum2 = self.componentCheck(comp2,Nbins)
 
-        if verbose:
-            print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
-            print 'Atmosphere Parameters = ' + str(P)
-
-        if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, P, X, Nbins) + '_' + pickleString + '.pkl'
-        else:
-            pickleString = self.pickleNameGen(comp1, comp2, P, X, Nbins) + '.pkl'
-
         std = self.genAtmo(P,X)
         throughputStd = self.combineThroughputs(std)
         magsStd = self.mags(throughputStd)
-        giStd = self.gi(magsStd)
+        giStd = self.gi(magsStd)   
 
         if filters == None:
             filters = self.filterlist
-                                    
-        @pickle_results(pickleString)
-        def run_regression(comp1, comp2):
-             
-            logL = {}
-            whr = {}
-            comp1best = {}
-            comp2best = {}
-
-            for f in filters:
-                logL[f] = numpy.empty((Nbins, Nbins))
-                for i in range(len(range1)):
-                    for j in range(len(range2)):
-                        P[pNum1] = range1[i]
-                        P[pNum2] = range2[j]
-                        logL[f][i, j] = self.compute_logL(P,X,err,f,magsStd)
-
-                print 'Completed ' + f + ' filter.'
-
-            for f in filters:
-                logL[f] -= numpy.max(logL[f].T)
-                whr[f] = numpy.where(logL[f] == numpy.max(logL[f]))
-                comp1best[f] = range1[whr[f][0][0]]
-                comp2best[f] = range2[whr[f][1][0]]
-
-            return comp1best, comp2best, logL
-
-        comp1best, comp2best, logL  = run_regression(comp1, comp2)
-
-        if verbose:
-            for f in filters:
-                print f, comp1best[f], comp2best[f]
-
-        if generateFig == True:
-            self.regressionPlot(comp1, range1, comp1best, pNum1, comp2, range2, comp2best, pNum2, logL, P, X, figName=pickleString, filters=filters)
-
-        return range1, range2, comp1best, comp2best, logL
-
-    def regressionPlot(self, comp1, comp1range, comp1best, pNum1, comp2, comp2range, comp2best, pNum2, logL, P, X, figName=None, filters=None):
-        """Plots dmags with each filter in its own subplot."""
-        ### Taken from plot_dmags and modified to suit specific needs.
-        sedcolorkey = [self.met,self.logg]
     
-        if filters == None:
-            filters = self.filterlist
-        
-        fig, ax = pylab.subplots(len(filters),2)
-        #fig.suptitle("$\Delta$mmags for each LSST filter")
-        fig.set_size_inches(6,len(filters)*3)
-        fig.tight_layout()
-    
-        #pylab.subplots_adjust(top=0.93, wspace=0.32, hspace=0.32, bottom=0.09, left=0.12, right=0.96)
-       
-        metallicity = numpy.array(sedcolorkey[0])
-        logg = numpy.array(sedcolorkey[1])
-        metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
-        metbinsize = abs(metallicity.min() - metallicity.max())/6.0
-        metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
+        logL = {}
+        whr = {}
+        comp1best = {}
+        comp2best = {}
 
-        comp1Std = P[pNum1]
-        comp2Std = P[pNum2]
-        std = self.genAtmo(P,X)
-        throughputStd = self.combineThroughputs(std)
-        magsStd = self.mags(throughputStd)
-        gi = self.gi(magsStd)
-    
-        #if verbose == True:
-        #   print metbinsize, metbins
+        for f in filters:
+            logL[f] = numpy.empty((Nbins, Nbins))
+            for i in range(len(range1)):
+                for j in range(len(range2)):
+                    P[pNum1] = range1[i]
+                    P[pNum2] = range2[j]
+                    logL[f][i, j] = self.compute_logL(P,X,err,f,magsStd)
 
-        for i,f in enumerate(filters):
-            P[pNum1] = comp1best[f]
-            P[pNum2] = comp2best[f]
-            atmo = self.genAtmo(P,X)
-            throughputAtmo = self.combineThroughputs(atmo)
-            mags = self.mags(throughputAtmo)
-            dmags = self.dmags(mags,magsStd)
-        
-            for metidx in range(len(metbins)):
-                condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
-                        & (logg>3.5))
-                mcolor = metcolors[metidx]
-                ax[i][0].plot(gi[condition], dmags[f][condition], mcolor+'.')
-            
-            ax[i][0].set_xlabel("g-i")
-            ax[i][0].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
-            
-            
-            ax[i][1].contour(comp1range, comp2range, convert_to_stdev(logL[f]), levels=(0.683, 0.955, 0.997),colors='k')
-            ax[i][1].axvline(comp1best[f],color='black',linestyle='--',label='Best Fit')
-            ax[i][1].axhline(comp2best[f],color='black',linestyle='--')
-            ax[i][1].set_xlabel(comp1)
-            ax[i][1].set_ylabel(comp2)
-            ax[i][1].scatter(comp1Std,comp2Std,label='True Value')
-            ax[i][1].legend()
-            
+        for f in filters:
+            logL[f] -= numpy.max(logL[f])
+            whr[f] = numpy.where(logL[f] == numpy.max(logL[f]))
+            comp1best[f] = range1[whr[f][0][0]]
+            comp2best[f] = range2[whr[f][1][0]]
 
-        if figName != None:
-            title = figName+"_dmagsPlot.png"
-            pylab.savefig(title, format='png')
+        return range1, range2, comp1best, comp2best
+
     
     ### Plotting Functions
     
@@ -546,7 +457,7 @@ class AtmoBuilder:
         ax.legend(loc=4, shadow=False)
         
         if figName != None:
-            title = figName + "_regressionPlot.png"
+            title = figName + "_dphiPlot.png"
             pylab.savefig(title, format='png')
         
         return
@@ -773,24 +684,20 @@ class AtmoBuilder:
             figName = None
         return figName
 
-    def pickleNameGen(self, comp1, comp2, P, X, Nbins):
-        """Generates a string for pickle files. """
-        return 'X' + str(int(X*10)) + '_' + self.pToString(P) + '_' + comp1 + '_' + comp2 + '_' + str(Nbins) + 'bins'
-
     def componentCheck(self,comp,Nbins):
         """Returns a range of values of length Nbins for a given component."""
         if comp == 'H2O':
-            return numpy.linspace(0.0,5.0,Nbins), 0
+            return numpy.linspace(0.5,2.5,Nbins), 0
         elif comp == 'O2':
-            return numpy.linspace(0.0,5.0,Nbins), 1
+            return numpy.linspace(0.5,2.5,Nbins), 1
         elif comp == 'O3':
-            return numpy.linspace(0.0,5.0,Nbins), 2
+            return numpy.linspace(0.5,2.5,Nbins), 2
         elif comp == 'Rayleigh':
-            return numpy.linspace(0.0,5.0,Nbins), 3
+            return numpy.linspace(0.5,2.5,Nbins), 3
         elif comp == 'Aerosol':
-            return numpy.linspace(0.0,5.0,Nbins), 4
+            return numpy.linspace(0.5,2.5,Nbins), 4
         elif comp == 'Alpha':
-            return numpy.linspace(0.0,5.0,Nbins), 5
+            return numpy.linspace(1.0,3.0,Nbins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
         
