@@ -8,13 +8,13 @@ import lsst.sims.photUtils.Bandpass as Bandpass
 import lsst.sims.photUtils.photUtils as photUtils
 
 # Global wavelength variables set to MODTRAN defaults
-WMIN = 300
-WMAX = 1100.5
-WSTEP = 0.5
+MINWAVELEN = 300
+MAXWAVELEN = 1100
+WAVELENSTEP = 0.5
 
 """
 #### IMPORTANT NOTE ####
-WMIN,WMAX,WSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
+MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py,Bandpass.py and plot_dmagsMod.py or else the wavelengths will not
 be gridded properly and array multiplication errors will occur.
     
 The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
@@ -37,7 +37,7 @@ class AtmoBuilder:
         # Effective wavelength range, set in readModtranFiles
         self.wavelength = None
         # Min, max values of wavelength range
-        self.wavelengthRange = [WMIN,WMAX]
+        self.wavelengthRange = [MINWAVELEN,MAXWAVELEN]
         # List of airmasses for which we have profiles, set in readModtranFiles
         self.airmasses = None
         # List of transmission profiles for individual airmasses
@@ -75,7 +75,7 @@ class AtmoBuilder:
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
-        self.wavelength = numpy.arange(WMIN,WMAX,WSTEP,dtype='float')
+        self.wavelength = numpy.arange(MINWAVELEN,MAXWAVELEN+WAVELENSTEP,WAVELENSTEP,dtype='float')
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
@@ -120,7 +120,7 @@ class AtmoBuilder:
         return
     
     def readFilters(self,shift_perc=None):
-        """Reads LSST filter data only and returns a filter-keyed dictionary."""
+        """Reads LSST filter data only and returns a filter-keyed dictionary. (S^{filters})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read the filter throughput curves only (called from read_hardware as well)
         # apply a shift of +shift_perc/100 * eff_wavelength to the wavelengths of the filter.
@@ -139,7 +139,7 @@ class AtmoBuilder:
         return
     
     def readHardware(self,shift_perc=None):
-        """Reads LSST hardware data and returns a filter-keyed dictionary."""
+        """Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read system (hardware) transmission, return dictionary of system hardware (keyed to filter)
         filterdir = os.getenv("LSST_THROUGHPUTS_DEFAULT")
@@ -162,8 +162,7 @@ class AtmoBuilder:
         return
 
     def readKurucz(self):
-        """Reads kurucz model data from LSST stack, returns stars, starlist, temperature, metallicity and log of surface
-            gravity."""
+        """Reads Kurucz model data from LSST software stack and sets relevant class attributes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read kurucz model MS, g40 stars SEDs
         homedir = os.getenv("SIMS_SED_LIBRARY_DIR")    # "SIMS_SED_LIBRARY_DIR"
@@ -217,19 +216,21 @@ class AtmoBuilder:
 
         return
     
-    def genAtmo(self,P,X=1.0,aerosolNormCoeff=0.1):
-        """Builds an atmospheric transmission profile given a set of component parameters and returns. (S^atm)"""
+    def genAtmo(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0):
+        """Builds an atmospheric transmission profile given a set of component parameters and 
+        returns bandpass object. (S^{atm})"""
         self.parameterCheck(P)
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
         O3comp = self.atmoTrans[X]['O3']**P[2]   # linear
         rayleighComp = self.atmoTrans[X]['Rayleigh']**P[3]  # linear
-        aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff)**P[4]
+        aerosolComp = self.aerosol(self.wavelength,X,alpha=P[5],aerosolNormCoeff=aerosolNormCoeff,aerosolNormWavelength=aerosolNormWavelength)**P[4]
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
     
     def combineThroughputs(self,atmos,sys=None):
-        """Combines atmospheric transmission profile with system responsiveness. (S^{atm}*S^{sys})"""
+        """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
+        dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
         if sys == None:
@@ -243,7 +244,7 @@ class AtmoBuilder:
     
     def phi(self,atmo,sys=None):
         """Calculates the normalized bandpass response function for a given sys and atmo, returns a
-            filter-keyed dictionary of phi"""
+            filter-keyed dictionary of phi."""
         if sys == None:
             sys = self.sys
         phi = {}
@@ -258,23 +259,24 @@ class AtmoBuilder:
         return phi
     
     def dPhi(self,phi1,phi2):
-        """Returns a filter-keyed dictionary of delta phi values"""
+        """Returns a filter-keyed dictionary of delta phi values."""
         dphi = {}
         for p in phi1:
-            dphi[p]=phi1[p]-phi2[p]
+            dphi[p] = phi1[p] - phi2[p]
         return dphi
     
     
     def mags(self,bpDict):
+        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
         
         self.kuruczCheck()
         
-        seds=self.stars
-        sedkeylist=self.starlist
-        filterlist=self.filterlist
+        seds = self.stars
+        sedkeylist = self.starlist
+        filterlist = self.filterlist
         
         mags = {}
         for f in self.filterlist:
@@ -289,6 +291,7 @@ class AtmoBuilder:
         return mags
     
     def dmags(self,mags1,mags2):
+        """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         dmags = {}
         for f in self.filterlist:
@@ -297,6 +300,7 @@ class AtmoBuilder:
         return dmags
     
     def gi(self,mags_std):
+        """Returns standard color temperature given standard magnitude dictionary keyed on filters."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
         gi = mags_std['g'] - mags_std['i']
@@ -304,16 +308,17 @@ class AtmoBuilder:
     
     ### Plotting functions
     
-    def transPlot(self,P,X=1.0,aerosolNormCoeff=0.1,wavelengthRange=[WMIN,WMAX],includeStdAtmo=True,
+    def transPlot(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0,wavelengthRange=[WMIN,WMAX],includeStdAtmo=True,
                   stdAtmoAirmass=1.0,genAtmoColor='blue',stdAtmoColor='black',stdAtmoColorAlpha=0.5,
-                  stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1,figName=None):
+                  stdAtmoParameters=[1.0,1.0,1.0,1.0,1.0,1.7],stdAerosolNormCoeff=0.1,stdAerosolNormWavelength=550.0,figName=None):
+        """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
         
         fig,ax = pylab.subplots(1,1)
         fig.set_size_inches(12,6)
         
-        atmo = self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff)
+        atmo = self.genAtmo(P,X=X,aerosolNormCoeff=aerosolNormCoeff,aerosolNormWavelength=aerosolNormWavelength)
         
         ax.plot(w,atmo.sb,color=genAtmoColor,label=self.labelGen(P,X));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
@@ -324,13 +329,13 @@ class AtmoBuilder:
         
         if includeStdAtmo == True:
             stdAtmoParams = [1.0,1.0,1.0,1.0,1.0,1.7]
-            atmoStd = self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff)
+            atmoStd = self.genAtmo(stdAtmoParams,X=stdAtmoAirmass,aerosolNormCoeff=stdAerosolNormCoeff,aerosolNormWavelength=stdAerosolNormWavelength)
             ax.plot(w,atmoStd.sb,
                     label=self.labelGen(stdAtmoParams,X=stdAtmoAirmass),alpha=stdAtmoColorAlpha,color=stdAtmoColor);
         
         ax.legend(loc='lower right',shadow=False)
         
-        if figName!=None:
+        if figName != None:
             title = figName + "_transPlot.png"
             pylab.savefig(title,format='png')
         return
@@ -392,7 +397,7 @@ class AtmoBuilder:
         ax.set_title("Normalized Bandpass Response");
         ax.legend(loc=4,shadow=False);
         
-        if figName!=None:
+        if figName != None:
             title = figName + "_phiPlot.png"
             pylab.savefig(title,format='png')
         return
@@ -416,7 +421,7 @@ class AtmoBuilder:
         ax.set_title("Change in Normalized Bandpass Response");
         ax.legend(loc=4,shadow=False)
         
-        if figName!=None:
+        if figName != None:
             title = figName + "_dPhiPlot.png"
             pylab.savefig(title,format='png')
         
@@ -452,7 +457,7 @@ class AtmoBuilder:
             i = i + 1
         ax = pylab.subplot(3,2,7)
         for metidx in range(len(metbins)):
-            condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
+            condition = ((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
             mcolor = metcolors[metidx]
             pylab.plot(gi[condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
         # set up generic items
@@ -556,16 +561,17 @@ class AtmoBuilder:
                 pylab.grid(True)
             if titletext!=None:
                 pylab.suptitle("$\Delta$mmags for each LSST filter")
-        if figName!=None:
+                
+        if figName != None:
             title = figName+"_dMagsPlot.png"
             pylab.savefig(title, format='png')
         
         return
     
-    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
+    def allPlot(self,P,X=1.0,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0,transPlot=True,phiPlot=True,dPhiPlot=True,dmagsPlot=True,saveFig=False,figName=None):
         """Generates an atmosphere with given parameters and plots appropriate functions."""
         
-        atmo = self.genAtmo(P,X,aerosolNormCoeff)
+        atmo = self.genAtmo(P,X,aerosolNormCoeff,aerosolNormWavelength)
         
         phi = self.phi(atmo)
         atmoStd = self.genAtmo([1.0,1.0,1.0,1.0,1.0,1.7])
@@ -580,7 +586,7 @@ class AtmoBuilder:
             figName = None
         
         if transPlot:
-            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,figName=figName)
+            self.transPlot(P,X=X,aerosolNormCoeff=aerosolNormCoeff,aerosolNormWavelength=aerosolNormWavelength,figName=figName)
         if phiPlot:
             self.phiPlot(phi,phi2=phiStd,figName=figName)
         if dPhiPlot:
@@ -600,10 +606,10 @@ class AtmoBuilder:
 
     ### Secondary Functions
     
-    def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1):
+    def aerosol(self,w,X,alpha=1.7,aerosolNormCoeff=0.1,aerosolNormWavelength=550.0):
         """Standard aerosol transmission function, returns array of transmission values over a range of
-            wavelenghts"""
-        return numpy.e**(-aerosolNormCoeff*X*(550.0/w)*alpha)
+            wavelengths."""
+        return numpy.e**(-aerosolNormCoeff*X*(aerosolNormWavelength/w)*alpha)
     
     def airmassToString(self,airmass):
         """Converts airmass to string"""
@@ -626,6 +632,7 @@ class AtmoBuilder:
         return
     
     def pToString(self,P):
+        """Returns string version of parameter array."""
         stringP = "P"
         for i in P:
             if i < 1.0:
@@ -633,7 +640,6 @@ class AtmoBuilder:
             else:
                 stringP+=str(int(i*10))
         return stringP
-    
     
     def kuruczCheck(self):
         """Checks if Kurucz model data has been read in."""
