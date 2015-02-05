@@ -426,7 +426,7 @@ class AtmoBuilder:
             
 
         if figName != None:
-            title = figName+"_dmagsPlot.png"
+            title = figName+"_regressionPlot.png"
             pylab.savefig(title, format='png')
     
     ### Plotting Functions
