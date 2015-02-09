@@ -510,7 +510,7 @@ class AtmoBuilder:
             # Plot dphi plots
             # Plot dphis for each filter
             ax[i][2].plot(w, throughputAtmo[f].phi - throughputStd[f].phi, color=self.filtercolors[i], label='Fit - Std')
-            ax[i][2].plot(w, throughputMean[f].phi - throughputStd[f].phi, alpha=0.8, color='grey', label='Fit - Mean')
+            ax[i][2].plot(w, throughputMean[f].phi - throughputStd[f].phi, alpha=0.8, color='grey', label='Mean - Std')
 
             # Format axes and add labels, legend
             ax[i][2].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
