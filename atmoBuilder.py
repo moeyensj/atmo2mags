@@ -57,6 +57,8 @@ class AtmoBuilder:
         self.sys = None
         # List of filters
         self.filterlist = ['u', 'g', 'r', 'i', 'z', 'y4']
+        # List of filter colors
+        self.filtercolors = ['blue', 'green', 'red', 'cyan', 'purple', 'yellow']
         
         # Kurucz model data
         self.stars = None
@@ -318,7 +320,7 @@ class AtmoBuilder:
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
-            print 'Atmosphere Parameters = ' + str(P)
+            print 'Arbitrary Atmosphere Parameters = ' + str(P)
 
         if pickleString != None:
             pickleString = self.pickleNameGen(comp1, comp2, P, X, Nbins) + '_' + pickleString + '.pkl'
@@ -326,7 +328,6 @@ class AtmoBuilder:
             pickleString = self.pickleNameGen(comp1, comp2, P, X, Nbins) + '.pkl'
 
         P_std = copy.deepcopy(P)
-        print P_std
 
         std = self.genAtmo(P,X)
         throughputStd = self.combineThroughputs(std)
@@ -362,16 +363,18 @@ class AtmoBuilder:
         comp1best, comp2best, logL  = run_regression(comp1, comp2)
 
         if verbose:
+            print 'filter, ' + comp1 + ', ' + comp2
             for f in filters:
                 print f, comp1best[f], comp2best[f]
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_std, X, pNum1=pNum1, pNum2=pNum2,
-                                comp1range=range1, comp2range=range2, Nbins=Nbins, figName=pickleString, filters=filters)
+                                comp1range=range1, comp2range=range2, Nbins=Nbins, figName=pickleString, filters=filters, verbose=verbose)
 
         return range1, range2, comp1best, comp2best, logL
 
-    def regressionPlot(self, comp1, comp1best, comp2, comp2best, logL, P, X, pNum1=None, pNum2=None, comp1range=None, comp2range=None, Nbins=50, figName=None, filters=None):
+    def regressionPlot(self, comp1, comp1best, comp2, comp2best, logL, P, X, pNum1=None, pNum2=None,
+                       comp1range=None, comp2range=None, Nbins=50, figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
         sedcolorkey = [self.met,self.logg]
@@ -384,7 +387,6 @@ class AtmoBuilder:
             filters = self.filterlist
         
         fig, ax = pylab.subplots(len(filters),3)
-        # fig.suptitle("$\Delta$mmags for each LSST filter")
         fig.set_size_inches(12,len(filters)*4)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
        
@@ -396,76 +398,127 @@ class AtmoBuilder:
 
         comp1Std = P[pNum1]
         comp2Std = P[pNum2]
-        print P
-        
-        print 'Std components'
-        print comp1Std, comp2Std
-        
+
+        # Create arbitrary standard atmosphere
         std = self.genAtmo(P,X)
         throughputStd = self.combineThroughputs(std)
         magsStd = self.mags(throughputStd)
         gi = self.gi(magsStd)
-            
+
+        # Create atmosphere at mean best fit parameters
+        w = self.wavelength
+        P1_mean = self.meanParameter(comp1best, filters)
+        P2_mean = self.meanParameter(comp2best, filters)
+        P_mean = copy.deepcopy(P)
+        P_mean[pNum1] = P1_mean
+        P_mean[pNum2] = P2_mean
+        atmoMean = self.genAtmo(P_mean,X)
+        throughputMean = self.combineThroughputs(atmoMean)
+        magsMean = self.mags(throughputMean)
+        dmagsMean = self.dmags(magsMean,magsStd)
+
+        if verbose == True:
+            print 'Mean atmosphere parameter array: ' + str(P_mean)
+
+        # For each filter plot dmags, regression contours and dphis
         for i,f in enumerate(filters):
+            # Set component parameters to best fit parameters
             P[pNum1] = comp1best[f]
             P[pNum2] = comp2best[f]
 
-            print f, comp1best[f], comp2best[f]
-            
+            # Create atmosphere at best fit parameters
             atmo = self.genAtmo(P,X)
             throughputAtmo = self.combineThroughputs(atmo)
             mags = self.mags(throughputAtmo)
             dmags = self.dmags(mags,magsStd)
 
+            # Plot dmmag plots
+            # Initialize values to keep track of dmag range
             dmag_max = 0;
             dmag_min = 0;
             dmag_range_max = 0;
 
+            dmag_maxMean = 0;
+            dmag_minMean = 0;
+            dmag_range_maxMean = 0;
+
             for metidx in range(len(metbins)):
-                
+
+                # Make cut of stars
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                         & (logg>3.5))
                 mcolor = metcolors[metidx]
 
+                # Find minimum, max dmag values that fit condition
                 minv = numpy.min(dmags[f][condition])
                 maxv = numpy.max(dmags[f][condition])
-        
+
+                minvMean = numpy.min(dmagsMean[f][condition])
+                maxvMean = numpy.max(dmagsMean[f][condition])
+
+                # Save lowest and highest dmag
                 if minv < dmag_min:
                     dmag_min = copy.deepcopy(minv)
                 if maxv > dmag_max:
                     dmag_max = copy.deepcopy(maxv)
+                if minvMean < dmag_minMean:
+                    dmag_minMean = copy.deepcopy(minvMean)
+                if maxvMean > dmag_maxMean:
+                    dmag_maxMean = copy.deepcopy(maxvMean)
                     
                 dmag_range = (dmag_max - dmag_min)/2.0
+                dmag_rangeMean = (dmag_maxMean - dmag_minMean)/2.0
                 
                 if dmag_range_max < dmag_range:
                     dmag_range_max = copy.deepcopy(dmag_range)
+                if dmag_range_maxMean < dmag_rangeMean:
+                    dmag_range_maxMean = copy.deepcopy(dmag_rangeMean)
             
                 ax[i][0].plot(gi[condition], dmags[f][condition], mcolor+'.')
+                ax[i][0].scatter(gi[condition], dmagsMean[f][condition], color='gray',alpha=0.5)
 
+            # If dmag range exceeds 2.0, plot dashed lines at +-2dmmags
             if dmag_range_max > 2.0:
                 ax[i][0].axhline(2,color='black',linestyle='--')
                 ax[i][0].axhline(-2,color='black',linestyle='--')
             else:
                 ax[i][0].set_ylim(-2,2)
-            
+
+            # Label axes and add grid
             ax[i][0].set_xlabel("g-i")
             ax[i][0].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
             ax[i][0].grid()
 
-           
+            # Plot parameter space regression plots
+            # Plot contours and true values
             ax[i][1].contour(comp1range, comp2range, convert_to_stdev(logL[f]), levels=(0.683, 0.955, 0.997),colors='k')
             ax[i][1].scatter(comp1Std,comp2Std,label='True Value')
-            
+
+            # Plot dashed lines at best fit parameters
             ax[i][1].axvline(comp1best[f],color='black',linestyle='--',label='Best Fit')
             ax[i][1].axhline(comp2best[f],color='black',linestyle='--')
 
+            # Set y-axis, x-axis limits
             ax[i][1].set_xlim(min(comp1range),max(comp1range))
             ax[i][1].set_ylim(min(comp2range),max(comp2range))
-            
+
+            # Label axes and show legend
             ax[i][1].set_xlabel(comp1)
             ax[i][1].set_ylabel(comp2)
-           
-            ax[i][1].legend()
+            ax[i][1].legend(loc=0, shadow=False)
+
+            # Plot dphi plots
+            # Plot dphis for each filter
+            ax[i][2].plot(w, throughputAtmo[f].phi - throughputStd[f].phi, color=self.filtercolors[i], label='Fit - Std')
+            ax[i][2].plot(w, throughputMean[f].phi - throughputStd[f].phi, alpha=0.8, color='grey', label='Fit - Mean')
+
+            # Format axes and add labels, legend
+            ax[i][2].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+            ax[i][2].yaxis.set_label_position('right')
+            ax[i][2].set_ylabel(r'$\Delta\phi_' + f + r'^{obs}(\lambda)$');
+            ax[i][2].set_xlabel('Wavelength, $\lambda$ (nm)');
+            ax[i][2].legend(loc=0, shadow=False)
+            ax[i][2].grid()
 
         if figName != None:
             title = figName+"_regressionPlot.png"
@@ -520,7 +573,7 @@ class AtmoBuilder:
         for f in self.filterlist:
             ax.plot(self.filters[f].wavelen, self.filters[f].sb,label=str(f));
         
-        ax.set_xlim(wavenlenghRange[0], wavenlengthRange[1]);
+        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
@@ -590,7 +643,7 @@ class AtmoBuilder:
         ax.legend(loc=4, shadow=False)
         
         if figName != None:
-            title = figName + "_regressionPlot.png"
+            title = figName + "_dphiPlot.png"
             pylab.savefig(title, format='png')
         
         return
@@ -786,6 +839,17 @@ class AtmoBuilder:
         """Converts airmass to string"""
         X = float(airmass)
         return "%.3f" % (X)
+
+    def meanParameter(self, compDict, filters=None):
+        """Given a filter-keyed dictionary of best fit values, returns mean value"""
+        if filters == None:
+            filters = self.filterlist
+
+        meanValue = 0;
+        for f in filters:
+            meanValue += compDict[f]
+            
+        return meanValue/float(len(filters))
 
     def pToString(self, P):
         """Returns string version of parameter array."""
