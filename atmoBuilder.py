@@ -312,6 +312,9 @@ class AtmoBuilder:
 
         range1, pNum1 = self.componentCheck(comp1,Nbins)
         range2, pNum2 = self.componentCheck(comp2,Nbins)
+        
+        if filters == None:
+            filters = self.filterlist
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
@@ -322,17 +325,17 @@ class AtmoBuilder:
         else:
             pickleString = self.pickleNameGen(comp1, comp2, P, X, Nbins) + '.pkl'
 
+        P_std = copy.deepcopy(P)
+        print P_std
+
         std = self.genAtmo(P,X)
         throughputStd = self.combineThroughputs(std)
         magsStd = self.mags(throughputStd)
         giStd = self.gi(magsStd)
-
-        if filters == None:
-            filters = self.filterlist
                                     
         @pickle_results(pickleString)
         def run_regression(comp1, comp2):
-             
+            
             logL = {}
             whr = {}
             comp1best = {}
@@ -363,24 +366,27 @@ class AtmoBuilder:
                 print f, comp1best[f], comp2best[f]
 
         if generateFig == True:
-            self.regressionPlot(comp1, range1, comp1best, pNum1, comp2, range2, comp2best, pNum2, logL, P, X, figName=pickleString, filters=filters)
+            self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_std, X, pNum1=pNum1, pNum2=pNum2,
+                                comp1range=range1, comp2range=range2, Nbins=Nbins, figName=pickleString, filters=filters)
 
         return range1, range2, comp1best, comp2best, logL
 
-    def regressionPlot(self, comp1, comp1range, comp1best, pNum1, comp2, comp2range, comp2best, pNum2, logL, P, X, figName=None, filters=None):
+    def regressionPlot(self, comp1, comp1best, comp2, comp2best, logL, P, X, pNum1=None, pNum2=None, comp1range=None, comp2range=None, Nbins=50, figName=None, filters=None):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
         sedcolorkey = [self.met,self.logg]
-    
+
+        if any([pNum1,pNum2,comp1range,comp2range]) == None:
+            comp1range, pNum1 = self.componentCheck(comp1, Nbins)
+            comp2range, pNum2 = self.componentCheck(comp2, Nbins)
+            
         if filters == None:
             filters = self.filterlist
         
-        fig, ax = pylab.subplots(len(filters),2)
-        #fig.suptitle("$\Delta$mmags for each LSST filter")
-        fig.set_size_inches(6,len(filters)*3)
-        fig.tight_layout()
-    
-        #pylab.subplots_adjust(top=0.93, wspace=0.32, hspace=0.32, bottom=0.09, left=0.12, right=0.96)
+        fig, ax = pylab.subplots(len(filters),3)
+        # fig.suptitle("$\Delta$mmags for each LSST filter")
+        fig.set_size_inches(12,len(filters)*4)
+        fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
        
         metallicity = numpy.array(sedcolorkey[0])
         logg = numpy.array(sedcolorkey[1])
@@ -390,44 +396,82 @@ class AtmoBuilder:
 
         comp1Std = P[pNum1]
         comp2Std = P[pNum2]
+        print P
+        
+        print 'Std components'
+        print comp1Std, comp2Std
+        
         std = self.genAtmo(P,X)
         throughputStd = self.combineThroughputs(std)
         magsStd = self.mags(throughputStd)
         gi = self.gi(magsStd)
-    
-        #if verbose == True:
-        #   print metbinsize, metbins
-
+            
         for i,f in enumerate(filters):
             P[pNum1] = comp1best[f]
             P[pNum2] = comp2best[f]
+
+            print f, comp1best[f], comp2best[f]
+            
             atmo = self.genAtmo(P,X)
             throughputAtmo = self.combineThroughputs(atmo)
             mags = self.mags(throughputAtmo)
             dmags = self.dmags(mags,magsStd)
-        
+
+            dmag_max = 0;
+            dmag_min = 0;
+            dmag_range_max = 0;
+
             for metidx in range(len(metbins)):
+                
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                         & (logg>3.5))
                 mcolor = metcolors[metidx]
+
+                minv = numpy.min(dmags[f][condition])
+                maxv = numpy.max(dmags[f][condition])
+        
+                if minv < dmag_min:
+                    dmag_min = copy.deepcopy(minv)
+                if maxv > dmag_max:
+                    dmag_max = copy.deepcopy(maxv)
+                    
+                dmag_range = (dmag_max - dmag_min)/2.0
+                
+                if dmag_range_max < dmag_range:
+                    dmag_range_max = copy.deepcopy(dmag_range)
+            
                 ax[i][0].plot(gi[condition], dmags[f][condition], mcolor+'.')
+
+            if dmag_range_max > 2.0:
+                ax[i][0].axhline(2,color='black',linestyle='--')
+                ax[i][0].axhline(-2,color='black',linestyle='--')
+            else:
+                ax[i][0].set_ylim(-2,2)
             
             ax[i][0].set_xlabel("g-i")
             ax[i][0].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
-            
-            
+            ax[i][0].grid()
+
+           
             ax[i][1].contour(comp1range, comp2range, convert_to_stdev(logL[f]), levels=(0.683, 0.955, 0.997),colors='k')
+            ax[i][1].scatter(comp1Std,comp2Std,label='True Value')
+            
             ax[i][1].axvline(comp1best[f],color='black',linestyle='--',label='Best Fit')
             ax[i][1].axhline(comp2best[f],color='black',linestyle='--')
+
+            ax[i][1].set_xlim(min(comp1range),max(comp1range))
+            ax[i][1].set_ylim(min(comp2range),max(comp2range))
+            
             ax[i][1].set_xlabel(comp1)
             ax[i][1].set_ylabel(comp2)
-            ax[i][1].scatter(comp1Std,comp2Std,label='True Value')
+           
             ax[i][1].legend()
-            
 
         if figName != None:
             title = figName+"_regressionPlot.png"
             pylab.savefig(title, format='png')
+
+        return
     
     ### Plotting Functions
     
