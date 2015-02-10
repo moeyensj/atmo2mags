@@ -3,6 +3,7 @@ import numpy
 import pylab
 import os
 import copy
+import matplotlib.patches as mp
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 import lsst.sims.photUtils.photUtils as photUtils
@@ -387,9 +388,10 @@ class AtmoBuilder:
             filters = self.filterlist
         
         fig, ax = pylab.subplots(len(filters),3)
+        fig.suptitle(r'$\Delta$mmags, Regression Contours and dPhi for each LSST filter', fontsize=14)
         fig.set_size_inches(12,len(filters)*4)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
-       
+        
         metallicity = numpy.array(sedcolorkey[0])
         logg = numpy.array(sedcolorkey[1])
         metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
@@ -442,8 +444,10 @@ class AtmoBuilder:
             dmag_minMean = 0;
             dmag_range_maxMean = 0;
 
-            for metidx in range(len(metbins)):
+            dmagFit = 0;
+            dmagMean = 0;
 
+            for metidx in range(len(metbins)):
                 # Make cut of stars
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                         & (logg>3.5))
@@ -473,12 +477,16 @@ class AtmoBuilder:
                     dmag_range_max = copy.deepcopy(dmag_range)
                 if dmag_range_maxMean < dmag_rangeMean:
                     dmag_range_maxMean = copy.deepcopy(dmag_rangeMean)
-            
-                ax[i][0].plot(gi[condition], dmags[f][condition], mcolor+'.')
-                ax[i][0].scatter(gi[condition], dmagsMean[f][condition], color='gray',alpha=0.5)
+
+                if i == 0 and metidx == 6:
+                    ax[i][0].plot(gi[condition], dmags[f][condition], mcolor+'.', label='Fit')
+                    ax[i][0].scatter(gi[condition], dmagsMean[f][condition], color='gray', alpha=0.5, label='Mean')
+                else:
+                    ax[i][0].plot(gi[condition], dmags[f][condition], mcolor+'.')
+                    ax[i][0].scatter(gi[condition], dmagsMean[f][condition], color='gray', alpha=0.5)
 
             # If dmag range exceeds 2.0, plot dashed lines at +-2dmmags
-            if dmag_range_max > 2.0:
+            if dmag_range_max > 2.0 or dmag_range_maxMean > 2.0:
                 ax[i][0].axhline(2,color='black',linestyle='--')
                 ax[i][0].axhline(-2,color='black',linestyle='--')
             else:
@@ -492,33 +500,37 @@ class AtmoBuilder:
             # Plot parameter space regression plots
             # Plot contours and true values
             ax[i][1].contour(comp1range, comp2range, convert_to_stdev(logL[f]), levels=(0.683, 0.955, 0.997),colors='k')
-            ax[i][1].scatter(comp1Std,comp2Std,label='True Value')
+            ax[i][1].scatter(P1_mean, P2_mean, color='gray', alpha=0.8, label='Mean')
+            ax[i][1].scatter(comp1Std, comp2Std, label='Std')
 
             # Plot dashed lines at best fit parameters
-            ax[i][1].axvline(comp1best[f],color='black',linestyle='--',label='Best Fit')
-            ax[i][1].axhline(comp2best[f],color='black',linestyle='--')
+            ax[i][1].axvline(comp1best[f], color='black', linestyle='--', label='Fit')
+            ax[i][1].axhline(comp2best[f], color='black', linestyle='--')
 
             # Set y-axis, x-axis limits
-            ax[i][1].set_xlim(min(comp1range),max(comp1range))
-            ax[i][1].set_ylim(min(comp2range),max(comp2range))
+            ax[i][1].set_xlim(min(comp1range), max(comp1range))
+            ax[i][1].set_ylim(min(comp2range), max(comp2range))
 
             # Label axes and show legend
             ax[i][1].set_xlabel(comp1)
             ax[i][1].set_ylabel(comp2)
-            ax[i][1].legend(loc=0, shadow=False)
 
             # Plot dphi plots
             # Plot dphis for each filter
             ax[i][2].plot(w, throughputAtmo[f].phi - throughputStd[f].phi, color=self.filtercolors[i], label='Fit - Std')
-            ax[i][2].plot(w, throughputMean[f].phi - throughputStd[f].phi, alpha=0.8, color='grey', label='Mean - Std')
+            ax[i][2].plot(w, throughputMean[f].phi - throughputStd[f].phi, alpha=0.8, color='gray', label='Mean - Std')
 
             # Format axes and add labels, legend
             ax[i][2].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
             ax[i][2].yaxis.set_label_position('right')
             ax[i][2].set_ylabel(r'$\Delta\phi_' + f + r'^{obs}(\lambda)$');
             ax[i][2].set_xlabel('Wavelength, $\lambda$ (nm)');
-            ax[i][2].legend(loc=0, shadow=False)
             ax[i][2].grid()
+
+            if i == 0:
+                ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
+                ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=3)
+                ax[i][2].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
 
         if figName != None:
             title = figName+"_regressionPlot.png"
