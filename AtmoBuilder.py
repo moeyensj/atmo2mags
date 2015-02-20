@@ -227,7 +227,56 @@ class AtmoBuilder:
         self.logg = logg
 
         return
-    
+
+    def read_whitedwarf():
+        # read white dwarf bergeron models
+        homedir = os.getenv("HOME")
+        whitedwarfdir = os.path.join(homedir, "seds/white_dwarfs_r")
+        # get the H dwarfs
+        Hdir = os.path.join(whitedwarfdir, "H")
+        allfilelist = os.listdir(Hdir)
+        hlist = []
+        temperatures = []
+        loggs = []
+        for filename in allfilelist:
+            if filename.startswith('bergeron'):
+                tmp = filename.split('_')
+                temperature = float(tmp[1])
+                logg = float(tmp[2].split('.')[0])
+                logg = logg/10.0
+                if (logg > 7.0) & (temperature>5000):
+                    hlist.append(filename)
+                    temperatures.append(temperature)
+                    loggs.append(logg)
+        Hedir = os.path.join(whitedwarfdir, "He")
+        allfilelist = os.listdir(Hedir)
+        helist = []
+        for filename in allfilelist:
+            if filename.startswith('bergeron_He'):
+                tmp = filename.split('_')
+                temperature = float(tmp[2])
+                logg = float(tmp[3].split('.')[0])
+                logg = logg/10.0
+                if (logg > 7.0) & (temperature>5000):
+                    helist.append(filename)                        
+                    temperatures.append(temperature)
+                    loggs.append(logg)
+        temperatures = numpy.array(temperatures)
+        loggs = numpy.array(loggs)
+        wdlist = hlist + helist
+        wds = {}
+        for w in wdlist:
+            wds[w] = Sed()
+            if w in hlist:
+                wds[w].readSED_flambda(os.path.join(Hdir, w))
+            if w in helist:
+                wds[w].readSED_flambda(os.path.join(Hedir, w))
+        # synchronize seds for faster mag calcs later
+        for w in wdlist:
+            wds[w].synchronizeSED(wavelen_min=WMIN, wavelen_max=WMAX, wavelen_step=WSTEP)
+        return wds, wdlist, hlist, helist, temperatures, loggs
+
+
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
