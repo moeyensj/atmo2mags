@@ -68,6 +68,7 @@ class AtmoBuilder:
         self.met = None
         self.logg = None
 
+<<<<<<< HEAD
         # White Dwarf Model data
         self.wds = None
         self.wdslist = None
@@ -75,11 +76,12 @@ class AtmoBuilder:
         self.wdslist_He = None
         self.wdtemperature = None
         self.wdlogg = None
-
+=======
         # Galaxy model data
         self.gals = None
         self.gallist = None        
         self.galredshifts = None
+>>>>>>> readGalaxies
         
         # Readers
         self.readModtranFiles()
@@ -241,7 +243,8 @@ class AtmoBuilder:
 
         return
 
-   def readWhiteDwarf(self):
+<<<<<<< HEAD
+    def readWhiteDwarf(self):
         # read white dwarf bergeron models
         homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
         whitedwarfdir = os.path.join(homedir, "starSED/wDs/")
@@ -298,6 +301,7 @@ class AtmoBuilder:
 
         return 
 
+=======
     def readGalaxies(self):
         # read sn spectra and redshift
         homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
@@ -345,7 +349,8 @@ class AtmoBuilder:
         self.galredshifts = redshifts 
 
         return 
-
+    
+>>>>>>> readGalaxies
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
