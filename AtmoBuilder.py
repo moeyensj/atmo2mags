@@ -67,6 +67,14 @@ class AtmoBuilder:
         self.temperature = None
         self.met = None
         self.logg = None
+
+        # White Dwarf Model data
+        self.wds = None
+        self.wdslist = None
+        self.wdslist_H = None
+        self.wdslist_He = None
+        self.wdtemperature = None
+        self.wdlogg = None
         
         # Readers
         self.readModtranFiles()
@@ -228,19 +236,20 @@ class AtmoBuilder:
 
         return
 
-    def read_whitedwarf():
+    def readWhiteDwarf(self):
         # read white dwarf bergeron models
-        homedir = os.getenv("HOME")
-        whitedwarfdir = os.path.join(homedir, "seds/white_dwarfs_r")
-        # get the H dwarfs
-        Hdir = os.path.join(whitedwarfdir, "H")
-        allfilelist = os.listdir(Hdir)
+        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
+        whitedwarfdir = os.path.join(homedir, "starSED/wDs/")
+
+        allfilelist = os.listdir(whitedwarfdir)
         hlist = []
+        helist = []
         temperatures = []
         loggs = []
+
         for filename in allfilelist:
-            if filename.startswith('bergeron'):
-                tmp = filename.split('_')
+            tmp = filename.split('_')
+            if len(tmp) == 4: # H dwarfs
                 temperature = float(tmp[1])
                 logg = float(tmp[2].split('.')[0])
                 logg = logg/10.0
@@ -248,11 +257,8 @@ class AtmoBuilder:
                     hlist.append(filename)
                     temperatures.append(temperature)
                     loggs.append(logg)
-        Hedir = os.path.join(whitedwarfdir, "He")
-        allfilelist = os.listdir(Hedir)
-        helist = []
-        for filename in allfilelist:
-            if filename.startswith('bergeron_He'):
+                    
+            if len(tmp) == 5: # He dwarfs
                 tmp = filename.split('_')
                 temperature = float(tmp[2])
                 logg = float(tmp[3].split('.')[0])
@@ -261,6 +267,7 @@ class AtmoBuilder:
                     helist.append(filename)                        
                     temperatures.append(temperature)
                     loggs.append(logg)
+
         temperatures = numpy.array(temperatures)
         loggs = numpy.array(loggs)
         wdlist = hlist + helist
@@ -268,14 +275,23 @@ class AtmoBuilder:
         for w in wdlist:
             wds[w] = Sed()
             if w in hlist:
-                wds[w].readSED_flambda(os.path.join(Hdir, w))
+                wds[w].readSED_flambda(os.path.join(whitedwarfdir, w))
             if w in helist:
-                wds[w].readSED_flambda(os.path.join(Hedir, w))
+                wds[w].readSED_flambda(os.path.join(whitedwarfdir, w))
+
+        print "# Read %d white dwarfs from %s" %(len(wdlist), whitedwarfdir)
         # synchronize seds for faster mag calcs later
         for w in wdlist:
-            wds[w].synchronizeSED(wavelen_min=WMIN, wavelen_max=WMAX, wavelen_step=WSTEP)
-        return wds, wdlist, hlist, helist, temperatures, loggs
+            wds[w].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
 
+        self.wds = wds
+        self.wdslist = wdlist
+        self.wdslist_H = hlist
+        self.wdslist_He = helist
+        self.wdtemperature = temperatures
+        self.wdlogg = loggs
+
+        return 
 
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
