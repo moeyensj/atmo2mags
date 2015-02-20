@@ -67,6 +67,13 @@ class AtmoBuilder:
         self.temperature = None
         self.met = None
         self.logg = None
+
+        # MLT model data
+        self.melts = None
+        self.mltlist = None
+        self.mlist = None
+        self.llist = None
+        self.tlist = None
         
         # Readers
         self.readModtranFiles()
@@ -228,20 +235,20 @@ class AtmoBuilder:
 
         return
 
-    def read_mlt():
+    def readMLT(self):
         # read mlt stars - only keep 'm's
         # find the filenames and mark 'm', 'l', 't' stars separately
-        homedir = os.getenv("HOME")
-        mltdir = os.path.join(homedir, "seds/mlt")
+        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
+        mltdir = os.path.join(homedir, "starSED/mlt/")
         allfilelist = os.listdir(mltdir)
         mltlist = []
         mlist = []
         llist = []
         tlist = []
         for filename in allfilelist:
-            if filename.endswith('.dat') & filename.startswith('m'):
+            if filename.startswith('m'):
                 mlist.append(filename)
-            elif filename.endswith('.dat') & filename.startswith('L'):
+            elif filename.startswith('L'):
                 llist.append(filename)
             elif filename.startswith('burrows'):
                 tlist.append(filename)
@@ -254,8 +261,15 @@ class AtmoBuilder:
         print "# Read %d mlt stars from %s" %(len(mltlist), mltdir)
         # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
         for s in mltlist:
-            mlts[s].synchronizeSED(wavelen_min=WMIN, wavelen_max=WMAX, wavelen_step=WSTEP)
-        return mlts, mltlist, mlist, llist, tlist
+            mlts[s].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+
+        self.mlts = mlts
+        self.mltlist = mltlist
+        self.mlist = mlist
+        self.llist = llist
+        self.tlist = tlist
+        
+        return 
         
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
