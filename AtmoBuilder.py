@@ -695,6 +695,12 @@ class AtmoBuilder:
             ax[i][1].set_xlabel(comp1)
             ax[i][1].set_ylabel(comp2)
 
+            # Add text showing best fit components
+            str1 = r'%s, $_{fit}$: %.2f' % (self.parametersPlot[pNum1], comp1_best[f])
+            str2 = r'%s, $_{fit}$: %.2f' % (self.parametersPlot[pNum2], comp2_best[f])
+            ax[i][1].text(3.3,4.7,str1,fontsize=12)
+            ax[i][1].text(3.3,4.4,str2,fontsize=12)
+
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
                 ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=3)
