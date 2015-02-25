@@ -558,6 +558,8 @@ class AtmoBuilder:
 
         return range1, range2, comp1best, comp2best, logL
 
+### Plotting Functions
+
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
                        comp1_range=None, comp2_range=None, Nbins=50, figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
@@ -702,8 +704,6 @@ class AtmoBuilder:
             pylab.savefig(title, format='png')
 
         return
-    
-    ### Plotting Functions
     
     def transPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
                   aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
