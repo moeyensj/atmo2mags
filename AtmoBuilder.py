@@ -489,12 +489,14 @@ class AtmoBuilder:
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
-            print 'Observed atmosphere parameters = ' + str(P_obs)
-            print 'Observed atmosphere parameters for varying parameters:'
-            print comp1 + ': ' + str(P_obs[pNum1])
-            print comp2 + ': ' + str(P_obs[pNum2])
-
-
+            print 'Observed atmosphere parameters: ' + str(P_obs)
+            print 'Observed atmosphere airmass:    ' + str(X_obs)
+            print 'Standard atmosphere parameters: ' + str(STDPARAMETERS)
+            print 'Standard atmosphere airmass:    ' + str(STDAIRMASS)
+            print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(P_obs[pNum1])
+            print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(P_obs[pNum2])
+            print ''
+  
         if pickleString != None:
             pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + pickleString + '.pkl'
         else:
@@ -547,10 +549,10 @@ class AtmoBuilder:
             self.dphiPlot(throughput_obs, throughput_std, figName=pickleString)
 
         if verbose:
-            print 'Best fit parameters:'
-            print 'Filter, ' + comp1 + ', ' + comp2
-            for f in filters:
-                print f, comp1best[f], comp2best[f]
+        	print ''
+        	print 'Best fit parameters (Filter, ' + comp1 + ', ' + comp2 + '):'
+        	for f in filters:
+ 				print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_obs, X_obs, pNum1=pNum1, pNum2=pNum2,
