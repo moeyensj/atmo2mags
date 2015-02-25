@@ -1068,7 +1068,7 @@ class AtmoBuilder:
 
     def pickleNameGen(self, comp1, comp2, P, X, Nbins):
         """Generates a string for pickle files. """
-        return 'X' + str(int(X*10)) + '_' + self.pToString(P) + '_' + comp1 + '_' + comp2 + '_' + str(Nbins) + 'bins'
+        return 'X' + str(int(X*10)) + '_' + self.pToString(P) + '_' + comp1 + '_' + comp2 + '_' + 'XSTD' + str(int(STDAIRMASS*10)) + '_' + str(Nbins) + 'bins'
 
     def componentCheck(self,comp,Nbins):
         """Returns a range of values of length Nbins for a given component."""
