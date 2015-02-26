@@ -23,6 +23,7 @@ STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
 REDSHIFTRANGEQUASAR = [0,7.5]
+REDSHIFTRANGESN = [0,1.2]
 
 """
 #### IMPORTANT NOTE ####
@@ -93,6 +94,12 @@ class AtmoBuilder:
         # Quasar model data
         self.quasars = None
         self.quasarRedshifts = None
+
+        # Supernova model data
+        self.sns = None
+        self.snList = None
+        self.snDays = None
+        self.snRedshifts = None
         
         # Readers
         self.readModtranFiles()
@@ -415,6 +422,49 @@ class AtmoBuilder:
         self.quasars = quasars
         self.quasarRedshifts = redshifts
 
+        return
+
+    def readSNes(self, redshiftRange=REDSHIFTRANGESN, redshiftStep=0.1, days=['0', '20', '40']):
+        # read sn spectra and redshift
+        homedir = os.getenv("HOME")
+        sndir = os.path.join(homedir, "atmo2mags/seds/sn")
+        allfilelist = os.listdir(sndir)
+        snlist = []
+        redshifts= numpy.arange(REDSHIFTRANGESN[0], REDSHIFTRANGESN[1]+redshiftStep, redshiftStep)
+        # pull out the filenames we want
+        for filename in allfilelist:
+            if filename.endswith('.dat') & filename.startswith('sn1a_'):
+                tmp = filename.split('_')
+                day = tmp[1].split('.')[0]
+                if day in days:
+                    snlist.append(filename)
+        # read base SEDs for these days
+        sns_base = {}
+        for r in zip(snlist, days):
+            day = r[1]
+            sns_base[day] = Sed()
+            sns_base[day].readSED_flambda(os.path.join(sndir, r[0]))
+
+        # and redshift
+        sns = {}
+        snlist = []
+        for d in days:        
+            for z in redshifts:
+                sn_name = "%d_%.1f" %(int(d), z)
+                wavelen, flambda = sns_base[d].redshiftSED(z, wavelen=sns_base[d].wavelen, flambda=sns_base[d].flambda)
+                sns[sn_name] = Sed(wavelen=wavelen, flambda=flambda)
+                snlist.append(sn_name)
+
+        print "# Generated %d sn's at redshifts between %f and %f on days %s" %(len(snlist),redshifts.min(), redshifts.max(), days)
+        # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
+        for s in snlist:
+            sns[s].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+
+        self.sns = sns
+        self.snList = snlist
+        self.snDays = days
+        self.snRedshifts = redshifts
+        
         return 
         
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
