@@ -514,7 +514,7 @@ class AtmoBuilder:
         return total
     
     def mags(self, bpDict, seds=None, sedkeylist=None, verbose=False):
-        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not passed
+        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not none
         returns mags for Kurucz model MS stars."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
@@ -522,18 +522,16 @@ class AtmoBuilder:
         filterlist = self.filterlist
 
         if (seds == None) & (sedkeylist == None):
-            seds == self.stars
+            seds = self.stars
             sedkeylist = self.starlist
         
         mags = {}
         for f in self.filterlist:
             mags[f] = numpy.zeros(len(sedkeylist), dtype='float')
-            i = 0
-            for key in sedkeylist:
+            for i,key in enumerate(sedkeylist):
                 mags[f][i] = seds[key].calcMag(bpDict[f])
                 if numpy.isnan(mags[f][i]):
                     print key, f, mags[f][i]
-                i = i + 1
             if verbose == True:
                 print f, mags[f].max(), mags[f].min()
         return mags
