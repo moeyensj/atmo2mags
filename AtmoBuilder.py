@@ -467,12 +467,12 @@ class AtmoBuilder:
     def readAll(self, kurucz=True, galaxies=True, whiteDwarfs=True, mltDwarfs=True, quasars=True, SNes=True):
         if kurucz:
             self.readKurucz()
-        if galaxies:
-            self.readGalaxies()
-        if mltDwarfs:
-            self.readMLT()
         if whiteDwarfs:
             self.readWhiteDwarf()
+        if mltDwarfs:
+            self.readMLT()
+        if galaxies:
+            self.readGalaxies()
         if quasars:
             self.readQuasar()
         if SNes:
