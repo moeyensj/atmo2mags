@@ -22,9 +22,6 @@ STDAEROSOLNORMCOEFF = 0.1
 STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
-REDSHIFTRANGEQUASAR = [0,7.5]
-REDSHIFTRANGESN = [0,1.2]
-
 """
 #### IMPORTANT NOTE ####
 MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
@@ -402,7 +399,7 @@ class AtmoBuilder:
         
         return 
 
-    def readQuasar(self, redshiftRange=REDSHIFTRANGEQUASAR, redshiftStep=0.1):
+    def readQuasar(self, redshiftRange=[0,7.5], redshiftStep=0.1):
         homedir = os.getenv("HOME")
         quasardir = os.path.join(homedir, "atmo2mags/seds/quasar")
         # read zero redshift quasar
@@ -424,13 +421,13 @@ class AtmoBuilder:
 
         return
 
-    def readSNes(self, redshiftRange=REDSHIFTRANGESN, redshiftStep=0.1, days=['0', '20', '40']):
+    def readSNes(self, redshiftRange=[0,1.2], redshiftStep=0.1, days=['0', '20', '40']):
         # read sn spectra and redshift
         homedir = os.getenv("HOME")
         sndir = os.path.join(homedir, "atmo2mags/seds/sn")
         allfilelist = os.listdir(sndir)
         snlist = []
-        redshifts= numpy.arange(REDSHIFTRANGESN[0], REDSHIFTRANGESN[1]+redshiftStep, redshiftStep)
+        redshifts= numpy.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
         # pull out the filenames we want
         for filename in allfilelist:
             if filename.endswith('.dat') & filename.startswith('sn1a_'):
