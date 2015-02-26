@@ -462,7 +462,22 @@ class AtmoBuilder:
         self.snDays = days
         self.snRedshifts = redshifts
         
-        return 
+        return
+
+    def readAll(self, kurucz=True, galaxies=True, whiteDwarfs=True, mltDwarfs=True, quasars=True, SNes=True):
+        if kurucz:
+            self.readKurucz()
+        if galaxies:
+            self.readGalaxies()
+        if mltDwarfs:
+            self.readMLT()
+        if whiteDwarfs:
+            self.readWhiteDwarf()
+        if quasars:
+            self.readQuasar()
+        if SNes:
+            self.readSNes()
+        return
         
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
