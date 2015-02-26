@@ -22,6 +22,8 @@ STDAEROSOLNORMCOEFF = 0.1
 STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
+REDSHIFTRANGEQUASAR = [0,7.5]
+
 """
 #### IMPORTANT NOTE ####
 MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
@@ -87,6 +89,10 @@ class AtmoBuilder:
         self.mlist = None
         self.llist = None
         self.tlist = None
+
+        # Quasar model data
+        self.quasars = None
+        self.quasarRedshifts = None
         
         # Readers
         self.readModtranFiles()
@@ -387,6 +393,28 @@ class AtmoBuilder:
         self.llist = llist
         self.tlist = tlist
         
+        return 
+
+    def readQuasar(self, redshiftRange=REDSHIFTRANGEQUASAR, redshiftStep=0.1):
+        homedir = os.getenv("HOME")
+        quasardir = os.path.join(homedir, "atmo2mags/seds/quasar")
+        # read zero redshift quasar
+        base = Sed()
+        base.readSED_flambda(os.path.join(quasardir, "quasar.dat"))
+        # redshift 
+        redshifts= numpy.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
+        quasars = {}
+        for z in redshifts:
+            wavelen, flambda = base.redshiftSED(z, wavelen=base.wavelen, flambda=base.flambda)
+            quasars[z] = Sed(wavelen=wavelen, flambda=flambda)
+        print "# Generated %d quasars at redshifts between %f and %f" %(len(redshifts), redshifts.min(), redshifts.max())
+        # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
+        for z in redshifts:
+            quasars[z].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+
+        self.quasars = quasars
+        self.quasarRedshifts = redshifts
+
         return 
         
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
