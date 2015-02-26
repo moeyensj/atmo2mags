@@ -22,6 +22,8 @@ STDAEROSOLNORMCOEFF = 0.1
 STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
+SIMSSEDLIBRARY = "SIMS_SED_LIBRARY_DIR"
+
 """
 #### IMPORTANT NOTE ####
 MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
@@ -207,8 +209,8 @@ class AtmoBuilder:
         """Reads Kurucz model data from LSST software stack and sets relevant class attributes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # read kurucz model MS, g40 stars SEDs
-        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")    # "SIMS_SED_LIBRARY_DIR"
-        stardir = os.path.join(homedir, "starSED/kurucz/")  # "starSED/kurucz/"
+        homedir = os.getenv(SIMSSEDLIBRARY)  
+        stardir = os.path.join(homedir, "starSED/kurucz/")
         allfilelist = os.listdir(stardir)
         starlist = []
         # make preliminary cut for ms, g40 stars
@@ -260,7 +262,7 @@ class AtmoBuilder:
 
     def readWhiteDwarf(self):
         # read white dwarf bergeron models
-        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
+        homedir = os.getenv(SIMSSEDLIBRARY)
         whitedwarfdir = os.path.join(homedir, "starSED/wDs/")
         
         allfilelist = os.listdir(whitedwarfdir)
@@ -317,7 +319,7 @@ class AtmoBuilder:
 
     def readGalaxies(self):
         # read sn spectra and redshift
-        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
+        homedir = os.getenv(SIMSSEDLIBRARY)
         galdir = os.path.join(homedir, "galaxySED/")
         allfilelist = os.listdir(galdir)
         gallist_base = []
@@ -366,7 +368,7 @@ class AtmoBuilder:
     def readMLT(self):
         # read mlt stars - only keep 'm's
         # find the filenames and mark 'm', 'l', 't' stars separately
-        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
+        homedir = os.getenv(SIMSSEDLIBRARY)
         mltdir = os.path.join(homedir, "starSED/mlt/")
         allfilelist = os.listdir(mltdir)
         mltlist = []
