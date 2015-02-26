@@ -513,17 +513,17 @@ class AtmoBuilder:
             total[f].sbTophi()
         return total
     
-    def mags(self, bpDict, verbose=False):
-        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary."""
+    def mags(self, bpDict, seds=None, sedkeylist=None, verbose=False):
+        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not passed
+        returns mags for Kurucz model MS stars."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        
-        self.kuruczCheck()
-        
-        seds = self.stars
-        sedkeylist = self.starlist
         filterlist = self.filterlist
+
+        if (seds == None) & (sedkeylist == None):
+            seds == self.stars
+            sedkeylist = self.starlist
         
         mags = {}
         for f in self.filterlist:
