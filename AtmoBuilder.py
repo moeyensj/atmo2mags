@@ -254,62 +254,62 @@ class AtmoBuilder:
 
         return
 
-	def readWhiteDwarf(self):
-	    # read white dwarf bergeron models
-	    homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
-	    whitedwarfdir = os.path.join(homedir, "starSED/wDs/")
+    def readWhiteDwarf(self):
+        # read white dwarf bergeron models
+        homedir = os.getenv("SIMS_SED_LIBRARY_DIR")
+        whitedwarfdir = os.path.join(homedir, "starSED/wDs/")
+        
+        allfilelist = os.listdir(whitedwarfdir)
+        hlist = []
+        helist = []
+        temperatures = []
+        loggs = []
 
-	    allfilelist = os.listdir(whitedwarfdir)
-	    hlist = []
-	    helist = []
-	    temperatures = []
-	    loggs = []
-
-	    for filename in allfilelist:
-	        tmp = filename.split('_')
-	        if len(tmp) == 4: # H dwarfs
-	            temperature = float(tmp[1])
-	            logg = float(tmp[2].split('.')[0])
-	            logg = logg/10.0
-	            if (logg > 7.0) & (temperature>5000):
-	                hlist.append(filename)
-	                temperatures.append(temperature)
-	                loggs.append(logg)
+        for filename in allfilelist:
+            tmp = filename.split('_')
+            if len(tmp) == 4: # H dwarfs
+                temperature = float(tmp[1])
+                logg = float(tmp[2].split('.')[0])
+                logg = logg/10.0
+                if (logg > 7.0) & (temperature>5000):
+                    hlist.append(filename)
+                    temperatures.append(temperature)
+                    loggs.append(logg)
 	                
-	        if len(tmp) == 5: # He dwarfs
-	            tmp = filename.split('_')
-	            temperature = float(tmp[2])
-	            logg = float(tmp[3].split('.')[0])
-	            logg = logg/10.0
-	            if (logg > 7.0) & (temperature>5000):
-	                helist.append(filename)                        
-	                temperatures.append(temperature)
-	                loggs.append(logg)
+            if len(tmp) == 5: # He dwarfs
+                tmp = filename.split('_')
+                temperature = float(tmp[2])
+                logg = float(tmp[3].split('.')[0])
+                logg = logg/10.0
+                if (logg > 7.0) & (temperature>5000):
+                    helist.append(filename)                        
+                    temperatures.append(temperature)
+                    loggs.append(logg)
 
-	    temperatures = numpy.array(temperatures)
-	    loggs = numpy.array(loggs)
-	    wdlist = hlist + helist
-	    wds = {}
-	    for w in wdlist:
-	        wds[w] = Sed()
-	        if w in hlist:
-	            wds[w].readSED_flambda(os.path.join(whitedwarfdir, w))
-	        if w in helist:
-	            wds[w].readSED_flambda(os.path.join(whitedwarfdir, w))
+        temperatures = numpy.array(temperatures)
+        loggs = numpy.array(loggs)
+        wdlist = hlist + helist
+        wds = {}
+        for w in wdlist:
+            wds[w] = Sed()
+            if w in hlist:
+                wds[w].readSED_flambda(os.path.join(whitedwarfdir, w))
+            if w in helist:
+                wds[w].readSED_flambda(os.path.join(whitedwarfdir, w))
 
-	    print "# Read %d white dwarfs from %s" %(len(wdlist), whitedwarfdir)
-	    # synchronize seds for faster mag calcs later
-	    for w in wdlist:
-	        wds[w].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+        print "# Read %d white dwarfs from %s" %(len(wdlist), whitedwarfdir)
+        # synchronize seds for faster mag calcs later
+        for w in wdlist:
+            wds[w].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
 
-	    self.wds = wds
-	    self.wdslist = wdlist
-	    self.wdslist_H = hlist
-	    self.wdslist_He = helist
-	    self.wdtemperature = temperatures
-	    self.wdlogg = loggs
+        self.wds = wds
+        self.wdslist = wdlist
+        self.wdslist_H = hlist
+        self.wdslist_He = helist
+        self.wdtemperature = temperatures
+        self.wdlogg = loggs
 
-	    return 
+        return 
 
     def readGalaxies(self):
         # read sn spectra and redshift
