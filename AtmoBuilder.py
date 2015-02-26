@@ -105,11 +105,11 @@ class AtmoBuilder:
         self.readFilters()
         self.readHardware()
     
-    def readModtranFiles(self, modtranDir='.', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
+    def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """Reads in atmospheric absorption data from MODTRAN files into an airmass-keyed directory."""
         ### Taken from AtmoComp and modified to suit specific needs.
         
-        files = os.listdir('.')
+        files = os.listdir(modtranDir)
         modtranFiles = []
         
         for f in files:
@@ -126,7 +126,7 @@ class AtmoBuilder:
         
         for file in modtranFiles:
             print file
-            fin = open(file,'r')
+            fin = open(os.path.join(modtranDir, file),'r')
             wavelenTemp = []
             transTemp = {}
             
