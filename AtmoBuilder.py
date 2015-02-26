@@ -554,6 +554,9 @@ class AtmoBuilder:
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
     def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.02, Nbins=50, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
+        # Insure valid parameters and airmass are passed for the observed atmosphere
+        self.parameterCheck(P_obs)
+        self.airmassCheck(X_obs)
 
         # Find range over which to vary parameter and the parameter number for comp1, comp2
         range1, pNum1 = self.componentCheck(comp1,Nbins)
