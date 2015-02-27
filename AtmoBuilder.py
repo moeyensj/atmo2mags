@@ -104,6 +104,8 @@ class AtmoBuilder:
         self.readModtranFiles()
         self.readFilters()
         self.readHardware()
+
+### Reading Functions
     
     def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """Reads in atmospheric absorption data from MODTRAN files into an airmass-keyed directory."""
@@ -480,6 +482,8 @@ class AtmoBuilder:
         if SNes:
             self.readSNes()
         return
+
+### Calculator / Generator Functions
         
     def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
@@ -555,7 +559,7 @@ class AtmoBuilder:
         gi = mags_std['g'] - mags_std['i']
         return gi
 
-    ### Regression Functions
+### Regression Functions
 
     def compute_logL(self, P, X, err, f, mags_obs, mags_std):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
@@ -656,7 +660,7 @@ class AtmoBuilder:
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
-                       comp1_range=None, comp2_range=None, Nbins=50, figName=None, filters=None , verbose=True):
+        comp1_range=None, comp2_range=None, Nbins=50, figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
         sedcolorkey = [self.met,self.logg]
@@ -807,9 +811,9 @@ class AtmoBuilder:
         return
     
     def transPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-                  aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
-                  aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-                  atmoColor1='blue', atmo2Color='black', atmo2Alpha=0.5, figName=None):
+        aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
+        aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
+        atmoColor1='blue', atmo2Color='black', atmo2Alpha=0.5, figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
@@ -879,7 +883,7 @@ class AtmoBuilder:
         return
     
     def phiPlot(self, bpDict1, bpDict2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-                phi2Alpha=0.5, phi2Color='black', figName=None):
+        phi2Alpha=0.5, phi2Color='black', figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
@@ -926,8 +930,7 @@ class AtmoBuilder:
         
         return
     
-    def colorcolorPlot(self, bpDict, newfig=True, titletext=None):
-        
+    def colorcolorPlot(self, bpDict, newfig=True, titletext=None): 
         seds = self.stars
         sedkeylist = self.starlist
         sedcolorkey = self.met
@@ -985,7 +988,6 @@ class AtmoBuilder:
                 #pylab.suptitle(titletext)
                 #pylab.savefig("delta_mags2.eps", format='eps')
         return
-
 
     def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figName=None, verbose=False):
         """Plots dmags with each filter in its own subplot."""
@@ -1068,9 +1070,9 @@ class AtmoBuilder:
         return
     
     def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-                aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
-                aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-                transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
+        aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
+        aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
+        transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
         """Plots transmission profile, normalized bandpass response function, change in normalized bandpass response function and change in magnitude 
         against standard atmosphere given an array of parameters and a specific airmass. User can provide array of parameters and airmass in order to 
         override the comparison to the standard atmosphere."""
@@ -1106,7 +1108,7 @@ class AtmoBuilder:
             self.dmagsPlot(gi, dmags, figName=figName)
         return
 
-    ### Secondary Functions
+### Secondary Functions
     
     def aerosol(self, w, X, alpha, aerosolNormCoeff, aerosolNormWavelen):
         """Standard aerosol transmission function, returns array of transmission values over a range of
