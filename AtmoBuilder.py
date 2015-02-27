@@ -326,7 +326,7 @@ class AtmoBuilder:
         allfilelist = os.listdir(galdir)
         gallist_base = []
         metal = ['002Z', '04Z', '25Z']
-        gtype = ['Const', 'Inst', 'Burst', 'Exp']
+        gtype = ['Const', 'Inst', 'Burst'] # removed Exp
         redshifts= numpy.arange(0, 1.7, 0.3)
         # pull out the filenames we want
         for filename in allfilelist:
@@ -672,9 +672,9 @@ class AtmoBuilder:
         if filters == None:
             filters = self.filterlist
         
-        fig, ax = pylab.subplots(len(filters),2)
+        fig, ax = pylab.subplots(len(filters),3)
         fig.suptitle(r'$\Delta$mmags and Regression Contours for each LSST filter', fontsize=14)
-        fig.set_size_inches(10,len(filters)*5)
+        fig.set_size_inches(12,len(filters)*4)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
         
         metallicity = numpy.array(sedcolorkey[0])
@@ -790,7 +790,7 @@ class AtmoBuilder:
             ax[i][1].set_xlim(min(comp1_range), max(comp1_range))
             ax[i][1].set_ylim(min(comp2_range), max(comp2_range))
 
-            # Label axes and show legend
+            # Label axes
             ax[i][1].set_xlabel(comp1)
             ax[i][1].set_ylabel(comp2)
 
@@ -799,6 +799,23 @@ class AtmoBuilder:
             str2 = r'%s, $_{fit}$: %.2f' % (self.parametersPlot[pNum2], comp2_best[f])
             ax[i][1].text(3.3,4.7,str1,fontsize=12)
             ax[i][1].text(3.3,4.4,str2,fontsize=12)
+
+            # Plot dmags for other SEDS:
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasar')
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn')
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars')
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars')
+
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'quasar',truth=True)
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', truth=True)
+
+            # Label axes and add grid
+            ax[i][2].set_xlabel("g-i")
+            ax[i][2].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
+            ax[i][2].grid()
+
+
+
 
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
@@ -809,7 +826,104 @@ class AtmoBuilder:
             pylab.savefig(title, format='png')
 
         return
-    
+
+    def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False):
+        if sedtype == 'quasar':
+            mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+            mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+            gi = self.gi(mags_std)
+            dmags = self.dmags(mags, mags_std)
+
+            redshift = self.quasarRedshifts
+            redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
+            redbinsize = 0.5
+            redbins = numpy.arange(0.0, 3.0+redbinsize, redbinsize)
+            for redidx in range(len(redbins)):
+                condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
+                rcolor = redcolors[redidx]
+                if truth:
+                    ax.plot(gi[condition], dmags[f][condition], rcolor+'.')
+                else:
+                    ax.plot(gi[condition], dmags[f][condition], rcolor+'o')
+        
+        elif sedtype == 'galaxy':
+            mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist)
+            mags_std = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist)
+            gi = self.gi(mags_std)
+            dmags = self.dmags(mags, mags_std)
+
+            gallist = self.gallist
+            redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
+            redbinsize = 0.3
+            redbins = numpy.arange(0.0, 1.7+redbinsize, redbinsize)
+
+            for i,g in enumerate(gallist):
+                galbase, redshift = g.split('_')
+                redshift = float(redshift)
+                redidx = int(redshift / redbinsize)
+                if truth:
+                    ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
+                else:
+                    ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.',color='gray')
+
+        elif sedtype == 'mlt':
+            mags = self.mags(bpDict1, seds=self.melts, sedkeylist=[self.mlist, self.llist, self.tllist])
+            mags_std = self.mags(bpDict2, seds=self.melts, sedkeylist=[self.mlist, self.llist, self.tllist])
+            gi = self.gi(mags_std)
+            dmags = self.dmags(mags, mags_std)
+
+            mltlist = self.mltlist
+            mlist = self.mlist
+            llist = self.llist
+            tlist = self.tlist
+        
+            for j in range(len(mltlist)):
+                if (mltlist[j] in mlist):
+                    ax.plot(gi[j], dmags[f][j], 'bx')
+                elif (mltlist[j] in llist):
+                    ax.plot(gi[j], dmags[f][j], 'gx')
+                elif (mltlist[j] in tlist):
+                    ax.plot(gi[j], dmags[f][j], 'mx')
+
+        elif sedtype == 'white_dwarf':
+            mags = self.mags(bpDict1, seds=self.melts, sedkeylist=[self.wdlist_H, self.wdlist_He])
+            mags_std = self.mags(bpDict2, seds=self.melts, sedkeylist=[self.wdlist_H, self.wdlist_He])
+            gi = self.gi(mags_std)
+            dmags = self.dmags(mags, mags_std)
+
+            wdlist = self.wdlist
+            hlist = self.wdlist_H
+            helist = self.wdlist_He
+
+            for j in range(len(wdlist)):
+                if (wdlist[j] in hlist):
+                    ax.plot(gi[j], dmags[f][j], 'y+')
+                elif (wdlist[j] in helist):
+                    ax.plot(gi[j], dmags[f][j], 'y+')
+
+        elif sedtype == 'sn':
+            mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList)
+            mags_std = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList)
+            gi = self.gi(mags_std)
+            dmags = self.dmags(mags, mags_std)
+ 
+            snlist = self.snList
+            redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
+            redbinsize = 0.18
+            redbins = numpy.arange(0.0, 1.0+redbinsize, redbinsize)
+            day_symbol = {'0':'s', '20':'s', '40':'s'}
+
+            for j,s in enumerate(snlist):
+                day, redshift = s.split('_')
+                redshift = float(redshift)
+                redidx = int(redshift / redbinsize)
+                if truth:
+                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day],color='gray')
+                else:
+                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
+
+        return
+
     def transPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
         aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
         aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
