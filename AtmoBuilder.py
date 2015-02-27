@@ -779,7 +779,7 @@ class AtmoBuilder:
 
             # Plot parameter space regression plots
             # Plot contours and true values
-            ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f]), levels=(0.683, 0.955, 0.997),colors='k')
+            ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T), levels=(0.683, 0.955, 0.997),colors='k')
             ax[i][1].scatter(comp1_obs, comp2_obs, label='Obs')
 
             # Plot dashed lines at best fit parameters
