@@ -801,12 +801,12 @@ class AtmoBuilder:
             ax[i][1].text(3.3,4.4,str2,fontsize=12)
 
             # Plot dmags for other SEDS:
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasar')
+            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'kurucz')
             #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn')
             #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars')
             #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars')
 
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'quasar',truth=True)
+            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'kurucz',truth=True)
             #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', truth=True)
 
             # Label axes and add grid
@@ -828,7 +828,29 @@ class AtmoBuilder:
         return
 
     def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False):
-        if sedtype == 'quasar':
+        if sedtype == 'kurucz':
+            mags = self.mags(bpDict1)
+            mags_std = self.mags(bpDict2)
+            gi = self.gi(mags_std)
+            dmags = self.dmags(mags, mags_std)
+
+            metallicity = numpy.array(self.met)
+            logg = numpy.array(self.logg)
+            metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
+            metbinsize = abs(metallicity.min() - metallicity.max())/6.0
+            metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
+
+            for metidx in range(len(metbins)):
+                # Make cut of stars
+                condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
+                        & (logg>3.5))
+                mcolor = metcolors[metidx]
+                if truth:
+                    ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
+                else:
+                    ax.plot(gi[condition], dmags[f][condition], mcolor+'.',color='gray',alpha=0.5)
+
+        elif sedtype == 'quasar':
             mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
             mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
             gi = self.gi(mags_std)
