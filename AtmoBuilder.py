@@ -319,7 +319,7 @@ class AtmoBuilder:
 
         return 
 
-    def readGalaxies(self):
+    def readGalaxies(self, redshiftRange=[0,3.0], redshiftStep=0.5):
         # read sn spectra and redshift
         homedir = os.getenv(SIMSSEDLIBRARY)
         galdir = os.path.join(homedir, "galaxySED/")
@@ -327,7 +327,7 @@ class AtmoBuilder:
         gallist_base = []
         metal = ['002Z', '04Z', '25Z']
         gtype = ['Const', 'Inst', 'Burst'] # removed Exp
-        redshifts= numpy.arange(0, 1.7, 0.3)
+        redshifts= numpy.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
         # pull out the filenames we want
         for filename in allfilelist:
             if filename.endswith('.spec.gz'):
@@ -663,7 +663,6 @@ class AtmoBuilder:
         comp1_range=None, comp2_range=None, Nbins=50, figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
-        sedcolorkey = [self.met,self.logg]
 
         if any([pNum1,pNum2,comp1_range,comp2_range]) == None:
             comp1_range, pNum1 = self.componentCheck(comp1, Nbins)
@@ -674,7 +673,7 @@ class AtmoBuilder:
         
         fig, ax = pylab.subplots(len(filters),3)
         fig.suptitle(r'$\Delta$mmags and Regression Contours for each LSST filter', fontsize=14)
-        fig.set_size_inches(12,len(filters)*4)
+        fig.set_size_inches(15,len(filters)*5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
 
         # Save observed parameters
@@ -710,15 +709,10 @@ class AtmoBuilder:
             self.dmagSED(ax[i][0], f, throughput_fit, throughput_std, 'kurucz')
             self.dmagSED(ax[i][0], f, throughput_obs, throughput_std, 'kurucz', truth=True)
 
-            # Label axes and add grid
-            ax[i][0].set_xlabel("g-i")
-            ax[i][0].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
-            ax[i][0].grid()
-
             # Plot parameter space regression plots
             # Plot contours and true values
             ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T), levels=(0.683, 0.955, 0.997),colors='k')
-            ax[i][1].scatter(comp1_obs, comp2_obs, label='Obs')
+            ax[i][1].scatter(comp1_obs, comp2_obs, label='Truth')
 
             # Plot dashed lines at best fit parameters
             ax[i][1].axvline(comp1_best[f], color='black', linestyle='--', label='Fit')
@@ -739,18 +733,9 @@ class AtmoBuilder:
             ax[i][1].text(3.3,4.4,str2,fontsize=12)
 
             # Plot dmags for other SEDS:
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'kurucz')
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn')
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars')
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars')
-
-            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'kurucz',truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', truth=True)
-
-            # Label axes and add grid
-            ax[i][2].set_xlabel("g-i")
-            ax[i][2].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
-            ax[i][2].grid()
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'galaxy', dmaglimit=False)
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn', dmaglimit=False)
+            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars', dmaglimit=False)
 
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
@@ -762,7 +747,12 @@ class AtmoBuilder:
 
         return
 
-    def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False):
+    def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False, dmaglimit=True):
+        # Label axes, add grid
+        ax.set_xlabel("g-i")
+        #ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f))
+        ax.grid(b=True)
+
         if sedtype == 'kurucz':
             mags = self.mags(bpDict1)
             mags_std = self.mags(bpDict2)
@@ -780,10 +770,10 @@ class AtmoBuilder:
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                         & (logg>3.5))
                 mcolor = metcolors[metidx]
-                if truth:
+                if truth == True:
                     ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
                 else:
-                    ax.plot(gi[condition], dmags[f][condition], mcolor+'.',color='gray',alpha=0.5)
+                    ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', alpha=0.5)
 
         elif sedtype == 'quasar':
             mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
@@ -798,10 +788,10 @@ class AtmoBuilder:
             for redidx in range(len(redbins)):
                 condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
                 rcolor = redcolors[redidx]
-                if truth:
+                if truth == True:
                     ax.plot(gi[condition], dmags[f][condition], rcolor+'.')
                 else:
-                    ax.plot(gi[condition], dmags[f][condition], rcolor+'o')
+                    ax.plot(gi[condition], dmags[f][condition], rcolor+'.', color='gray')
         
         elif sedtype == 'galaxy':
             mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist)
@@ -811,14 +801,14 @@ class AtmoBuilder:
 
             gallist = self.gallist
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
-            redbinsize = 0.3
-            redbins = numpy.arange(0.0, 1.7+redbinsize, redbinsize)
+            redbinsize = 0.5
+            redbins = numpy.arange(0.0, 3.0+redbinsize, redbinsize)
 
             for i,g in enumerate(gallist):
                 galbase, redshift = g.split('_')
                 redshift = float(redshift)
                 redidx = int(redshift / redbinsize)
-                if truth:
+                if truth == True:
                     ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
                 else:
                     ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.',color='gray')
@@ -842,7 +832,7 @@ class AtmoBuilder:
                 elif (mltlist[j] in tlist):
                     ax.plot(gi[j], dmags[f][j], 'mx')
 
-        elif sedtype == 'white_dwarf':
+        elif sedtype == 'wd':
             mags = self.mags(bpDict1, seds=self.melts, sedkeylist=[self.wdlist_H, self.wdlist_He])
             mags_std = self.mags(bpDict2, seds=self.melts, sedkeylist=[self.wdlist_H, self.wdlist_He])
             gi = self.gi(mags_std)
@@ -866,20 +856,22 @@ class AtmoBuilder:
  
             snlist = self.snList
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
-            redbinsize = 0.18
-            redbins = numpy.arange(0.0, 1.0+redbinsize, redbinsize)
+            redbinsize = 0.2
+            redbins = numpy.arange(0.0, 1.2+redbinsize, redbinsize)
             day_symbol = {'0':'s', '20':'s', '40':'s'}
 
             for j,s in enumerate(snlist):
                 day, redshift = s.split('_')
                 redshift = float(redshift)
                 redidx = int(redshift / redbinsize)
-                if truth:
-                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day],color='gray')
-                else:
+                if truth == True:
                     ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
+                else:
+                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day],color='gray')
 
-        self.dmagLimit(ax, f, dmags)
+        # Add appropriate y-axis limits
+        if dmaglimit:
+            self.dmagLimit(ax, f, dmags)
 
         return
 
@@ -1193,6 +1185,16 @@ class AtmoBuilder:
         X = float(airmass)
         return "%.3f" % (X)
 
+    def pToString(self, P):
+        """Returns string version of parameter array."""
+        stringP = "P"
+        for i in P:
+            if i < 1.0:
+                stringP+="0"+str(int(i * 10))
+            else:
+                stringP+=str(int(i * 10))
+        return stringP
+
     def meanParameter(self, compDict, filters=None):
         """Given a filter-keyed dictionary of best fit values, returns mean value"""
         if filters == None:
@@ -1203,16 +1205,6 @@ class AtmoBuilder:
             meanValue += compDict[f]
             
         return meanValue/float(len(filters))
-
-    def pToString(self, P):
-        """Returns string version of parameter array."""
-        stringP = "P"
-        for i in P:
-            if i < 1.0:
-                stringP+="0"+str(int(i * 10))
-            else:
-                stringP+=str(int(i * 10))
-        return stringP
 
     def dmagLimit(self, ax, f, dmags):
         # Initialize values to keep track of dmag range
