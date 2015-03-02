@@ -739,11 +739,11 @@ class AtmoBuilder:
             self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'mlt', dmaglimit=False)
             self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'wd', dmaglimit=False)
 
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'galaxy', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'mlt', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'wd', dmaglimit=False, truth=True)
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'galaxy', dmaglimit=False, truth=True)
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', dmaglimit=False, truth=True)
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'quasars', dmaglimit=False, truth=True)
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'mlt', dmaglimit=False, truth=True)
+            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'wd', dmaglimit=False, truth=True)
 
 
             if i == 0:
@@ -1297,8 +1297,22 @@ class AtmoBuilder:
             raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
         return
     
-    def kuruczCheck(self):
+    def sedReadCheck(self, sedtype):
         """Checks if Kurucz model data has been read in."""
-        if self.stars == None:
-            raise ValueError('No Kurucz model data found, please run self.readKurucz()')
+        if sedtype == 'kurucz':
+            if self.stars == None:
+                raise ValueError('No Kurucz model data found, please run self.readKurucz() or self.readAll()')
+        elif sedtype == 'quasars':
+            if self.quasars == None:
+                raise ValueError('No quasar data found, please run self.readQuasars() or self.readAll()')
+        elif sedtype == 'galaxy':
+            if self.gals == None:
+                raise ValueError('No galaxy data found, please run self.readGalaxies() or self.readAll()')
+        elif sedtype == 'wds':
+            if self.wds == None:
+                raise ValueError('No white dwarf data found, please run self.readWhiteDwarf or self.readAll()')
+        elif sedtype == 'mlt':
+            if self.mlts == None:
+                raise ValueError('No mlt dwarf data found, please run self.readMLT or self.readAll()')
         return
+
