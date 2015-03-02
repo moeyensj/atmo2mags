@@ -1296,13 +1296,18 @@ class AtmoBuilder:
         if self.airmassToString(X) not in self.airmasses:
             raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
         return
+
+    def sedtypeCheck(self, sedtype):
+        sedtypes = ['kurucz','quasar','galaxy','wd','mlt','sn']
+        if sedtype not in sedtypes:
+            raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(sedtypes))
     
     def sedReadCheck(self, sedtype):
         """Checks if Kurucz model data has been read in."""
         if sedtype == 'kurucz':
             if self.stars == None:
                 raise ValueError('No Kurucz model data found, please run self.readKurucz() or self.readAll()')
-        elif sedtype == 'quasars':
+        elif sedtype == 'quasar':
             if self.quasars == None:
                 raise ValueError('No quasar data found, please run self.readQuasars() or self.readAll()')
         elif sedtype == 'galaxy':
@@ -1314,5 +1319,8 @@ class AtmoBuilder:
         elif sedtype == 'mlt':
             if self.mlts == None:
                 raise ValueError('No mlt dwarf data found, please run self.readMLT or self.readAll()')
+        elif sedtype == 'sn':
+            if self.sns == None:
+                raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
 
