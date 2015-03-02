@@ -676,12 +676,6 @@ class AtmoBuilder:
         fig.suptitle(r'$\Delta$mmags and Regression Contours for each LSST filter', fontsize=14)
         fig.set_size_inches(12,len(filters)*4)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
-        
-        metallicity = numpy.array(sedcolorkey[0])
-        logg = numpy.array(sedcolorkey[1])
-        metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
-        metbinsize = abs(metallicity.min() - metallicity.max())/6.0
-        metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
 
         # Save observed parameters
         comp1_obs = P_obs[pNum1]
@@ -696,10 +690,8 @@ class AtmoBuilder:
         std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std)
-        gi_std = self.gi(mags_std)
 
-
-        # Create appropriate dmags
+        # Create observed dmags
         dmags_obs = self.dmags(mags_obs, mags_std)
 
         P_fit = copy.deepcopy(STDPARAMETERS)
@@ -714,63 +706,9 @@ class AtmoBuilder:
             # Create atmosphere at best fit parameters
             fit = self.genAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
-            mags_fit = self.mags(throughput_fit)
-            dmags_fit = self.dmags(mags_obs,mags_std)
 
-            # Plot dmmag plots
-            # Initialize values to keep track of dmag range
-            dmag_fit_max = 0;
-            dmag_fit_min = 0;
-            dmag_fit_range_max = 0;
-
-            dmag_obs_max = 0;
-            dmag_obs_min = 0;
-            dmag_obs_range_max = 0;
-
-            for metidx in range(len(metbins)):
-                # Make cut of stars
-                condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
-                        & (logg>3.5))
-                mcolor = metcolors[metidx]
-
-                # Find minimum, max dmag values that fit condition
-                minv_fit = numpy.min(dmags_fit[f][condition])
-                maxv_fit = numpy.max(dmags_fit[f][condition])
-
-                minv_obs = numpy.min(dmags_obs[f][condition])
-                maxv_obs = numpy.max(dmags_obs[f][condition])
-
-                # Save lowest and highest dmag
-                if minv_fit < dmag_fit_min:
-                    dmag_fit_min = copy.deepcopy(minv_fit)
-                if maxv_fit > dmag_fit_max:
-                    dmag_fit_max = copy.deepcopy(maxv_fit)
-                if minv_obs < dmag_obs_min:
-                    dmag_obs_min = copy.deepcopy(minv_obs)
-                if maxv_obs > dmag_obs_max:
-                    dmag_obs_max = copy.deepcopy(maxv_obs)
-                
-                dmag_fit_range = (dmag_fit_max - dmag_fit_min)/2.0
-                dmag_obs_range = (dmag_obs_max - dmag_obs_min)/2.0
-                
-                if dmag_fit_range_max < dmag_fit_range:
-                    dmag_fit_range_max = copy.deepcopy(dmag_fit_range)
-                if dmag_obs_range_max < dmag_obs_range:
-                    dmag_obs_range_max = copy.deepcopy(dmag_obs_range)
-
-                if i == 0 and metidx == 6:
-                    ax[i][0].plot(gi_std[condition], dmags_fit[f][condition], mcolor+'.', label='Fit')
-                    ax[i][0].scatter(gi_std[condition], dmags_obs[f][condition], color='gray', alpha=0.5, label='Obs')
-                else:
-                    ax[i][0].plot(gi_std[condition], dmags_fit[f][condition], mcolor+'.')
-                    ax[i][0].scatter(gi_std[condition], dmags_obs[f][condition], color='gray', alpha=0.5)
-
-            # If dmag range exceeds 2.0, plot dashed lines at +-2dmmags
-            if dmag_fit_range_max > 2.0 or dmag_obs_range_max > 2.0:
-                ax[i][0].axhline(2,color='black',linestyle='--')
-                ax[i][0].axhline(-2,color='black',linestyle='--')
-            else:
-                ax[i][0].set_ylim(-2,2)
+            self.dmagSED(ax[i][0], f, throughput_fit, throughput_std, 'kurucz')
+            self.dmagSED(ax[i][0], f, throughput_obs, throughput_std, 'kurucz', truth=True)
 
             # Label axes and add grid
             ax[i][0].set_xlabel("g-i")
@@ -813,9 +751,6 @@ class AtmoBuilder:
             ax[i][2].set_xlabel("g-i")
             ax[i][2].set_ylabel(r"$\Delta$ %s (mmag)" %(f))
             ax[i][2].grid()
-
-
-
 
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
@@ -943,6 +878,8 @@ class AtmoBuilder:
                     ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day],color='gray')
                 else:
                     ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
+
+        self.dmagLimit(ax, f, dmags)
 
         return
 
@@ -1275,7 +1212,22 @@ class AtmoBuilder:
                 stringP+="0"+str(int(i * 10))
             else:
                 stringP+=str(int(i * 10))
-        return stringP    
+        return stringP
+
+    def dmagLimit(self, ax, f, dmags):
+        # Initialize values to keep track of dmag range
+        dmag_max = numpy.max(dmags[f]);
+        dmag_min = numpy.min(dmags[f]);
+        dmag_range = abs((dmag_max - dmag_min)/2.0);
+
+        # If dmag range exceeds 2.0, plot dashed lines at +-2dmmags
+        if dmag_range > 2.0:
+            ax.axhline(2,color='black',linestyle='--')
+            ax.axhline(-2,color='black',linestyle='--')
+        else:
+            ax.set_ylim(-2,2)
+
+        return
     
     def labelGen(self, P, X):
         """Generates label for use in plot legends."""
