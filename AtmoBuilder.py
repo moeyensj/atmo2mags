@@ -661,7 +661,7 @@ class AtmoBuilder:
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
-        comp1_range=None, comp2_range=None, Nbins=50, figName=None, filters=None , verbose=True):
+        comp1_range=None, comp2_range=None, Nbins=50, sedtype='kurucz', figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
@@ -760,7 +760,7 @@ class AtmoBuilder:
 
     def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False, dmaglimit=True):
         # Check if valid sedtype, check if sed data read:
-        self.sedtypeCheck(sedtype)
+        self.sedTypeCheck(sedtype)
         self.sedReadCheck(sedtype)
 
         # Label axes, add grid
@@ -1302,7 +1302,7 @@ class AtmoBuilder:
             raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
         return
 
-    def sedtypeCheck(self, sedtype):
+    def sedTypeCheck(self, sedtype):
         sedtypes = ['kurucz','quasar','galaxy','wd','mlt','sn']
         if sedtype not in sedtypes:
             raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(sedtypes))
@@ -1328,4 +1328,33 @@ class AtmoBuilder:
             if self.sns == None:
                 raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
+
+    def sedFinder(self, sedtype):
+        """Returns seds and sedkeylist given an sedtype."""
+        seds = []
+        sedkeylist = []
+
+        if sedtype == 'kurucz':
+            seds = self.stars
+            sedkeylist = self.starlist
+        elif sedtype == 'quasar':
+            seds = self.quasars
+            sedkeylist = self.quasarRedshifts
+        elif sedtype == 'galaxy':
+            seds = self.gals
+            sedkeylist = self.gallist
+        elif sedtype == 'wds':
+            seds = self.wds
+            sedkeylist = self.wdslist
+        elif sedtype == 'mlt':
+            seds = self.mlts
+            sedkeylist = self.mltlist
+        elif sedtype == 'sn':
+            seds = self.sns
+            sedkeylist = self.snList
+            
+        return seds, sedkeylist
+
+
+
 
