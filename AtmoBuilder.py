@@ -569,7 +569,7 @@ class AtmoBuilder:
     
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.02, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES,
+    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES,
         generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
         # Insure valid parameters, airmass and sedtypes are given
         self.parameterCheck(P_obs)
