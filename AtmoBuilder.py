@@ -1,4 +1,4 @@
-# Necessary imports
+### Necessary imports
 import numpy
 import pylab
 import os
@@ -526,10 +526,6 @@ class AtmoBuilder:
         # pass the sedkeylist so you know what order the magnitudes are arranged in
         filterlist = self.filterlist
 
-        if (seds == None) & (sedkeylist == None):
-            seds = self.stars
-            sedkeylist = self.starlist
-        
         mags = {}
         for f in self.filterlist:
             mags[f] = numpy.zeros(len(sedkeylist), dtype='float')
@@ -617,7 +613,6 @@ class AtmoBuilder:
         std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist)
-        gi_std = self.gi(mags_std)
                                     
         @pickle_results(pickleString)
         def run_regression(comp1, comp2):
@@ -678,6 +673,8 @@ class AtmoBuilder:
             
         if filters == None:
             filters = self.filterlist
+
+        seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = pylab.subplots(len(filters),3)
         fig.suptitle(r'$\Delta$mmags and Regression Contours for each LSST filter', fontsize=14)
@@ -691,12 +688,12 @@ class AtmoBuilder:
         # Create arbitrary atmosphere
         obs = self.genAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
-        mags_obs = self.mags(throughput_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist)
 
         # Create standard atmosphere
         std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
-        mags_std = self.mags(throughput_std)
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist)
 
         # Create observed dmags
         dmags_obs = self.dmags(mags_obs, mags_std)
@@ -720,7 +717,7 @@ class AtmoBuilder:
             # Plot parameter space regression plots
             # Plot contours and true values
             ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T), levels=(0.683, 0.955, 0.997), colors='k')
-            ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=10, facecolors='none', edgecolors='b', label='Truth')
+            ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
 
             # Plot dashed lines at best fit parameters
             ax[i][1].axvline(comp1_best[f], color='black', linestyle='--', label='Fit')
@@ -731,14 +728,10 @@ class AtmoBuilder:
             ax[i][1].set_ylim(min(comp2_range), max(comp2_range))
 
             # Label axes
-            ax[i][1].set_xlabel(comp1)
-            ax[i][1].set_ylabel(comp2)
-
-            # Add text showing best fit components
-            str1 = r'%s, $_{fit}$: %.2f' % (self.parametersPlot[pNum1], comp1_best[f])
-            str2 = r'%s, $_{fit}$: %.2f' % (self.parametersPlot[pNum2], comp2_best[f])
-            ax[i][1].text(3.3,4.7,str1,fontsize=12)
-            ax[i][1].text(3.3,4.4,str2,fontsize=12)
+            str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best[f], comp1_obs)
+            str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best[f], comp2_obs)
+            ax[i][1].set_xlabel(str1)
+            ax[i][1].set_ylabel(str2)
 
             # Plot dmags for other SEDS:
             for s in comparisonSeds:
@@ -771,8 +764,8 @@ class AtmoBuilder:
         ax.grid(b=True)
 
         if sedtype == 'kurucz':
-            mags = self.mags(bpDict1)
-            mags_std = self.mags(bpDict2)
+            mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist)
+            mags_std = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
@@ -788,9 +781,15 @@ class AtmoBuilder:
                         & (logg>3.5))
                 mcolor = metcolors[metidx]
                 if truth == True:
-                    ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
+                    if metidx == len(metbins)-1:
+                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label='Truth')
+                    else:
+                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
                 else:
-                    ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
+                    if metidx == len(metbins)-1:
+                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label='Fit')
+                    else:
+                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
         elif sedtype == 'quasar':
             mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
@@ -898,7 +897,7 @@ class AtmoBuilder:
                 if truth == True:
                     ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
                 else:
-                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day],color='gray')
+                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
 
         # Add appropriate y-axis limits
         if dmaglimit == True:
