@@ -561,7 +561,7 @@ class AtmoBuilder:
 
 ### Regression Functions
 
-    def compute_logL(self, P, X, err, f, mags_obs, mags_std):
+    def compute_logL(self, P, X, err, f, mags_obs, mags_std, sedtype):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
         atmo = self.genAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo)
@@ -572,7 +572,8 @@ class AtmoBuilder:
     
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.02, Nbins=50, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
+    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.02, Nbins=50, sedtype='kurucz'
+        generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
         # Insure valid parameters and airmass are passed for the observed atmosphere
         self.parameterCheck(P_obs)
         self.airmassCheck(X_obs)
@@ -595,9 +596,9 @@ class AtmoBuilder:
             print ''
   
         if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + pickleString + '.pkl'
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(sedtype) + '_' + pickleString + '.pkl'
         else:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '.pkl'
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(sedtype) + '.pkl'
         
         P_fit = copy.deepcopy(P_obs)
         X_fit = copy.deepcopy(X_obs)
@@ -735,15 +736,15 @@ class AtmoBuilder:
             # Plot dmags for other SEDS:
             self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'galaxy', dmaglimit=False)
             self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn', dmaglimit=False)
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasars', dmaglimit=False)
+            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasar', dmaglimit=False)
             self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'mlt', dmaglimit=False)
             self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'wd', dmaglimit=False)
 
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'galaxy', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'quasars', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'mlt', dmaglimit=False, truth=True)
-            #self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'wd', dmaglimit=False, truth=True)
+            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'galaxy', dmaglimit=False, truth=True)
+            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', dmaglimit=False, truth=True)
+            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'quasar', dmaglimit=False, truth=True)
+            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'mlt', dmaglimit=False, truth=True)
+            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'wd', dmaglimit=False, truth=True)
 
 
             if i == 0:
@@ -758,9 +759,13 @@ class AtmoBuilder:
         return
 
     def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False, dmaglimit=True):
+        # Check if valid sedtype, check if sed data read:
+        self.sedtypeCheck(sedtype)
+        self.sedReadCheck(sedtype)
+
         # Label axes, add grid
         ax.set_xlabel("g-i")
-        #ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f))
+        ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f))
         ax.grid(b=True)
 
         if sedtype == 'kurucz':
