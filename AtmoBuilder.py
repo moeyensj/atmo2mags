@@ -23,6 +23,7 @@ STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
 SIMSSEDLIBRARY = "SIMS_SED_LIBRARY_DIR"
+SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
 
 """
 #### IMPORTANT NOTE ####
@@ -561,26 +562,30 @@ class AtmoBuilder:
 
 ### Regression Functions
 
-    def compute_logL(self, P, X, err, f, mags_obs, mags_std, sedtype):
+    def compute_logL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
         atmo = self.genAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo)
-        mags = self.mags(throughputAtmo)
+        mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist)
         
-        dmags_fit = self.dmags(mags, mags_std)
+        dmags_fit = self.dmags(mags_fit, mags_std)
         dmags_obs = self.dmags(mags_obs, mags_std)
     
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.02, Nbins=50, sedtype='kurucz'
+    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.02, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES,
         generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
-        # Insure valid parameters and airmass are passed for the observed atmosphere
+        # Insure valid parameters, airmass and sedtypes are given
         self.parameterCheck(P_obs)
         self.airmassCheck(X_obs)
+        self.sedTypeCheck(regressionSed)
 
         # Find range over which to vary parameter and the parameter number for comp1, comp2
         range1, pNum1 = self.componentCheck(comp1,Nbins)
         range2, pNum2 = self.componentCheck(comp2,Nbins)
+
+        # Find seds and sedkeylist for sedtype
+        seds, sedkeylist = self.sedFinder(regressionSed)
         
         if filters == None:
             filters = self.filterlist
@@ -596,9 +601,9 @@ class AtmoBuilder:
             print ''
   
         if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(sedtype) + '_' + pickleString + '.pkl'
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(regressionSed) + '_' + pickleString + '.pkl'
         else:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(sedtype) + '.pkl'
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(regressionSed) + '.pkl'
         
         P_fit = copy.deepcopy(P_obs)
         X_fit = copy.deepcopy(X_obs)
@@ -606,12 +611,12 @@ class AtmoBuilder:
         # Create arbitrary atmosphere
         obs = self.genAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
-        mags_obs = self.mags(throughput_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist)
 
         # Create standard atmosphere
         std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
-        mags_std = self.mags(throughput_std)
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist)
         gi_std = self.gi(mags_std)
                                     
         @pickle_results(pickleString)
@@ -629,7 +634,7 @@ class AtmoBuilder:
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[f][i, j] = self.compute_logL(P_fit,X_fit,err,f,mags_obs,mags_std)
+                        logL[f][i, j] = self.compute_logL(P_fit,X_fit,err,f,mags_obs,mags_std,seds,sedkeylist)
 
                 print 'Completed ' + f + ' filter.'
 
@@ -654,14 +659,16 @@ class AtmoBuilder:
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_obs, X_obs, pNum1=pNum1, pNum2=pNum2,
-                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=pickleString, filters=filters, verbose=verbose)
+                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=pickleString, 
+                                regressionSed=regressionSed, comparisonSeds=comparisonSeds, filters=filters, verbose=verbose)
 
         return range1, range2, comp1best, comp2best, logL
 
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
-        comp1_range=None, comp2_range=None, Nbins=50, sedtype='kurucz', figName=None, filters=None , verbose=True):
+        comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, figName=None, 
+        filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
@@ -707,8 +714,8 @@ class AtmoBuilder:
             fit = self.genAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
-            self.dmagSED(ax[i][0], f, throughput_fit, throughput_std, 'kurucz')
-            self.dmagSED(ax[i][0], f, throughput_obs, throughput_std, 'kurucz', truth=True)
+            self.dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed)
+            self.dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, truth=True)
 
             # Plot parameter space regression plots
             # Plot contours and true values
@@ -734,18 +741,13 @@ class AtmoBuilder:
             ax[i][1].text(3.3,4.4,str2,fontsize=12)
 
             # Plot dmags for other SEDS:
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'galaxy', dmaglimit=False)
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'sn', dmaglimit=False)
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'quasar', dmaglimit=False)
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'mlt', dmaglimit=False)
-            self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, 'wd', dmaglimit=False)
+            for s in comparisonSeds:
+                if s != regressionSed:
+                    self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, dmaglimit=False)
 
-            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'galaxy', dmaglimit=False, truth=True)
-            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'sn', dmaglimit=False, truth=True)
-            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'quasar', dmaglimit=False, truth=True)
-            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'mlt', dmaglimit=False, truth=True)
-            self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, 'wd', dmaglimit=False, truth=True)
-
+            for s in comparisonSeds:
+                if s != regressionSed:
+                    self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, dmaglimit=False, truth=True)
 
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
@@ -1274,7 +1276,7 @@ class AtmoBuilder:
         """Generates a string for pickle files. """
         return 'X' + str(int(X*10)) + '_' + self.pToString(P) + '_' + comp1 + '_' + comp2 + '_' + 'XSTD' + str(int(STDAIRMASS*10)) + '_' + str(Nbins) + 'bins'
 
-    def componentCheck(self,comp,Nbins):
+    def componentCheck(self, comp, Nbins):
         """Returns a range of values of length Nbins for a given component."""
         if comp == 'H2O':
             return numpy.linspace(0.0,5.0,Nbins), 0
@@ -1303,7 +1305,7 @@ class AtmoBuilder:
         return
 
     def sedTypeCheck(self, sedtype):
-        sedtypes = ['kurucz','quasar','galaxy','wd','mlt','sn']
+        sedtypes = SEDTYPES
         if sedtype not in sedtypes:
             raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(sedtypes))
     
@@ -1352,7 +1354,7 @@ class AtmoBuilder:
         elif sedtype == 'sn':
             seds = self.sns
             sedkeylist = self.snList
-            
+
         return seds, sedkeylist
 
 
