@@ -25,6 +25,8 @@ STDAEROSOLALPHA = STDPARAMETERS[5]
 SIMSSEDLIBRARY = "SIMS_SED_LIBRARY_DIR"
 SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
 
+FILTERLIST = ['u','g','r','i','z','y4']
+
 """
 #### IMPORTANT NOTE ####
 MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
@@ -60,7 +62,7 @@ class AtmoBuilder:
         # Filter-keyed dictionary of filter and hardware
         self.sys = None
         # List of filters
-        self.filterlist = ['u', 'g', 'r', 'i', 'z', 'y4']
+        self.filterlist = FILTERLIST
         # List of filter colors
         self.filtercolors = ['blue', 'green', 'red', 'cyan', 'purple', 'yellow']
         
@@ -518,16 +520,20 @@ class AtmoBuilder:
             total[f].sbTophi()
         return total
     
-    def mags(self, bpDict, seds=None, sedkeylist=None, verbose=False):
+    def mags(self, bpDict, seds=None, sedkeylist=None, filters=None, verbose=False):
         """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not none
         returns mags for Kurucz model MS stars."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        filterlist = self.filterlist
+        if filters == None:
+            filters = self.filterlist
+
+        if filters == 'y4':
+            filters = ['y4']
 
         mags = {}
-        for f in self.filterlist:
+        for f in filters:
             mags[f] = numpy.zeros(len(sedkeylist), dtype='float')
             for i,key in enumerate(sedkeylist):
                 mags[f][i] = seds[key].calcMag(bpDict[f])
@@ -542,6 +548,9 @@ class AtmoBuilder:
         ### Taken from plot_dmags and modified to suit specific needs.
         if filters == None:
             filters = self.filterlist
+
+        if filters == 'y4':
+            filters = ['y4']
         
         dmags = {}
         for f in filters:
@@ -562,10 +571,10 @@ class AtmoBuilder:
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
         atmo = self.genAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo)
-        mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist)
+        mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
         
-        dmags_fit = self.dmags(mags_fit, mags_std)
-        dmags_obs = self.dmags(mags_obs, mags_std)
+        dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
+        dmags_obs = self.dmags(mags_obs, mags_std, filters=f)
     
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
@@ -595,11 +604,6 @@ class AtmoBuilder:
             print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(P_obs[pNum1])
             print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(P_obs[pNum2])
             print ''
-  
-        if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(regressionSed) + '_' + pickleString + '.pkl'
-        else:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + str(regressionSed) + '.pkl'
         
         P_fit = copy.deepcopy(P_obs)
         X_fit = copy.deepcopy(X_obs)
@@ -607,41 +611,52 @@ class AtmoBuilder:
         # Create arbitrary atmosphere
         obs = self.genAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
-        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
         std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
-        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist)
-                                    
-        @pickle_results(pickleString)
-        def run_regression(comp1, comp2):
-            
-            logL = {}
-            whr = {}
-            comp1best = {}
-            comp2best = {}
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
-            for f in filters:
+        logL = {}
+        whr = {}
+        comp1best = {}
+        comp2best = {}
+
+        for f in filters:
+            if pickleString != None:
+                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + f + '_' + str(regressionSed) + '_' + pickleString + '.pkl'
+            else:
+                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + f + '_' + str(regressionSed) + '.pkl'
+                                    
+            @pickle_results(pickleString_temp)
+            def run_regression(comp1, comp2, f):
+                
+                logL = []
+                whr = []
+                comp1best = []
+                comp2best = []
+
                 print 'Calculating best parameters for ' + f + ' filter...'
-                logL[f] = numpy.empty((Nbins, Nbins))
+                logL = numpy.empty((Nbins, Nbins))
                 for i in range(len(range1)):
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[f][i, j] = self.compute_logL(P_fit,X_fit,err,f,mags_obs,mags_std,seds,sedkeylist)
+                        logL[i, j] = self.compute_logL(P_fit,X_fit,err,f,mags_obs,mags_std,seds,sedkeylist)
 
                 print 'Completed ' + f + ' filter.'
 
-            for f in filters:
-                logL[f] -= numpy.max(logL[f])
-                whr[f] = numpy.where(logL[f] == numpy.max(logL[f]))
-                comp1best[f] = range1[whr[f][0][0]]
-                comp2best[f] = range2[whr[f][1][0]]
+                for f in filters:
+                    logL -= numpy.max(logL)
+                    whr = numpy.where(logL == numpy.max(logL))
+                    comp1best = range1[whr[0][0]]
+                    comp2best = range2[whr[1][0]]
 
-            return comp1best, comp2best, logL
+                return comp1best, comp2best, logL
 
-        comp1best, comp2best, logL  = run_regression(comp1, comp2)
+            comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
+            pickleString_temp = ''
         
         if generateDphi:
             self.dphiPlot(throughput_obs, throughput_std, figName=pickleString)
@@ -688,15 +703,12 @@ class AtmoBuilder:
         # Create arbitrary atmosphere
         obs = self.genAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
-        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
         std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
-        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist)
-
-        # Create observed dmags
-        dmags_obs = self.dmags(mags_obs, mags_std)
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         P_fit = copy.deepcopy(STDPARAMETERS)
         X_fit = copy.deepcopy(STDAIRMASS)
@@ -734,6 +746,7 @@ class AtmoBuilder:
             ax[i][1].set_ylabel(str2)
 
             # Plot dmags for other SEDS:
+            
             for s in comparisonSeds:
                 if s != regressionSed:
                     self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, dmaglimit=False)
@@ -746,7 +759,7 @@ class AtmoBuilder:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
                 ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=3)
                 ax[i][2].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=3)
-
+            
         if figName != None:
             title = figName+"_regressionPlot.png"
             pylab.savefig(title, format='png')
@@ -764,10 +777,10 @@ class AtmoBuilder:
         ax.grid(b=True)
 
         if sedtype == 'kurucz':
-            mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist)
-            mags_std = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
+            mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist, filters=f)
+            mags_std = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist, filters=f)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std)
+            dmags = self.dmags(mags, mags_std, filters=f)
 
             metallicity = numpy.array(self.met)
             logg = numpy.array(self.logg)
@@ -792,10 +805,10 @@ class AtmoBuilder:
                         ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
         elif sedtype == 'quasar':
-            mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
-            mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+            mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts, filters=f)
+            mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts, filters=f)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std)
+            dmags = self.dmags(mags, mags_std, filters=f)
 
             redshift = self.quasarRedshifts
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -810,10 +823,10 @@ class AtmoBuilder:
                     ax.plot(gi[condition], dmags[f][condition], rcolor+'.', color='gray')
         
         elif sedtype == 'galaxy':
-            mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist)
-            mags_std = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist)
+            mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist, filters=f)
+            mags_std = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist, filters=f)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std)
+            dmags = self.dmags(mags, mags_std, filters=f)
 
             gallist = self.gallist
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -830,8 +843,8 @@ class AtmoBuilder:
                     ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
         elif sedtype == 'mlt':
-            mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist)
-            mags_std = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist)
+            mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist, filters=f)
+            mags_std = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist, filters=f)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
@@ -857,8 +870,8 @@ class AtmoBuilder:
                         ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
 
         elif sedtype == 'wd':
-            mags = self.mags(bpDict1, seds=self.wds, sedkeylist=self.wdslist)
-            mags_std = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist)
+            mags = self.mags(bpDict1, seds=self.wds, sedkeylist=self.wdslist, filters=f)
+            mags_std = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist, filters=f)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
@@ -879,8 +892,8 @@ class AtmoBuilder:
                         ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
 
         elif sedtype == 'sn':
-            mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList)
-            mags_std = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList)
+            mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList, filters=f)
+            mags_std = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList, filters=f)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
  
