@@ -777,10 +777,10 @@ class AtmoBuilder:
         ax.grid(b=True)
 
         if sedtype == 'kurucz':
-            mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist, filters=f)
-            mags_std = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist, filters=f)
+            mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist)
+            mags_std = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, filters=f)
+            dmags = self.dmags(mags, mags_std)
 
             metallicity = numpy.array(self.met)
             logg = numpy.array(self.logg)
@@ -805,10 +805,10 @@ class AtmoBuilder:
                         ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
         elif sedtype == 'quasar':
-            mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts, filters=f)
-            mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts, filters=f)
+            mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+            mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, filters=f)
+            dmags = self.dmags(mags, mags_std)
 
             redshift = self.quasarRedshifts
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -823,10 +823,10 @@ class AtmoBuilder:
                     ax.plot(gi[condition], dmags[f][condition], rcolor+'.', color='gray')
         
         elif sedtype == 'galaxy':
-            mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist, filters=f)
-            mags_std = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist, filters=f)
+            mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist)
+            mags_std = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, filters=f)
+            dmags = self.dmags(mags, mags_std)
 
             gallist = self.gallist
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -843,8 +843,8 @@ class AtmoBuilder:
                     ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
         elif sedtype == 'mlt':
-            mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist, filters=f)
-            mags_std = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist, filters=f)
+            mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist)
+            mags_std = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
@@ -870,8 +870,8 @@ class AtmoBuilder:
                         ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
 
         elif sedtype == 'wd':
-            mags = self.mags(bpDict1, seds=self.wds, sedkeylist=self.wdslist, filters=f)
-            mags_std = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist, filters=f)
+            mags = self.mags(bpDict1, seds=self.wds, sedkeylist=self.wdslist)
+            mags_std = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
@@ -892,8 +892,8 @@ class AtmoBuilder:
                         ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
 
         elif sedtype == 'sn':
-            mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList, filters=f)
-            mags_std = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList, filters=f)
+            mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList)
+            mags_std = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
  
