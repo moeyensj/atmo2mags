@@ -610,7 +610,7 @@ class AtmoBuilder:
         P_fit = copy.deepcopy(P_obs)
         X_fit = copy.deepcopy(X_obs)
 
-        # Create arbitrary atmosphere
+        # Create observed atmosphere
         obs = self.genAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
@@ -708,7 +708,7 @@ class AtmoBuilder:
         comp1_obs = P_obs[pNum1]
         comp2_obs = P_obs[pNum2]
     
-        # Create arbitrary atmosphere
+        # Create observed atmosphere
         obs = self.genAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
@@ -718,8 +718,8 @@ class AtmoBuilder:
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
-        P_fit = copy.deepcopy(STDPARAMETERS)
-        X_fit = copy.deepcopy(STDAIRMASS)
+        P_fit = copy.deepcopy(P_obs)
+        X_fit = copy.deepcopy(X_obs)
 
         # For each filter plot dmags and regression contours
         for i,f in enumerate(filters):
