@@ -575,6 +575,7 @@ class AtmoBuilder:
         
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
         dmags_fit[f] = dmags_fit[f] - deltaGrey*numpy.mean(dmags_fit[f])
+
         dmags_obs = self.dmags(mags_obs, mags_std, filters=f)
         dmags_obs[f] = dmags_obs[f] - deltaGrey*numpy.mean(dmags_obs[f])
     
@@ -685,8 +686,8 @@ class AtmoBuilder:
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
-        comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, figName=None, 
-        filters=None , verbose=True):
+        comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
+        figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
@@ -737,6 +738,7 @@ class AtmoBuilder:
             # Plot parameter space regression plots
             # Plot contours and true values
             ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T), levels=(0.683, 0.955, 0.997), colors='k')
+            ax[i][1].contour(comp1_range, comp2_range, logL[f].T, colors='k')
             ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
 
             # Plot dashed lines at best fit parameters
@@ -755,13 +757,18 @@ class AtmoBuilder:
 
             # Plot dmags for other SEDS:
             
-            for s in comparisonSeds:
-                if s != regressionSed:
-                    self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, dmaglimit=False)
+            if plotDifference == False:
+                for s in comparisonSeds:
+                    if s != regressionSed:
+                        self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, dmaglimit=False)
 
-            for s in comparisonSeds:
-                if s != regressionSed:
-                    self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, dmaglimit=False, truth=True)
+                for s in comparisonSeds:
+                    if s != regressionSed:
+                        self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, dmaglimit=False, truth=True)
+            else:
+                for s in comparisonSeds:
+                    if s != regressionSed:
+                        self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, bpDict2=throughput_obs)
 
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.25), ncol=2)
@@ -774,7 +781,7 @@ class AtmoBuilder:
 
         return
 
-    def dmagSED(self, ax, f, bpDict1, bpDict2, sedtype, truth=False, dmaglimit=True):
+    def dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, dmaglimit=True):
         # Check if valid sedtype, check if sed data read:
         self.sedTypeCheck(sedtype)
         self.sedReadCheck(sedtype)
@@ -786,9 +793,13 @@ class AtmoBuilder:
 
         if sedtype == 'kurucz':
             mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist)
-            mags_std = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
+            mags_std = self.mags(bpDict_std, seds=self.stars, sedkeylist=self.starlist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+
+            if bpDict2 != None:
+                mags2 = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
+                dmags2 = self.dmags(mags2, mags_std)
 
             metallicity = numpy.array(self.met)
             logg = numpy.array(self.logg)
@@ -801,22 +812,30 @@ class AtmoBuilder:
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                         & (logg>3.5))
                 mcolor = metcolors[metidx]
-                if truth == True:
-                    if metidx == len(metbins)-1:
-                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label='Truth')
-                    else:
-                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
+
+                if bpDict2 != None:
+                    ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], mcolor+'.')
                 else:
-                    if metidx == len(metbins)-1:
-                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label='Fit')
+                    if truth == True:
+                        if metidx == len(metbins)-1:
+                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label='Truth')
+                        else:
+                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
                     else:
-                        ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
+                        if metidx == len(metbins)-1:
+                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label='Fit')
+                        else:
+                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
         elif sedtype == 'quasar':
             mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
-            mags_std = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+            mags_std = self.mags(bpDict_std, seds=self.quasars, sedkeylist=self.quasarRedshifts)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+
+            if bpDict2 != None:
+                mags2 = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+                dmags2 = self.dmags(mags2, mags_std)
 
             redshift = self.quasarRedshifts
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -825,16 +844,24 @@ class AtmoBuilder:
             for redidx in range(len(redbins)):
                 condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
                 rcolor = redcolors[redidx]
-                if truth == True:
-                    ax.plot(gi[condition], dmags[f][condition], rcolor+'.')
+
+                if bpDict2 != None:
+                    ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], rcolor+'.')
                 else:
-                    ax.plot(gi[condition], dmags[f][condition], rcolor+'.', color='gray')
+                    if truth == True:
+                        ax.plot(gi[condition], dmags[f][condition], rcolor+'.')
+                    else:
+                        ax.plot(gi[condition], dmags[f][condition], rcolor+'.', color='gray')
         
         elif sedtype == 'galaxy':
             mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist)
-            mags_std = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist)
+            mags_std = self.mags(bpDict_std, seds=self.gals, sedkeylist=self.gallist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+
+            if bpDict2 != None:
+                mags2 = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist)
+                dmags2 = self.dmags(mags2, mags_std)
 
             gallist = self.gallist
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -845,16 +872,24 @@ class AtmoBuilder:
                 galbase, redshift = g.split('_')
                 redshift = float(redshift)
                 redidx = int(redshift / redbinsize)
-                if truth == True:
-                    ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
+
+                if bpDict2 != None:
+                    ax.plot(gi[i], dmags[f][i]-dmags2[f][i], redcolors[redidx]+'.')
                 else:
-                    ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
+                    if truth == True:
+                        ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
+                    else:
+                        ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
         elif sedtype == 'mlt':
             mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist)
-            mags_std = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist)
+            mags_std = self.mags(bpDict_std, seds=self.mlts, sedkeylist=self.mltlist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+
+            if bpDict2 != None:
+                mags2 = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist)
+                dmags2 = self.dmags(mags2, mags_std)
 
             mltlist = self.mltlist
             mlist = self.mlist
@@ -862,48 +897,70 @@ class AtmoBuilder:
             tlist = self.tlist
         
             for j in range(len(mltlist)):
-                if truth == True:
+                if bpDict2 != None:
                     if (mltlist[j] in mlist):
-                        ax.plot(gi[j], dmags[f][j], 'bx')
+                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'bx')
                     elif (mltlist[j] in llist):
-                        ax.plot(gi[j], dmags[f][j], 'gx')
+                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'gx')
                     elif (mltlist[j] in tlist):
-                        ax.plot(gi[j], dmags[f][j], 'mx')
+                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'mx')
                 else:
-                    if (mltlist[j] in mlist):
-                        ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
-                    elif (mltlist[j] in llist):
-                        ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
-                    elif (mltlist[j] in tlist):
-                        ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
+                    if truth == True:
+                        if (mltlist[j] in mlist):
+                            ax.plot(gi[j], dmags[f][j], 'bx')
+                        elif (mltlist[j] in llist):
+                            ax.plot(gi[j], dmags[f][j], 'gx')
+                        elif (mltlist[j] in tlist):
+                            ax.plot(gi[j], dmags[f][j], 'mx')
+                    else:
+                        if (mltlist[j] in mlist):
+                            ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
+                        elif (mltlist[j] in llist):
+                            ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
+                        elif (mltlist[j] in tlist):
+                            ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
 
         elif sedtype == 'wd':
             mags = self.mags(bpDict1, seds=self.wds, sedkeylist=self.wdslist)
-            mags_std = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist)
+            mags_std = self.mags(bpDict_std, seds=self.wds, sedkeylist=self.wdslist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+
+            if bpDict2 != None:
+                mags2 = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist)
+                dmags2 = self.dmags(mags2, mags_std)
 
             wdslist = self.wdslist
             hlist = self.wdslist_H
             helist = self.wdslist_He
 
             for j in range(len(wdslist)):
-                if truth == True:
+                if bpDict2 != None:
                     if (wdslist[j] in hlist):
-                        ax.plot(gi[j], dmags[f][j], 'y+')
+                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+')
                     elif (wdslist[j] in helist):
-                        ax.plot(gi[j], dmags[f][j], 'y+')
+                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+')
                 else:
-                    if (wdslist[j] in hlist):
-                        ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
-                    elif (wdslist[j] in helist):
-                        ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
+                    if truth == True:
+                        if (wdslist[j] in hlist):
+                            ax.plot(gi[j], dmags[f][j], 'y+')
+                        elif (wdslist[j] in helist):
+                            ax.plot(gi[j], dmags[f][j], 'y+')
+                    else:
+                        if (wdslist[j] in hlist):
+                            ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
+                        elif (wdslist[j] in helist):
+                            ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
 
         elif sedtype == 'sn':
             mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList)
-            mags_std = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList)
+            mags_std = self.mags(bpDict_std, seds=self.sns, sedkeylist=self.snList)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+
+            if bpDict2 != None:
+                mags2 = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList)
+                dmags2 = self.dmags(mags2, mags_std)
  
             snlist = self.snList
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -915,14 +972,20 @@ class AtmoBuilder:
                 day, redshift = s.split('_')
                 redshift = float(redshift)
                 redidx = int(redshift / redbinsize)
-                if truth == True:
-                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
+
+                if bpDict2 != None:
+                    ax.plot(gi[j], dmags[f][j]-dmags2[f][j], redcolors[redidx]+day_symbol[day])
                 else:
-                    ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
+                    if truth == True:
+                        ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
+                    else:
+                        ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
 
         # Add appropriate y-axis limits
         if dmaglimit == True:
             self.dmagLimit(ax, f, dmags)
+            if bpDict2 != None:
+                self.dmagLimit(ax, f, dmags2)
 
         return
 
