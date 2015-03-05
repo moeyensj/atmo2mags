@@ -567,19 +567,21 @@ class AtmoBuilder:
 
 ### Regression Functions
 
-    def compute_logL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist):
+    def compute_logL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
         atmo = self.genAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo)
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
         
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
+        dmags_fit[f] = dmags_fit[f] - deltaGrey*numpy.mean(dmags_fit[f])
         dmags_obs = self.dmags(mags_obs, mags_std, filters=f)
+        dmags_obs[f] = dmags_obs[f] - deltaGrey*numpy.mean(dmags_obs[f])
     
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES,
-        generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
+    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
         # Insure valid parameters, airmass and sedtypes are given
         self.parameterCheck(P_obs)
         self.airmassCheck(X_obs)
@@ -625,10 +627,12 @@ class AtmoBuilder:
 
         for f in filters:
             if pickleString != None:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + f + '_' + str(regressionSed) + '_' + pickleString + '.pkl'
+                pickleString_temp = ('%s_%s_%s_DG%.3f_%s.pkl' 
+                    % (self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins), f, regressionSed, deltaGrey, pickleString))
             else:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins) + '_' + f + '_' + str(regressionSed) + '.pkl'
-                                    
+                pickleString_temp = ('%s_%s_%s_DG%.3f.pkl' 
+                    % (self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins), f, regressionSed, deltaGrey))
+
             @pickle_results(pickleString_temp)
             def run_regression(comp1, comp2, f):
                 
@@ -643,7 +647,7 @@ class AtmoBuilder:
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[i, j] = self.compute_logL(P_fit,X_fit,err,f,mags_obs,mags_std,seds,sedkeylist)
+                        logL[i, j] = self.compute_logL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                 print 'Completed ' + f + ' filter.'
 
