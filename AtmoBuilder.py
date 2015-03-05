@@ -627,11 +627,10 @@ class AtmoBuilder:
 
         for f in filters:
             if pickleString != None:
-                pickleString_temp = ('%s_%s_%s_DG%.3f_%s.pkl' 
-                    % (self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins), f, regressionSed, deltaGrey, pickleString))
+                pickString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
             else:
-                pickleString_temp = ('%s_%s_%s_DG%.3f.pkl' 
-                    % (self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins), f, regressionSed, deltaGrey))
+                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '.pkl'
+                    
 
             @pickle_results(pickleString_temp)
             def run_regression(comp1, comp2, f):
@@ -661,7 +660,12 @@ class AtmoBuilder:
 
             comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
             pickleString_temp = ''
-        
+
+        if pickleString != None:
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey) + '_' + pickleString
+        else:
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey)
+
         if generateDphi:
             self.dphiPlot(throughput_obs, throughput_std, figName=pickleString)
 
@@ -1288,9 +1292,22 @@ class AtmoBuilder:
             figName = None
         return figName
 
-    def pickleNameGen(self, comp1, comp2, P, X, Nbins):
+    def pickleNameGen(self, comp1, comp2, P, X, Nbins, regressionSed, deltaGrey, f=None):
         """Generates a string for pickle files. """
-        return 'X' + str(int(X*10)) + '_' + self.pToString(P) + '_' + comp1 + '_' + comp2 + '_' + 'XSTD' + str(int(STDAIRMASS*10)) + '_' + str(Nbins) + 'bins'
+        s1 = 'X' + str(int(X*10))
+        s2 = self.pToString(P)
+        s3 = comp1 + '_' + comp2
+        s4 = 'XSTD' + str(int(STDAIRMASS*10))
+        s5 = 'DG' + str(int(deltaGrey*10.0))
+        s6 = ''  
+        s7 = str(Nbins) + 'bins'
+
+        if f != None:
+            s6 = regressionSed + '_' + f
+        else:
+            s6 = regressionSed 
+
+        return '%s_%s_%s_%s_%s_%s_%s' % (s1, s2, s3, s4, s5, s6, s7)
 
     def componentCheck(self, comp, Nbins):
         """Returns a range of values of length Nbins for a given component."""
