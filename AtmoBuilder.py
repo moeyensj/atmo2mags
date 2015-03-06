@@ -574,10 +574,14 @@ class AtmoBuilder:
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
         
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
-        dmags_fit[f] = dmags_fit[f] - deltaGrey*numpy.mean(dmags_fit[f])
-
         dmags_obs = self.dmags(mags_obs, mags_std, filters=f)
-        dmags_obs[f] = dmags_obs[f] - deltaGrey*numpy.mean(dmags_obs[f])
+
+        if deltaGrey >= 0.0:
+            dmags_fit[f] = dmags_fit[f] - deltaGrey
+            dmags_obs[f] = dmags_obs[f] - deltaGrey
+        else: # (deltaGrey < 0.0)
+            dmags_fit[f] = dmags_fit[f] - numpy.mean(dmags_fit[f])
+            dmags_obs[f] = dmags_obs[f] - numpy.mean(dmags_obs[f])
     
         return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
@@ -632,7 +636,6 @@ class AtmoBuilder:
             else:
                 pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '.pkl'
                     
-
             @pickle_results(pickleString_temp)
             def run_regression(comp1, comp2, f):
                 
