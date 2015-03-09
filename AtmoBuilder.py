@@ -1,8 +1,8 @@
 ### Necessary imports
 import numpy
-import pylab
 import os
 import copy
+import matplotlib.pyplot as plt
 import matplotlib.patches as mp
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
@@ -703,7 +703,7 @@ class AtmoBuilder:
 
         seds, sedkeylist = self.sedFinder(regressionSed)
         
-        fig, ax = pylab.subplots(len(filters),3)
+        fig, ax = plt.subplots(len(filters),3)
         fig.suptitle(r'$\Delta$mmags and Regression Contours for each LSST filter', fontsize=14)
         fig.set_size_inches(15,len(filters)*5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
@@ -780,7 +780,7 @@ class AtmoBuilder:
             
         if figName != None:
             title = figName+"_regressionPlot.png"
-            pylab.savefig(title, format='png')
+            plt.savefig(title, format='png')
 
         return
 
@@ -1002,7 +1002,7 @@ class AtmoBuilder:
 
         atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff=aerosolNormCoeff1, aerosolNormWavelen=aerosolNormWavelen1)
         
-        fig,ax = pylab.subplots(1,1)
+        fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth,plotHeight)
         
         ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(P1,X1));
@@ -1025,13 +1025,13 @@ class AtmoBuilder:
         
         if figName != None:
             title = figName + "_transPlot.png"
-            pylab.savefig(title, format='png')
+            plt.savefig(title, format='png')
         return
     
     def filterPlot(self, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
         
-        fig,ax = pylab.subplots(1,1)
+        fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.filterlist:
@@ -1050,7 +1050,7 @@ class AtmoBuilder:
         if self.sys == None:
             self.readHardware()
         
-        fig,ax = pylab.subplots(1,1)
+        fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.sys:
@@ -1071,7 +1071,7 @@ class AtmoBuilder:
         
         w = self.wavelength
         
-        fig,ax = pylab.subplots(1,1)
+        fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.filterlist:
@@ -1086,7 +1086,7 @@ class AtmoBuilder:
         
         if figName != None:
             title = figName + "_phiPlot.png"
-            pylab.savefig(title, format='png')
+            plt.savefig(title, format='png')
         return
     
     def dphiPlot(self, bpDict1, bpDict2, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
@@ -1094,7 +1094,7 @@ class AtmoBuilder:
         
         w = self.wavelength
         
-        fig,ax = pylab.subplots(1,1)
+        fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
         
         for f in self.filterlist:
@@ -1108,7 +1108,7 @@ class AtmoBuilder:
         
         if figName != None:
             title = figName + "_dphiPlot.png"
-            pylab.savefig(title, format='png')
+            plt.savefig(title, format='png')
         
         return
     
@@ -1133,42 +1133,42 @@ class AtmoBuilder:
         i = 1
         # use a different subplot for each color/color combo
         for i in range(len(colorlabels-1)):
-            ax = pylab.subplot(3,2,i)
+            ax = plt.subplot(3,2,i)
             for metidx in range(len(metbins)):
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
                 mcolor = metcolors[metidx]
-                pylab.plot(magscolors[colorlabels[i]][condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
+                plt.plot(magscolors[colorlabels[i]][condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
             i = i + 1
-        ax = pylab.subplot(3,2,7)
+        ax = plt.subplot(3,2,7)
         for metidx in range(len(metbins)):
             condition = ((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize))
             mcolor = metcolors[metidx]
-            pylab.plot(gi[condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
+            plt.plot(gi[condition], magscolors[colorlabels[i+1]][f][condition], mcolor+'.')
         # set up generic items
         for i in range(1, 7):
             f = filterlist[i-1]
-            ax = pylab.subplot(3,2,i)
-            #pylab.xlabel("g-i")
-            #pylab.ylabel(r"$\Delta$ %s (mmag)" %(f))
+            ax = plt.subplot(3,2,i)
+            #plt.xlabel("g-i")
+            #plt.ylabel(r"$\Delta$ %s (mmag)" %(f))
             def axis_formatter(x, pos):
                 return "%.1f" %(x)
-            formatter = pylab.FuncFormatter(axis_formatter)
+            formatter = plt.FuncFormatter(axis_formatter)
             ax.yaxis.set_major_formatter(formatter)
             # set axes limits
             if ylims == None:
                 pass
             else:
                 try:
-                    pylab.ylim(ylims[f][0], ylims[f][1])
+                    plt.ylim(ylims[f][0], ylims[f][1])
                 except KeyError:
                     pass
         # put a grid in the background
         if newfig:
             for i in range(1, 7):
-                ax = pylab.subplot(3, 2, i)
-                pylab.grid(True)
-                #pylab.suptitle(titletext)
-                #pylab.savefig("delta_mags2.eps", format='eps')
+                ax = plt.subplot(3, 2, i)
+                plt.grid(True)
+                #plt.suptitle(titletext)
+                #plt.savefig("delta_mags2.eps", format='eps')
         return
 
     def dmagsPlot(self, gi, dmags, titletext=None, ylims=None, xlims=None, newfig=True, figName=None, verbose=False):
@@ -1179,13 +1179,13 @@ class AtmoBuilder:
         
         # make figure of change in magnitude
         if newfig:
-            pylab.figure(figsize=(10,15))
+            plt.figure(figsize=(10,15))
         yplots = 3
         xplots = 2
         if len(plotfilterlist) == 1:
             yplots = 1
             xplots = 1
-        pylab.subplots_adjust(top=0.93, wspace=0.32, hspace=0.32, bottom=0.09, left=0.12, right=0.96)
+        plt.subplots_adjust(top=0.93, wspace=0.32, hspace=0.32, bottom=0.09, left=0.12, right=0.96)
         # For Kurucz models
         # set colors of data points based on their metallicity
         metallicity = numpy.array(sedcolorkey[0])
@@ -1200,54 +1200,54 @@ class AtmoBuilder:
         # for each filter, use a different subplot
         plot_logg2 = False
         for f in plotfilterlist:
-            ax = pylab.subplot(yplots, xplots,i)
+            ax = plt.subplot(yplots, xplots,i)
             for metidx in range(len(metbins)):
                 condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                             & (logg>3.5))
                 mcolor = metcolors[metidx]
-                pylab.plot(gi[condition], dmags[f][condition], mcolor+'.')
+                plt.plot(gi[condition], dmags[f][condition], mcolor+'.')
                 if plot_logg2:
                         condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
                             & (logg<2.5))
                         mcolor = metcolors[metidx]
-                        pylab.plot(gi[condition], dmags[f][condition], mcolor+'x')
+                        plt.plot(gi[condition], dmags[f][condition], mcolor+'x')
             i = i + 1
         # set up generic items
         for i in range(0, len(plotfilterlist)):
             f = plotfilterlist[i]
-            ax = pylab.subplot(yplots,xplots,i+1)
-            pylab.xlabel("g-i")
-            pylab.ylabel(r"$\Delta$ %s (mmag)" %(f))
+            ax = plt.subplot(yplots,xplots,i+1)
+            plt.xlabel("g-i")
+            plt.ylabel(r"$\Delta$ %s (mmag)" %(f))
             def axis_formatter(x, pos):
                 return "%.1f" %(x)
-            formatter = pylab.FuncFormatter(axis_formatter)
+            formatter = plt.FuncFormatter(axis_formatter)
             ax.yaxis.set_major_formatter(formatter)
             # set axes limits
             if ylims == None:
                 pass
             else:
                 try:
-                    pylab.ylim(ylims[f][0], ylims[f][1])
+                    plt.ylim(ylims[f][0], ylims[f][1])
                 except KeyError:
                     pass
             if xlims == None:
                 pass
             else:
                 try:
-                    pylab.xlim(xlims[f][0], xlims[f][1])
+                    plt.xlim(xlims[f][0], xlims[f][1])
                 except KeyError:
                     pass
         # put a grid in the background
         if newfig:
             for i in range(0, len(plotfilterlist)):
-                ax = pylab.subplot(yplots,xplots, i+1)
-                pylab.grid(True)
+                ax = plt.subplot(yplots,xplots, i+1)
+                plt.grid(True)
             if titletext!=None:
-                pylab.suptitle("$\Delta$mmags for each LSST filter")
+                plt.suptitle("$\Delta$mmags for each LSST filter")
                 
         if figName != None:
             title = figName+"_dmagsPlot.png"
-            pylab.savefig(title, format='png')
+            plt.savefig(title, format='png')
         
         return
     
