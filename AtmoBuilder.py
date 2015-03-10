@@ -776,6 +776,14 @@ class AtmoBuilder:
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
                 ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
+
+                label = self.sedLabelGen(regressionSed)
+                col1Title = r'%s $\Delta$mmags' % (label)
+                col2Title = 'Log-Likelihood'
+                col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
+                ax[i][0].set_title(col1Title, y=1.20)
+                ax[i][1].set_title(col2Title, y=1.20)
+                ax[i][2].set_title(col3Title, y=1.20)
             
             ax[i][2].legend(loc='upper center', bbox_to_anchor=(1.30,0.75))
             
