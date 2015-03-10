@@ -632,7 +632,7 @@ class AtmoBuilder:
 
         for f in filters:
             if pickleString != None:
-                pickString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
+                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
             else:
                 pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '.pkl'
                     
@@ -777,7 +777,7 @@ class AtmoBuilder:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
                 ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
             
-            ax[i][2].legend(loc='upper center', bbox_to_anchor=(1.25,0.75))
+            ax[i][2].legend(loc='upper center', bbox_to_anchor=(1.30,0.75))
             
         if figName != None:
             title = figName+"_regressionPlot.png"
@@ -790,9 +790,12 @@ class AtmoBuilder:
         self.sedTypeCheck(sedtype)
         self.sedReadCheck(sedtype)
 
-        # Label axes, add grid
+        # Label axes, only label y if not comparison sed
         ax.set_xlabel("g-i")
-        ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f))
+        if comparisonSed == False:
+            ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f))
+        
+        # Add grid
         ax.grid(b=True)
 
         if comparisonSed == True:
