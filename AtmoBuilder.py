@@ -681,7 +681,7 @@ class AtmoBuilder:
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_obs, X_obs, pNum1=pNum1, pNum2=pNum2,
-                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=pickleString, 
+                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=pickleString, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, filters=filters, verbose=verbose)
 
         return range1, range2, comp1best, comp2best, logL
@@ -690,7 +690,7 @@ class AtmoBuilder:
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        figName=None, filters=None , verbose=True):
+        deltaGrey=0.0, figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
@@ -704,7 +704,11 @@ class AtmoBuilder:
         seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
-        fig.suptitle(r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter', fontsize=14)
+        if deltaGrey == 0.0:
+            fig.suptitle(r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter', fontsize=14)
+        else:
+            title = r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
+            fig.suptitle(title, fontsize=14)
         fig.set_size_inches(15,len(filters)*5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
 
