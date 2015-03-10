@@ -704,7 +704,7 @@ class AtmoBuilder:
         seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
-        fig.suptitle(r'$\Delta$mmags, Regression Contours $\Delta\Delta$mmags for each LSST filter', fontsize=14)
+        fig.suptitle(r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter', fontsize=14)
         fig.set_size_inches(15,len(filters)*5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
 
