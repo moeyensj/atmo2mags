@@ -1485,17 +1485,17 @@ class AtmoBuilder:
     def componentCheck(self, comp, Nbins):
         """Returns a range of values of length Nbins for a given component."""
         if comp == 'H2O':
-            return numpy.linspace(0.0,5.0,Nbins), 0
+            return numpy.linspace(1.0,3.0,Nbins), 0
         elif comp == 'O2':
-            return numpy.linspace(0.0,5.0,Nbins), 1
+            return numpy.linspace(1.0,3.0,Nbins), 1
         elif comp == 'O3':
-            return numpy.linspace(0.0,5.0,Nbins), 2
+            return numpy.linspace(1.0,3.0,Nbins), 2
         elif comp == 'Rayleigh':
-            return numpy.linspace(0.0,5.0,Nbins), 3
+            return numpy.linspace(1.0,3.0,Nbins), 3
         elif comp == 'Aerosol':
-            return numpy.linspace(0.0,5.0,Nbins), 4
+            return numpy.linspace(1.0,3.0,Nbins), 4
         elif comp == 'Alpha':
-            return numpy.linspace(0.0,5.0,Nbins), 5
+            return numpy.linspace(1.0,3.0,Nbins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
         
