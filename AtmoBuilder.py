@@ -654,11 +654,10 @@ class AtmoBuilder:
 
                 print 'Completed ' + f + ' filter.'
 
-                for f in filters:
-                    logL -= numpy.max(logL)
-                    whr = numpy.where(logL == numpy.max(logL))
-                    comp1best = range1[whr[0][0]]
-                    comp2best = range2[whr[1][0]]
+                logL -= numpy.max(logL)
+                whr = numpy.where(logL == numpy.max(logL))
+                comp1best = range1[whr[0][0]]
+                comp2best = range2[whr[1][0]]
 
                 return comp1best, comp2best, logL
 
