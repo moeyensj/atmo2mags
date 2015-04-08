@@ -1,5 +1,5 @@
 ### Necessary imports
-import numpy
+import numpy as np
 import os
 import copy
 import matplotlib.pyplot as plt
@@ -124,7 +124,7 @@ class AtmoBuilder:
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
-        self.wavelength = numpy.arange(MINWAVELEN,MAXWAVELEN+WAVELENSTEP,WAVELENSTEP,dtype='float')
+        self.wavelength = np.arange(MINWAVELEN,MAXWAVELEN+WAVELENSTEP,WAVELENSTEP,dtype='float')
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
@@ -142,7 +142,7 @@ class AtmoBuilder:
                 if lineNum < 4:
                     if lineNum == 1:
                         lineEle = line.split()
-                        airmass = 1/numpy.cos((float(lineEle[2]))*numpy.pi/180.0)
+                        airmass = 1/np.cos((float(lineEle[2]))*np.pi/180.0)
                         airmass = round(airmass*10)/10.0
                     continue
                 lineEle = line.split()
@@ -156,12 +156,12 @@ class AtmoBuilder:
                     transTemp['Rayleigh'].append(float(lineEle[8]))
                     transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]),airmass,STDAEROSOLALPHA,STDAEROSOLNORMCOEFF,STDAEROSOLNORMWAVELEN))
             fin.close()
-            wavelenTemp = numpy.array(wavelenTemp,dtype='float')
+            wavelenTemp = np.array(wavelenTemp,dtype='float')
             trans = {}
             templates = {}
             for comp in self.components:
-                trans[comp] = numpy.array(transTemp[comp],dtype='float')
-                trans[comp] = numpy.interp(self.wavelength, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
+                trans[comp] = np.array(transTemp[comp],dtype='float')
+                trans[comp] = np.interp(self.wavelength, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
             self.airmasses.append(self.airmassToString(airmass))
             self.atmoTrans[airmass] = copy.deepcopy(trans)
         if self.atmoTrans != None:
@@ -243,9 +243,9 @@ class AtmoBuilder:
                 atemperature.append(temperature)
                 alogg.append(logg)
                 starlist2.append(s)
-        temperature = numpy.array(atemperature)
-        met = numpy.array(amet)
-        logg = numpy.array(alogg)
+        temperature = np.array(atemperature)
+        met = np.array(amet)
+        logg = np.array(alogg)
         starlist = starlist2
         # actually read the stars SEDS from disk
         stars = {}
@@ -297,8 +297,8 @@ class AtmoBuilder:
                     temperatures.append(temperature)
                     loggs.append(logg)
 
-        temperatures = numpy.array(temperatures)
-        loggs = numpy.array(loggs)
+        temperatures = np.array(temperatures)
+        loggs = np.array(loggs)
         wdlist = hlist + helist
         wds = {}
         for w in wdlist:
@@ -330,7 +330,7 @@ class AtmoBuilder:
         gallist_base = []
         metal = ['002Z', '04Z', '25Z']
         gtype = ['Const', 'Inst', 'Burst'] # removed Exp
-        redshifts= numpy.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
+        redshifts= np.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
         # pull out the filenames we want
         for filename in allfilelist:
             if filename.endswith('.spec.gz'):
@@ -413,7 +413,7 @@ class AtmoBuilder:
         base = Sed()
         base.readSED_flambda(os.path.join(quasardir, "quasar.dat"))
         # redshift 
-        redshifts= numpy.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
+        redshifts= np.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
         quasars = {}
         for z in redshifts:
             wavelen, flambda = base.redshiftSED(z, wavelen=base.wavelen, flambda=base.flambda)
@@ -434,7 +434,7 @@ class AtmoBuilder:
         sndir = os.path.join(homedir, "atmo2mags/seds/sn")
         allfilelist = os.listdir(sndir)
         snlist = []
-        redshifts= numpy.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
+        redshifts= np.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
         # pull out the filenames we want
         for filename in allfilelist:
             if filename.endswith('.dat') & filename.startswith('sn1a_'):
@@ -495,7 +495,7 @@ class AtmoBuilder:
         self.parameterCheck(P)
         self.airmassCheck(X)
 
-        P = numpy.array(P)
+        P = np.array(P)
         
         H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
         O2comp = self.atmoTrans[X]['O2']**P[1]
@@ -534,10 +534,10 @@ class AtmoBuilder:
 
         mags = {}
         for f in filters:
-            mags[f] = numpy.zeros(len(sedkeylist), dtype='float')
+            mags[f] = np.zeros(len(sedkeylist), dtype='float')
             for i,key in enumerate(sedkeylist):
                 mags[f][i] = seds[key].calcMag(bpDict[f])
-                if numpy.isnan(mags[f][i]):
+                if np.isnan(mags[f][i]):
                     print key, f, mags[f][i]
             if verbose == True:
                 print f, mags[f].max(), mags[f].min()
@@ -580,10 +580,10 @@ class AtmoBuilder:
             dmags_fit[f] = dmags_fit[f] - deltaGrey
             dmags_obs[f] = dmags_obs[f] - deltaGrey
         else: # (deltaGrey < 0.0)
-            dmags_fit[f] = dmags_fit[f] - numpy.mean(dmags_fit[f])
-            dmags_obs[f] = dmags_obs[f] - numpy.mean(dmags_obs[f])
+            dmags_fit[f] = dmags_fit[f] - np.mean(dmags_fit[f])
+            dmags_obs[f] = dmags_obs[f] - np.mean(dmags_obs[f])
     
-        return -numpy.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
+        return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
     def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
         comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
@@ -645,7 +645,7 @@ class AtmoBuilder:
                 comp2best = []
 
                 print 'Calculating best parameters for ' + f + ' filter...'
-                logL = numpy.empty((Nbins, Nbins))
+                logL = np.empty((Nbins, Nbins))
                 for i in range(len(range1)):
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
@@ -654,8 +654,8 @@ class AtmoBuilder:
 
                 print 'Completed ' + f + ' filter.'
 
-                logL -= numpy.max(logL)
-                whr = numpy.where(logL == numpy.max(logL))
+                logL -= np.max(logL)
+                whr = np.where(logL == np.max(logL))
                 comp1best = range1[whr[0][0]]
                 comp2best = range2[whr[1][0]]
 
@@ -822,11 +822,11 @@ class AtmoBuilder:
                 mags2 = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
                 dmags2 = self.dmags(mags2, mags_std)
 
-            metallicity = numpy.array(self.met)
-            logg = numpy.array(self.logg)
+            metallicity = np.array(self.met)
+            logg = np.array(self.logg)
             metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
             metbinsize = abs(metallicity.min() - metallicity.max())/6.0
-            metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
+            metbins = np.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
 
             for metidx in range(len(metbins)):
                 # Make cut of stars
@@ -864,7 +864,7 @@ class AtmoBuilder:
             redshift = self.quasarRedshifts
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
             redbinsize = 0.5
-            redbins = numpy.arange(0.0, 3.0+redbinsize, redbinsize)
+            redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
             for redidx in range(len(redbins)):
                 condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
                 rcolor = redcolors[redidx]
@@ -899,7 +899,7 @@ class AtmoBuilder:
             gallist = self.gallist
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
             redbinsize = 0.5
-            redbins = numpy.arange(0.0, 3.0+redbinsize, redbinsize)
+            redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
 
             for i,g in enumerate(gallist):
                 galbase, redshift = g.split('_')
@@ -1050,7 +1050,7 @@ class AtmoBuilder:
             snlist = self.snList
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
             redbinsize = 0.2
-            redbins = numpy.arange(0.0, 1.2+redbinsize, redbinsize)
+            redbins = np.arange(0.0, 1.2+redbinsize, redbinsize)
             day_symbol = {'0':'s', '20':'s', '40':'s'}
 
             for j,s in enumerate(snlist):
@@ -1211,7 +1211,7 @@ class AtmoBuilder:
         mags = self.mags(bpDict)
         gi = self.gi(mags)
         magcolors = {}
-        colorlabels = numpy.chararray(len(self.filterlist))
+        colorlabels = np.chararray(len(self.filterlist))
         for i in range(1-7):
             colorlabels[i] = self.filterlist[i-1] + '-' + self.filterlist[i]
             magscolors[colorlabels[i]] = mags[self.filterlist[i-1]] - mags[self.filterlist[i]]
@@ -1219,7 +1219,7 @@ class AtmoBuilder:
         metallicity = sedcolorkey
         metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
         metbinsize = abs(sedcolorkey.min() - sedcolorkey.max())/6.0
-        metbins = numpy.arange(sedcolorkey.min(), sedcolorkey.max() + metbinsize, metbinsize)
+        metbins = np.arange(sedcolorkey.min(), sedcolorkey.max() + metbinsize, metbinsize)
         print metbinsize, metbins
         i = 1
         # use a different subplot for each color/color combo
@@ -1279,11 +1279,11 @@ class AtmoBuilder:
         plt.subplots_adjust(top=0.93, wspace=0.32, hspace=0.32, bottom=0.09, left=0.12, right=0.96)
         # For Kurucz models
         # set colors of data points based on their metallicity
-        metallicity = numpy.array(sedcolorkey[0])
-        logg = numpy.array(sedcolorkey[1])
+        metallicity = np.array(sedcolorkey[0])
+        logg = np.array(sedcolorkey[1])
         metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
         metbinsize = abs(metallicity.min() - metallicity.max())/6.0
-        metbins = numpy.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
+        metbins = np.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
         if verbose == True:
             print metbinsize, metbins
         
@@ -1386,7 +1386,7 @@ class AtmoBuilder:
     def aerosol(self, w, X, alpha, aerosolNormCoeff, aerosolNormWavelen):
         """Standard aerosol transmission function, returns array of transmission values over a range of
             wavelengths."""
-        return numpy.e**(-aerosolNormCoeff * X * (aerosolNormWavelen / w) * alpha)
+        return np.e**(-aerosolNormCoeff * X * (aerosolNormWavelen / w) * alpha)
     
     def airmassToString(self, airmass):
         """Converts airmass to string"""
@@ -1416,8 +1416,8 @@ class AtmoBuilder:
 
     def dmagLimit(self, ax, f, dmags):
         # Initialize values to keep track of dmag range
-        dmag_max = numpy.max(dmags[f]);
-        dmag_min = numpy.min(dmags[f]);
+        dmag_max = np.max(dmags[f]);
+        dmag_min = np.min(dmags[f]);
         dmag_range = abs((dmag_max - dmag_min)/2.0);
 
         # If dmag range exceeds 2.0, plot dashed lines at +-2dmmags
@@ -1484,17 +1484,17 @@ class AtmoBuilder:
     def componentCheck(self, comp, Nbins):
         """Returns a range of values of length Nbins for a given component."""
         if comp == 'H2O':
-            return numpy.linspace(1.0,3.0,Nbins), 0
+            return np.linspace(1.0,3.0,Nbins), 0
         elif comp == 'O2':
-            return numpy.linspace(1.0,3.0,Nbins), 1
+            return np.linspace(1.0,3.0,Nbins), 1
         elif comp == 'O3':
-            return numpy.linspace(1.0,3.0,Nbins), 2
+            return np.linspace(1.0,3.0,Nbins), 2
         elif comp == 'Rayleigh':
-            return numpy.linspace(1.0,3.0,Nbins), 3
+            return np.linspace(1.0,3.0,Nbins), 3
         elif comp == 'Aerosol':
-            return numpy.linspace(1.0,3.0,Nbins), 4
+            return np.linspace(1.0,3.0,Nbins), 4
         elif comp == 'Alpha':
-            return numpy.linspace(1.0,3.0,Nbins), 5
+            return np.linspace(1.0,3.0,Nbins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
         
