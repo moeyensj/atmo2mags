@@ -180,13 +180,23 @@ class AtmoBuilder:
             print "MODTRAN files have been read."
         return
     
-    def readFilters(self, shift_perc=None):
-        """Reads LSST filter data only and returns a filter-keyed dictionary. (S^{filters})"""
-        ### Taken from plot_dmags and modified to suit specific needs.
-        # read the filter throughput curves only (called from read_hardware as well)
-        # apply a shift of +shift_perc/100 * eff_wavelength to the wavelengths of the filter.
+    def readFilters(self, shiftPercent=None):
+        """
+        Reads LSST filter data and returns a filter-keyed dictionary. (S^{filters})
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        shiftPercent: (float) [None], percentage value to shift effective wavelength of filter throughput
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
+        
         filterdir = os.getenv("LSST_THROUGHPUTS_DEFAULT")
         filters = {}
+
         for f in self.filterlist:
             filters[f] = Bandpass()
             filters[f].readThroughput(os.path.join(filterdir, "filter_" + f + ".dat"))
@@ -196,7 +206,9 @@ class AtmoBuilder:
                 print f, shift
                 filters[f].wavelen = filters[f].wavelen + shift
                 filters[f].resampleBandpass()
+
         self.filters = filters
+
         return
     
     def readHardware(self, shift_perc=None):
