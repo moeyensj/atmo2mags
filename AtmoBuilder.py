@@ -111,8 +111,20 @@ class AtmoBuilder:
 ### Reading Functions
     
     def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
-        """Reads in atmospheric absorption data from MODTRAN files into an airmass-keyed directory."""
-        ### Taken from AtmoComp and modified to suit specific needs.
+        """
+        Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        modtranDir: (string) ['modtran/'], MODTRAN file directory
+        modtranRoot: (string) ['Pachon_Modtran'], MODTRAN file root
+        modtranSuffix: (string) ['.7sc'], MODTRAN file extension
+        ----------------------
+
+        * Modified from AtmoComp.py *
+        """
         
         files = os.listdir(modtranDir)
         modtranFiles = []
@@ -124,7 +136,7 @@ class AtmoBuilder:
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
-        self.wavelength = np.arange(MINWAVELEN,MAXWAVELEN+WAVELENSTEP,WAVELENSTEP,dtype='float')
+        self.wavelength = np.arange(MINWAVELEN, MAXWAVELEN+WAVELENSTEP, WAVELENSTEP, dtype='float')
         self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
@@ -154,13 +166,13 @@ class AtmoBuilder:
                     transTemp['O2'].append(float(lineEle[3]))
                     transTemp['O3'].append(float(lineEle[4]))
                     transTemp['Rayleigh'].append(float(lineEle[8]))
-                    transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]),airmass,STDAEROSOLALPHA,STDAEROSOLNORMCOEFF,STDAEROSOLNORMWAVELEN))
+                    transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]), airmass, STDAEROSOLALPHA, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN))
             fin.close()
-            wavelenTemp = np.array(wavelenTemp,dtype='float')
+            wavelenTemp = np.array(wavelenTemp, dtype='float')
             trans = {}
             templates = {}
             for comp in self.components:
-                trans[comp] = np.array(transTemp[comp],dtype='float')
+                trans[comp] = np.array(transTemp[comp], dtype='float')
                 trans[comp] = np.interp(self.wavelength, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
             self.airmasses.append(self.airmassToString(airmass))
             self.atmoTrans[airmass] = copy.deepcopy(trans)
