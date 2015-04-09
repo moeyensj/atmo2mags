@@ -202,7 +202,7 @@ class AtmoBuilder:
             filters[f].readThroughput(os.path.join(filterdir, "filter_" + f + ".dat"))
             effwavelenphi, effwavelensb = filters[f].calcEffWavelen()
             if shift_perc != None:
-                shift = effwavelensb * shift_perc/100.0
+                shift = effwavelensb * shiftPercent/100.0
                 print f, shift
                 filters[f].wavelen = filters[f].wavelen + shift
                 filters[f].resampleBandpass()
@@ -211,27 +211,38 @@ class AtmoBuilder:
 
         return
     
-    def readHardware(self, shift_perc=None):
-        """Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})"""
-        ### Taken from plot_dmags and modified to suit specific needs.
-        # read system (hardware) transmission, return dictionary of system hardware (keyed to filter)
+    def readHardware(self, shiftPercent=None):
+        """
+        Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        shiftPercent: (float) [None], percentage value to shift effective wavelength of filter throughput
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
+        
         filterdir = os.getenv("LSST_THROUGHPUTS_DEFAULT")
         hardware = ("detector.dat", "m1.dat", "m2.dat", "m3.dat", "lens1.dat", "lens2.dat", "lens3.dat")
-        # Read in the standard components, but potentially shift the filter by shift_perc percent.
-        self.readFilters(shift_perc=shift_perc)
+        
+        self.readFilters(shiftPercent=shiftPercent)
+
         filters = self.filters
         sys = {}
+
         for f in self.filterlist:
             sys[f] = Bandpass()
-            # put together the standard component list
             tlist = []
             for t in hardware:
                 tlist.append(os.path.join(filterdir, t))
-            # read in the standard components, combine into sys
             sys[f].readThroughputList(tlist)
-            # multiply by the filter throughput for final hardware throughput (no atmosphere)
             sys[f].wavelen, sys[f].sb = sys[f].multiplyThroughputs(filters[f].wavelen, filters[f].sb)
+
         self.sys = sys
+
         return
 
     def readKurucz(self):
