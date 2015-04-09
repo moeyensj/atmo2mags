@@ -3,6 +3,10 @@
 	{
 		"selected_items":
 		[
+			[
+				"wds",
+				"wds"
+			]
 		]
 	},
 	"buffers":
@@ -11,7 +15,7 @@
 			"file": "AtmoBuilder.py",
 			"settings":
 			{
-				"buffer_size": 51080,
+				"buffer_size": 68379,
 				"line_ending": "Unix"
 			}
 		},
@@ -28,6 +32,14 @@
 			"settings":
 			{
 				"buffer_size": 36661,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "old/astroML/fig_nonlinear_mu_z.py",
+			"settings":
+			{
+				"buffer_size": 3841,
 				"line_ending": "Unix"
 			}
 		},
@@ -75,16 +87,22 @@
 	},
 	"expanded_folders":
 	[
+		"/Users/joachim/atmo2mags",
+		"/Users/joachim/atmo2mags/seds"
 	],
 	"file_history":
 	[
+		"/Users/joachim/atmo2mags/.git/COMMIT_EDITMSG",
+		"/Users/joachim/atmo2mags/X14_P101010122217_Rayleigh_Aerosol_XSTD12_25bins_y4_kurucz_DG1.200.pkl",
+		"/Users/joachim/atmo2mags/decorators.py",
+		"/Users/joachim/repos/forked/ast597b/.git/COMMIT_EDITMSG",
+		"/Users/joachim/.bash_profile",
 		"/Users/joachim/atmo2mags/old/provided scripts/AtmoComp.py",
-		"/Users/joachim/atmo2mags/AtmoBuilder.py",
-		"/Users/joachim/.bash_profile"
+		"/Users/joachim/atmo2mags/AtmoBuilder.py"
 	],
 	"find":
 	{
-		"height": 0.0
+		"height": 35.0
 	},
 	"find_in_files":
 	{
@@ -98,6 +116,11 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"pylab",
+			"SEEING",
+			"sedtypeCheck",
+			"melts",
+			"self.filterlist"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -105,6 +128,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"plt"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -124,15 +148,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 51080,
+						"buffer_size": 68379,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								29731,
+								29731
 							]
 						],
 						"settings":
@@ -141,17 +165,17 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 14.0,
-						"translation.y": 3163.0,
+						"translation.x": 0.0,
+						"translation.y": 2461.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -181,7 +205,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
@@ -197,8 +221,38 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								28229,
+								28229
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 681.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "old/astroML/fig_nonlinear_mu_z.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3841,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2674,
+								2674
 							]
 						],
 						"settings":
@@ -211,11 +265,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 4,
 					"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/master-gf4b08de607+4/python/lsst/sims/photUtils/Bandpass.py",
 					"semi_transient": false,
 					"settings":
@@ -227,8 +281,8 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								3707,
+								3713
 							]
 						],
 						"settings":
@@ -238,14 +292,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 958.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 5,
 					"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/master-gf4b08de607+4/python/lsst/sims/photUtils/Sed.py",
 					"semi_transient": false,
 					"settings":
@@ -268,7 +322,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 16761.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
@@ -279,7 +333,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 0.0
+		"height": 23.0
 	},
 	"input":
 	{
@@ -296,21 +350,21 @@
 				1
 			],
 			[
-				1,
 				0,
-				2,
-				1
+				1,
+				1,
+				2
 			]
 		],
 		"cols":
 		[
 			0.0,
-			0.488850026151,
 			1.0
 		],
 		"rows":
 		[
 			0.0,
+			0.743878767729,
 			1.0
 		]
 	},
@@ -322,7 +376,7 @@
 	"project": "atmo2mags.sublime-project",
 	"replace":
 	{
-		"height": 0.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -349,7 +403,7 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 1,
+	"selected_group": 0,
 	"settings":
 	{
 	},
@@ -357,7 +411,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 138.0,
+	"side_bar_width": 390.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
