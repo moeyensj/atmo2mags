@@ -201,7 +201,7 @@ class AtmoBuilder:
             filters[f] = Bandpass()
             filters[f].readThroughput(os.path.join(filterdir, "filter_" + f + ".dat"))
             effwavelenphi, effwavelensb = filters[f].calcEffWavelen()
-            if shift_perc != None:
+            if shiftPercent != None:
                 shift = effwavelensb * shiftPercent/100.0
                 print f, shift
                 filters[f].wavelen = filters[f].wavelen + shift
