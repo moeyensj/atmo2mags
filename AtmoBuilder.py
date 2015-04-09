@@ -743,7 +743,7 @@ class AtmoBuilder:
 
             # Plot parameter space regression plots
             # Plot contours and true values
-            ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T), levels=(0.683, 0.955, 0.997), colors='k')
+            ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/10000000.), levels=(0.683, 0.955, 0.997), colors='k')
             ax[i][1].contour(comp1_range, comp2_range, logL[f].T, colors='k')
             ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
 
