@@ -64,7 +64,7 @@ class AtmoBuilder:
         # List of filters
         self.filterlist = FILTERLIST
         # List of filter colors
-        self.filtercolors = ['b', 'm', 'r', 'g', 'y', 'k']
+        self.filtercolors = {'u': 'b', 'g': 'm', 'r': 'r','r': 'g','z': 'y','y4': 'k'}
         
         # Kurucz model data
         self.stars = None
@@ -541,15 +541,22 @@ class AtmoBuilder:
         
         return Bandpass(wavelen=self.wavelength,sb=totalTrans)
     
-    def combineThroughputs(self, atmo, sys=None):
+    def combineThroughputs(self, atmo, sys=None, filters=None):
         """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
         dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
         if sys == None:
             sys = self.sys
+
+        if filters == None:
+            filters = self.filterlist
+
+        if filters == 'y4':
+            filters = ['y4']
+
         total = {}
-        for f in self.filterlist:
+        for f in filters:
             wavelen, sb = sys[f].multiplyThroughputs(atmo.wavelen, atmo.sb)
             total[f] = Bandpass(wavelen, sb)
             total[f].sbTophi()
@@ -703,9 +710,6 @@ class AtmoBuilder:
             pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey) + '_' + pickleString
         else:
             pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey)
-
-        if generateDphi:
-            self.dphiPlot(throughput_obs, throughput_std, figName=pickleString)
 
         if verbose:
         	print ''
@@ -1216,16 +1220,24 @@ class AtmoBuilder:
             plt.savefig(title, format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict2, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
+    def dphiPlot(self, bpDict1, bpDict2, bpDict3=None, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
+
+        if filters == None:
+            filters = self.filterlist
+
+        if filters == 'y4':
+            filters = ['y4']
         
-        for f in self.filterlist:
-            ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f))
+        for f in filters:
+            ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f), color=self.filtercolors[f])
+            if bpDict3 != None:
+                ax.plot(w, bpDict3[f].phi - bpDict2[f].phi, label=str(f), color='black', alpha=0.7)
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
