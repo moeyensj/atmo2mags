@@ -15,7 +15,7 @@
 			"file": "AtmoBuilder.py",
 			"settings":
 			{
-				"buffer_size": 68379,
+				"buffer_size": 68213,
 				"line_ending": "Unix"
 			}
 		},
@@ -61,9 +61,14 @@
 		}
 	],
 	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
 	"command_palette":
 	{
 		"height": 0.0,
+		"last_filter": "",
 		"selected_items":
 		[
 		],
@@ -116,6 +121,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"numpy",
 			"pylab",
 			"SEEING",
 			"sedtypeCheck",
@@ -128,6 +134,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"np",
 			"plt"
 		],
 		"reverse": false,
@@ -148,15 +155,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 68379,
+						"buffer_size": 68213,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								29731,
-								29731
+								31248,
+								31248
 							]
 						],
 						"settings":
@@ -166,7 +173,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2461.0,
+						"translation.y": 14752.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -262,7 +269,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1371.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -364,7 +371,7 @@
 		"rows":
 		[
 			0.0,
-			0.743878767729,
+			0.85523299131,
 			1.0
 		]
 	},
@@ -373,6 +380,7 @@
 	{
 		"height": 0.0
 	},
+	"pinned_build_system": "",
 	"project": "atmo2mags.sublime-project",
 	"replace":
 	{
@@ -382,6 +390,7 @@
 	"select_file":
 	{
 		"height": 0.0,
+		"last_filter": "",
 		"selected_items":
 		[
 		],
@@ -390,6 +399,7 @@
 	"select_project":
 	{
 		"height": 0.0,
+		"last_filter": "",
 		"selected_items":
 		[
 		],
@@ -398,6 +408,7 @@
 	"select_symbol":
 	{
 		"height": 0.0,
+		"last_filter": "",
 		"selected_items":
 		[
 		],
