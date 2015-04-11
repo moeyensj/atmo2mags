@@ -64,7 +64,7 @@ class AtmoBuilder:
         # List of filters
         self.filterlist = FILTERLIST
         # List of filter colors
-        self.filtercolors = ['blue', 'green', 'red', 'cyan', 'purple', 'yellow']
+        self.filtercolors = ['b', 'm', 'r', 'g', 'y', 'k']
         
         # Kurucz model data
         self.stars = None
