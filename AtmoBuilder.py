@@ -546,14 +546,11 @@ class AtmoBuilder:
         dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
+
+        filters = self.filterCheck(filters)
+
         if sys == None:
             sys = self.sys
-
-        if filters == None:
-            filters = self.filterlist
-
-        if filters == 'y4':
-            filters = ['y4']
 
         total = {}
         for f in filters:
@@ -568,11 +565,7 @@ class AtmoBuilder:
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        if filters == None:
-            filters = self.filterlist
-
-        if filters == 'y4':
-            filters = ['y4']
+        filters = self.filterCheck(filters)
 
         mags = {}
         for f in filters:
@@ -588,12 +581,8 @@ class AtmoBuilder:
     def dmags(self, mags1, mags2, filters=None):
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
-        if filters == None:
-            filters = self.filterlist
+        filters = self.filterCheck(filters)
 
-        if filters == 'y4':
-            filters = ['y4']
-        
         dmags = {}
         for f in filters:
             # difference, in millimags
@@ -641,8 +630,7 @@ class AtmoBuilder:
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self.sedFinder(regressionSed)
         
-        if filters == None:
-            filters = self.filterlist
+        filters = self.filterCheck(filters)
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
@@ -736,9 +724,7 @@ class AtmoBuilder:
             comp1_range, pNum1 = self.componentCheck(comp1, Nbins)
             comp2_range, pNum2 = self.componentCheck(comp2, Nbins)
             
-        if filters == None:
-            filters = self.filterlist
-
+        filters = self.filterCheck(filters)
         seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
@@ -1159,13 +1145,15 @@ class AtmoBuilder:
             plt.savefig(title, format='png')
         return
     
-    def filterPlot(self, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def filterPlot(self, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
+
+        filters = self.filterCheck(filters)
         
-        for f in self.filterlist:
+        for f in filters:
             ax.plot(self.filters[f].wavelen, self.filters[f].sb,label=str(f));
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
@@ -1176,15 +1164,17 @@ class AtmoBuilder:
         ax.legend(loc=4, shadow=False);
         return
     
-    def hardwarePlot(self, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def hardwarePlot(self, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the hardware response curve from LSST hardware data."""
         if self.sys == None:
             self.readHardware()
+
+        filters = self.filterCheck(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
         
-        for f in self.sys:
+        for f in filters:
             ax.plot(self.sys[f].wavelen, self.sys[f].sb,label=str(f));
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
@@ -1195,17 +1185,19 @@ class AtmoBuilder:
         ax.legend(loc=4, shadow=False);
         return
     
-    def phiPlot(self, bpDict1, bpDict2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+    def phiPlot(self, bpDict1, bpDict2=None, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
         phi2Alpha=0.5, phi2Color='black', figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
+        filters = self.filterCheck(filters)
+
         w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
         
-        for f in self.filterlist:
+        for f in filters:
             ax.plot(w, bpDict1[f].phi, label=str(f))
             ax.plot(w, bpDict2[f].phi, alpha=phi2Alpha, color=phi2Color)
         
@@ -1228,11 +1220,7 @@ class AtmoBuilder:
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
 
-        if filters == None:
-            filters = self.filterlist
-
-        if filters == 'y4':
-            filters = ['y4']
+        filters = self.filterCheck(filters)
         
         for f in filters:
             ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f), color=self.filtercolors[f])
@@ -1583,6 +1571,13 @@ class AtmoBuilder:
             if self.sns == None:
                 raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
+
+    def filterCheck(self, filters):
+        if filters == None:
+            filters = self.filterlist
+        if filters == 'y4':
+            filters == ['y4']
+        return filters
 
     def sedFinder(self, sedtype):
         """Returns seds and sedkeylist given an sedtype."""
