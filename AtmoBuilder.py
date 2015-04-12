@@ -64,7 +64,7 @@ class AtmoBuilder:
         # List of filters
         self.filterlist = FILTERLIST
         # List of filter colors
-        self.filtercolors = {'u': 'b', 'g': 'm', 'r': 'r','r': 'g','z': 'y','y4': 'k'}
+        self.filtercolors = {'u': 'b', 'g': 'm', 'r': 'r','i': 'g','z': 'y','y4': 'k'}
         
         # Kurucz model data
         self.stars = None
@@ -1147,14 +1147,14 @@ class AtmoBuilder:
     
     def filterPlot(self, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
-        
-        fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(plotWidth, plotHeight)
 
         filters = self.filterCheck(filters)
         
+        fig,ax = plt.subplots(1,1)
+        fig.set_size_inches(plotWidth, plotHeight)
+        
         for f in filters:
-            ax.plot(self.filters[f].wavelen, self.filters[f].sb,label=str(f));
+            ax.plot(self.filters[f].wavelen, self.filters[f].sb, label=str(f), color=self.filtercolors[f]);
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylim(0,1);
@@ -1175,7 +1175,7 @@ class AtmoBuilder:
         fig.set_size_inches(plotWidth, plotHeight)
         
         for f in filters:
-            ax.plot(self.sys[f].wavelen, self.sys[f].sb,label=str(f));
+            ax.plot(self.sys[f].wavelen, self.sys[f].sb, label=str(f), color=self.filtercolors[f]);
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylim(0,1);
@@ -1215,13 +1215,13 @@ class AtmoBuilder:
     def dphiPlot(self, bpDict1, bpDict2, bpDict3=None, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
+        filters = self.filterCheck(filters)
+
         w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
 
-        filters = self.filterCheck(filters)
-        
         for f in filters:
             ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f), color=self.filtercolors[f])
             if bpDict3 != None:
