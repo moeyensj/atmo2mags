@@ -1,17 +1,19 @@
-import numpy as np
 import os
 import copy
+import numpy as np
 
 # Global wavelength variables set to MODTRAN defaults
 MINWAVELEN = 300
 MAXWAVELEN = 1100
 WAVELENSTEP = 0.5
 
+STDPARAMETERS = [1.0,1.0,1.0,1.0,1.0,1.7]
+STDAIRMASS = 1.2
 STDAEROSOLNORMCOEFF = 0.1
 STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
-class Modtran():
+class Modtran:
     def __init__(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         # List of wavelengths
     	self.wavelengths = None
@@ -22,9 +24,9 @@ class Modtran():
         # List of strings containing components names to be used when plotting
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
 
-    	self.readModtranFiles()
+    	self.__readModtranFiles()
     	
-    def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
+    def __readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """
         Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
 
