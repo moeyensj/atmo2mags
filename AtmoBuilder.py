@@ -136,7 +136,6 @@ class AtmoBuilder:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
         self.wavelength = np.arange(MINWAVELEN, MAXWAVELEN+WAVELENSTEP, WAVELENSTEP, dtype='float')
-        self.atmoTemplates = {}
         self.atmoTrans = {}
         self.airmasses = []
         
