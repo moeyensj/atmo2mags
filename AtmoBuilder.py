@@ -7,8 +7,6 @@ import matplotlib.patches as mp
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 
-from Modtran import Modtran
-
 from astroML.plotting.mcmc import convert_to_stdev
 from astroML.decorators import pickle_results
 
