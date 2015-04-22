@@ -109,7 +109,7 @@ class AtmoBuilder():
 
 ### Reading Functions
     
-    #def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
+    def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """
         Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
 
@@ -176,7 +176,7 @@ class AtmoBuilder():
             self.atmoTrans[airmass] = copy.deepcopy(trans)
         if self.atmoTrans != None:
             print "MODTRAN files have been read."
-       return
+        return
 
     def readFilters(self, shiftPercent=None):
         """
