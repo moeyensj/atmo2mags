@@ -521,7 +521,7 @@ class AtmoBuilder():
 
 ### Calculator / Generator Functions
         
-    def genAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
+    def buildAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
         
@@ -598,7 +598,7 @@ class AtmoBuilder():
 
     def compute_logL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
-        atmo = self.genAtmo(P,X)
+        atmo = self.buildAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo)
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
         
@@ -644,12 +644,12 @@ class AtmoBuilder():
         X_fit = copy.deepcopy(X_obs)
 
         # Create observed atmosphere
-        obs = self.genAtmo(P_obs,X_obs)
+        obs = self.buildAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
-        std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
+        std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
@@ -739,12 +739,12 @@ class AtmoBuilder():
         comp2_obs = P_obs[pNum2]
     
         # Create observed atmosphere
-        obs = self.genAtmo(P_obs,X_obs)
+        obs = self.buildAtmo(P_obs,X_obs)
         throughput_obs = self.combineThroughputs(obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
-        std = self.genAtmo(STDPARAMETERS,STDAIRMASS)
+        std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
@@ -758,7 +758,7 @@ class AtmoBuilder():
             P_fit[pNum2] = comp2_best[f]
 
             # Create atmosphere at best fit parameters
-            fit = self.genAtmo(P_fit,X_fit)
+            fit = self.buildAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
             self.dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed)
@@ -1115,7 +1115,7 @@ class AtmoBuilder():
         
         w=self.wavelength
 
-        atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff=aerosolNormCoeff1, aerosolNormWavelen=aerosolNormWavelen1)
+        atmo1 = self.buildAtmo(P1, X1, aerosolNormCoeff=aerosolNormCoeff1, aerosolNormWavelen=aerosolNormWavelen1)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth,plotHeight)
@@ -1130,10 +1130,10 @@ class AtmoBuilder():
         if (P2 != None) & (X2 != None):
             self.parameterCheck(P2)
             self.airmassCheck(X2)
-            atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
+            atmo2 = self.buildAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
             ax.plot(w,atmo2.sb,label=self.labelGen(P2, X2), alpha=atmo2Alpha, color=atmo2Color)
         elif includeStdAtmo == True:
-            atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
+            atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
             ax.plot(w, atmo2.sb, label=self.labelGen(STDPARAMETERS, STDAIRMASS), alpha=atmo2Alpha, color=atmo2Color);
         
         ax.legend(loc='lower right', shadow=False)
@@ -1384,16 +1384,16 @@ class AtmoBuilder():
         against standard atmosphere given an array of parameters and a specific airmass. User can provide array of parameters and airmass in order to 
         override the comparison to the standard atmosphere."""
         
-        atmo1 = self.genAtmo(P1, X1, aerosolNormCoeff1, aerosolNormWavelen1)
+        atmo1 = self.buildAtmo(P1, X1, aerosolNormCoeff1, aerosolNormWavelen1)
         bpDict1 = self.combineThroughputs(atmo1)
 
         if (P2 == None) & (X2 == None):
             if includeStdAtmo == True:
-                atmo2 = self.genAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
+                atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
                 bpDict2 = self.combineThroughputs(atmo2)
                 figName = self.figNameGen(saveFig, figName, P1, X1, STDPARAMETERS, STDAIRMASS)
         else:
-            atmo2 = self.genAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
+            atmo2 = self.buildAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
             bpDict2 = self.combineThroughputs(atmo2)
             figName = self.figNameGen(saveFig, figName, P1, X1, P2, X2)
         
