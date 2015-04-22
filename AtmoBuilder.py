@@ -7,6 +7,8 @@ import matplotlib.patches as mp
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 
+from Modtran import Modtran
+
 from astroML.plotting.mcmc import convert_to_stdev
 from astroML.decorators import pickle_results
 
@@ -36,7 +38,7 @@ atmospheres.
     
 """
 
-class AtmoBuilder:
+class AtmoBuilder():
     def __init__(self):
         # List of strings containing component names
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
@@ -109,7 +111,7 @@ class AtmoBuilder:
 
 ### Reading Functions
     
-    def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
+    #def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """
         Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
 
@@ -124,7 +126,7 @@ class AtmoBuilder:
 
         * Modified from AtmoComp.py *
         """
-        
+    
         files = os.listdir(modtranDir)
         modtranFiles = []
         
@@ -176,8 +178,8 @@ class AtmoBuilder:
             self.atmoTrans[airmass] = copy.deepcopy(trans)
         if self.atmoTrans != None:
             print "MODTRAN files have been read."
-        return
-    
+       return
+
     def readFilters(self, shiftPercent=None):
         """
         Reads LSST filter data and returns a filter-keyed dictionary. (S^{filters})
@@ -1602,7 +1604,3 @@ class AtmoBuilder:
             sedkeylist = self.snList
 
         return seds, sedkeylist
-
-
-
-

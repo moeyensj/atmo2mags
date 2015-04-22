@@ -13,7 +13,7 @@ STDAEROSOLNORMCOEFF = 0.1
 STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
-class Modtran:
+class Modtran():
     def __init__(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         # List of wavelengths
     	self.wavelengths = None
@@ -23,7 +23,7 @@ class Modtran:
         self.transmission = None
         # List of strings containing components names to be used when plotting
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
-
+        # Read in MODTRAN files
     	self.__readModtranFiles()
     	
     def __readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
