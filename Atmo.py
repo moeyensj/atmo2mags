@@ -1,53 +1,49 @@
+# Python packages
 import numpy as np
-import os
-import copy
-import lsst.sims.photUtils.Sed as Sed
+import matplotlib.pyplot as plt
+
+# LSST stack software
 import lsst.sims.photUtils.Bandpass as Bandpass
 
-# Global wavelength variables set to MODTRAN defaults
-MINWAVELEN = 300
-MAXWAVELEN = 1100
-WAVELENSTEP = 0.5
+class Atmo():
+    def __init__(self, parameters, airmass, wavelength, transmission, aerosolNormCoeff, aerosolNormWavelen):
+    	self.airmass = airmass
+    	self.X = airmass
+    	self.parameters = np.array(parameters)
+    	self.P = np.array(parameters)
+    	self.wavelength = wavelength
+    	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
+    	self.aerosolNormCoeff = aerosolNormCoeff
+    	self.aerosolNormWavelen = aerosolNormWavelen
 
-STDPARAMETERS = [1.0,1.0,1.0,1.0,1.0,1.7]
-STDAIRMASS = 1.2
-STDAEROSOLNORMCOEFF = 0.1
-STDAEROSOLNORMWAVELEN = 550.0
-STDAEROSOLALPHA = STDPARAMETERS[5]
-
-FILTERLIST = ['u','g','r','i','z','y4']
-
-class Atmo:
-    def __init__(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
-    	self.__generateAtmo(P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
-    	self.airmass = X
-    	self.parameters = np.array(P)
     	self.transmission = None
-    	self.components = None
-    
-    def __generateAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
+    	self.sb = None
+    	self.transmissionDict = None
+
+    	self.__buildAtmo(parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen)
+
+    def __buildAtmo(self, parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
         
-        self.__parameterCheck(P)
-        self.__airmassCheck(X)
-        
-        H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
-        O2comp = self.atmoTrans[X]['O2']**P[1]
-        O3comp = self.atmoTrans[X]['O3']**P[2]
-        rayleighComp = self.atmoTrans[X]['Rayleigh']**P[3]
-        aerosolComp = self.aerosol(self.wavelength,X,P[5],aerosolNormCoeff,aerosolNormWavelen)**P[4]
-        totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
-        
-        return Bandpass(wavelen=self.wavelength,sb=totalTrans)
+        transDict = {}
 
-   	def __parameterCheck(self, P):
-        """Checks if parameter array is of appropriate length."""
-        if len(P) != 6:
-            raise ValueError('Need 6 parameters to build atmosphere!')
+        transDict['H2O'] = transmission[airmass]['H2O']**parameters[0]
+        transDict['O2'] = transmission[airmass]['O2']**parameters[1]
+        transDict['O3'] = transmission[airmass]['O3']**parameters[2]
+        transDict['Rayleigh'] = transmission[airmass]['Rayleigh']**parameters[3]
+        transDict['Aerosol'] = self.__aerosol(self.wavelength, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
+        totalTrans = transDict['H2O']*transDict['O2']*transDict['O3']*transDict['Rayleigh']*transDict['Aerosol']
+
+        atmo = Bandpass(wavelen=self.wavelength,sb=totalTrans)
+
+        self.transmission = atmo.sb
+        self.sb = atmo.sb
+        self.transmissionDict = transDict
+        
         return
 
-    def __airmassCheck(self, X):
-        if self.airmassToString(X) not in self.airmasses:
-            raise ValueError('Not a valid airmass, check MODTRAN data for valid airmasses')
-        return
+    def __aerosol(self, wavelength, airmass, alpha, aerosolNormCoeff, aerosolNormWavelen):
+        """Standard aerosol transmission function, returns array of transmission values over a range of
+            wavelengths."""
+        return np.e**(-aerosolNormCoeff * airmass * (aerosolNormWavelen / wavelength) * alpha)
