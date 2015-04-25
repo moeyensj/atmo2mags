@@ -1105,34 +1105,25 @@ class AtmoBuilder():
 
         return
 
-    def transPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
-        aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
-        aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-        atmoColor1='blue', atmo2Color='black', atmo2Alpha=0.5, figName=None):
+    def transPlot(self, atmo1, atmo2=None, includeStdAtmo=True, atmoColor1='blue', atmo2Color='black', atmo2Alpha=0.5, figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
         
         w=self.wavelength
-
-        atmo1 = self.buildAtmo(P1, X1, aerosolNormCoeff=aerosolNormCoeff1, aerosolNormWavelen=aerosolNormWavelen1)
         
         fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(plotWidth,plotHeight)
+        fig.set_size_inches(10,7)
         
-        ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(P1,X1));
+        ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(atmo1.P,atmo1.X));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
         ax.set_ylabel("Transmission")
         ax.set_title("$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$");
         ax.legend(loc='lower right', shadow=False)
-        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         
-        if (P2 != None) & (X2 != None):
-            self.parameterCheck(P2)
-            self.airmassCheck(X2)
-            atmo2 = self.buildAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
-            ax.plot(w,atmo2.sb,label=self.labelGen(P2, X2), alpha=atmo2Alpha, color=atmo2Color)
+        if atmo2 != None:
+            ax.plot(w,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color)
         elif includeStdAtmo == True:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
-            ax.plot(w, atmo2.sb, label=self.labelGen(STDPARAMETERS, STDAIRMASS), alpha=atmo2Alpha, color=atmo2Color);
+            ax.plot(w, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color);
         
         ax.legend(loc='lower right', shadow=False)
         
