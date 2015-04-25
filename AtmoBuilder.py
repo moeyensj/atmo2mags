@@ -104,7 +104,7 @@ class AtmoBuilder():
         
         # Readers
         self.readModtranFiles()
-        self.readFilters()
+        print ''
         self.readHardware()
 
 ### Reading Functions
@@ -208,6 +208,8 @@ class AtmoBuilder():
 
         self.filters = filters
 
+        print 'Read filter data from LSST software stack.'
+
         return
     
     def readHardware(self, shiftPercent=None):
@@ -241,6 +243,8 @@ class AtmoBuilder():
             sys[f].wavelen, sys[f].sb = sys[f].multiplyThroughputs(filters[f].wavelen, filters[f].sb)
 
         self.sys = sys
+
+        print 'Read hardware data from LSST software stack.'
 
         return
 
