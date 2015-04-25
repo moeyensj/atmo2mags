@@ -1415,11 +1415,6 @@ class AtmoBuilder():
 
 ### Secondary Functions
     
-    def aerosol(self, w, X, alpha, aerosolNormCoeff, aerosolNormWavelen):
-        """Standard aerosol transmission function, returns array of transmission values over a range of
-            wavelengths."""
-        return np.e**(-aerosolNormCoeff * X * (aerosolNormWavelen / w) * alpha)
-    
     def airmassToString(self, airmass):
         """Converts airmass to string"""
         X = float(airmass)
