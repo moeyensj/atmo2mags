@@ -164,12 +164,13 @@ class AtmoBuilder():
                     transTemp['O2'].append(float(lineEle[3]))
                     transTemp['O3'].append(float(lineEle[4]))
                     transTemp['Rayleigh'].append(float(lineEle[8]))
-                    transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]), airmass, STDAEROSOLALPHA, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN))
+                    #transTemp['Aerosol'].append(self.aerosol(float(lineEle[0]), airmass, STDAEROSOLALPHA, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN))
             fin.close()
             wavelenTemp = np.array(wavelenTemp, dtype='float')
             trans = {}
             templates = {}
-            for comp in self.components:
+            modtranComponents = ['H2O','O2','O3','Rayleigh']
+            for comp in modtranComponents:
                 trans[comp] = np.array(transTemp[comp], dtype='float')
                 trans[comp] = np.interp(self.wavelength, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
             self.airmasses.append(self.airmassToString(airmass))
