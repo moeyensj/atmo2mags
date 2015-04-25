@@ -7,6 +7,8 @@ import matplotlib.patches as mp
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 
+from Atmo import Atmo
+
 from astroML.plotting.mcmc import convert_to_stdev
 from astroML.decorators import pickle_results
 
@@ -532,17 +534,8 @@ class AtmoBuilder():
         
         self.parameterCheck(P)
         self.airmassCheck(X)
-
-        P = np.array(P)
         
-        H2Ocomp = self.transDict[X]['H2O']**P[0]
-        O2comp = self.transDict[X]['O2']**P[1]
-        O3comp = self.transDict[X]['O3']**P[2]   # linear
-        rayleighComp = self.transDict[X]['Rayleigh']**P[3]  # linear
-        aerosolComp = self.aerosol(self.wavelength,X,P[5],aerosolNormCoeff,aerosolNormWavelen)**P[4]
-        totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
-        
-        return Bandpass(wavelen=self.wavelength,sb=totalTrans)
+        return Atmo(P, X, self.wavelength, self.transDict, aerosolNormCoeff, aerosolNormWavelen)
     
     def combineThroughputs(self, atmo, sys=None, filters=None):
         """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
