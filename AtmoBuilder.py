@@ -55,7 +55,7 @@ class AtmoBuilder():
         # List of airmasses for which we have profiles, set in readModtranFiles
         self.airmasses = None
         # List of transmission profiles for individual airmasses
-        self.atmoTrans = None
+        self.transDict = None
         # Filter-keyed dictionary of filter S, set in readFilters
         self.filters = None
         # Filter-keyed dictionary of filter and hardware
@@ -136,7 +136,7 @@ class AtmoBuilder():
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
         self.wavelength = np.arange(MINWAVELEN, MAXWAVELEN+WAVELENSTEP, WAVELENSTEP, dtype='float')
-        self.atmoTrans = {}
+        self.transDict = {}
         self.airmasses = []
         
         for file in modtranFiles:
@@ -173,8 +173,8 @@ class AtmoBuilder():
                 trans[comp] = np.array(transTemp[comp], dtype='float')
                 trans[comp] = np.interp(self.wavelength, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
             self.airmasses.append(self.airmassToString(airmass))
-            self.atmoTrans[airmass] = copy.deepcopy(trans)
-        if self.atmoTrans != None:
+            self.transDict[airmass] = copy.deepcopy(trans)
+        if self.transDict != None:
             print "MODTRAN files have been read."
         return
 
@@ -530,10 +530,10 @@ class AtmoBuilder():
 
         P = np.array(P)
         
-        H2Ocomp = self.atmoTrans[X]['H2O']**P[0]
-        O2comp = self.atmoTrans[X]['O2']**P[1]
-        O3comp = self.atmoTrans[X]['O3']**P[2]   # linear
-        rayleighComp = self.atmoTrans[X]['Rayleigh']**P[3]  # linear
+        H2Ocomp = self.transDict[X]['H2O']**P[0]
+        O2comp = self.transDict[X]['O2']**P[1]
+        O3comp = self.transDict[X]['O3']**P[2]   # linear
+        rayleighComp = self.transDict[X]['Rayleigh']**P[3]  # linear
         aerosolComp = self.aerosol(self.wavelength,X,P[5],aerosolNormCoeff,aerosolNormWavelen)**P[4]
         totalTrans = H2Ocomp*O2comp*O3comp*rayleighComp*aerosolComp
         
