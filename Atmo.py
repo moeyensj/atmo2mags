@@ -9,12 +9,14 @@ class Atmo():
     def __init__(self, parameters, airmass, wavelength, transmission, aerosolNormCoeff, aerosolNormWavelen):
     	self.airmass = airmass
     	self.X = airmass
-    	self.parameters = np.array(parameters)
-    	self.P = np.array(parameters)
+    	self.parameters = parameters
+    	self.P = parameters
     	self.wavelength = wavelength
-    	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
     	self.aerosolNormCoeff = aerosolNormCoeff
     	self.aerosolNormWavelen = aerosolNormWavelen
+    	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
+    	self.componentColors = {'H2O':'blue','O2':'green','O3':'red','Rayleigh':'purple','Aerosol':'cyan'}
+    	self.componentsPlot = {'H2O':r'$t_{H_2O}$','O2':r'$t_{O_2}$','O3':r'$t_{O_3}$','Rayleigh':r'$t_{Rayleigh}$','Aerosol':r'$t_{Aerosol}$','Alpha':r'$\alpha$'}
 
     	self.transmission = None
     	self.sb = None
@@ -25,7 +27,9 @@ class Atmo():
     def __buildAtmo(self, parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
-        
+
+        parameters = np.array(parameters)
+
         transDict = {}
 
         transDict['H2O'] = transmission[airmass]['H2O']**parameters[0]
