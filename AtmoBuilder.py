@@ -543,8 +543,6 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
 
-        filters = self.filterCheck(filters)
-
         if sys == None:
             sys = self.sys
 
