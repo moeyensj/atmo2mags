@@ -7,18 +7,15 @@ import lsst.sims.photUtils.Bandpass as Bandpass
 
 class Atmo():
     def __init__(self, parameters, airmass, wavelength, transmission, aerosolNormCoeff, aerosolNormWavelen):
-    	self.airmass = airmass
     	self.X = airmass
-    	self.parameters = parameters
     	self.P = parameters
-    	self.wavelength = wavelength
+        self.wavelen = wavelength
     	self.aerosolNormCoeff = aerosolNormCoeff
     	self.aerosolNormWavelen = aerosolNormWavelen
     	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
 
-    	self.transmission = None
     	self.sb = None
-    	self.transmissionDict = None
+    	self.sbDict = None
 
     	self.__buildAtmo(parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen)
 
@@ -34,14 +31,13 @@ class Atmo():
         transDict['O2'] = transmission[airmass]['O2']**parameters[1]
         transDict['O3'] = transmission[airmass]['O3']**parameters[2]
         transDict['Rayleigh'] = transmission[airmass]['Rayleigh']**parameters[3]
-        transDict['Aerosol'] = self.__aerosol(self.wavelength, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
+        transDict['Aerosol'] = self.__aerosol(self.wavelen, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
         totalTrans = transDict['H2O']*transDict['O2']*transDict['O3']*transDict['Rayleigh']*transDict['Aerosol']
 
-        atmo = Bandpass(wavelen=self.wavelength,sb=totalTrans)
+        atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans)
 
-        self.transmission = atmo.sb
         self.sb = atmo.sb
-        self.transmissionDict = transDict
+        self.sbDict = transDict
         
         return
 
