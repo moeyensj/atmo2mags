@@ -1,6 +1,5 @@
 # Python packages
 import numpy as np
-import matplotlib.pyplot as plt
 
 # LSST stack software
 import lsst.sims.photUtils.Bandpass as Bandpass
