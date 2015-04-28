@@ -15,8 +15,6 @@ class Atmo():
     	self.aerosolNormCoeff = aerosolNormCoeff
     	self.aerosolNormWavelen = aerosolNormWavelen
     	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
-    	self.componentColors = {'H2O':'blue','O2':'green','O3':'red','Rayleigh':'purple','Aerosol':'cyan'}
-    	self.componentsPlot = {'H2O':r'$t_{H_2O}$','O2':r'$t_{O_2}$','O3':r'$t_{O_3}$','Rayleigh':r'$t_{Rayleigh}$','Aerosol':r'$t_{Aerosol}$','Alpha':r'$\alpha$'}
 
     	self.transmission = None
     	self.sb = None
