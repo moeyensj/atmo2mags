@@ -28,6 +28,9 @@ SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
 
 FILTERLIST = ['u','g','r','i','z','y4']
 
+FIGUREWIDTH = 10
+FIGUREHEIGHT = 7
+
 """
 #### IMPORTANT NOTE ####
 MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
@@ -1111,7 +1114,7 @@ class AtmoBuilder():
         w=self.wavelength
         
         fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(10,7)
+        fig.set_size_inches(FIGUREWIDTH,FIGUREHEIGHT)
         
         ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(atmo1.P,atmo1.X));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
@@ -1132,13 +1135,13 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def filterPlot(self, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def filterPlot(self, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
 
         filters = self.y4Check(filters)
         
         fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(plotWidth, plotHeight)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
         for f in filters:
             ax.plot(self.filters[f].wavelen, self.filters[f].sb, label=str(f), color=self.filtercolors[f]);
@@ -1151,7 +1154,7 @@ class AtmoBuilder():
         ax.legend(loc=4, shadow=False);
         return
     
-    def hardwarePlot(self, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def hardwarePlot(self, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the hardware response curve from LSST hardware data."""
         if self.sys == None:
             self.readHardware()
@@ -1159,7 +1162,7 @@ class AtmoBuilder():
         filters = self.y4Check(filters)
         
         fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(plotWidth, plotHeight)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
         for f in filters:
             ax.plot(self.sys[f].wavelen, self.sys[f].sb, label=str(f), color=self.filtercolors[f]);
@@ -1172,7 +1175,7 @@ class AtmoBuilder():
         ax.legend(loc=4, shadow=False);
         return
     
-    def phiPlot(self, bpDict1, bpDict2=None, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+    def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
         phi2Alpha=0.5, phi2Color='black', figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
@@ -1182,7 +1185,7 @@ class AtmoBuilder():
         w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(plotWidth, plotHeight)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
         for f in filters:
             ax.plot(w, bpDict1[f].phi, label=str(f))
@@ -1199,7 +1202,7 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict2, bpDict3=None, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
+    def dphiPlot(self, bpDict1, bpDict2, bpDict3=None, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         filters = self.y4Check(filters)
@@ -1207,7 +1210,7 @@ class AtmoBuilder():
         w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(plotWidth, plotHeight)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
         for f in filters:
             ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f), color=self.filtercolors[f])
@@ -1365,7 +1368,7 @@ class AtmoBuilder():
         
         return
     
-    def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+    def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, FIGUREWIDTH=12, FIGUREHEIGHT=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
         aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
         aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
         transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
@@ -1387,13 +1390,13 @@ class AtmoBuilder():
             figName = self.figNameGen(saveFig, figName, P1, X1, P2, X2)
         
         if transPlot:
-            self.transPlot(P1, X1, P2=P2, X2=X2, includeStdAtmo=includeStdAtmo, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange,
+            self.transPlot(P1, X1, P2=P2, X2=X2, includeStdAtmo=includeStdAtmo, FIGUREWIDTH=FIGUREWIDTH, FIGUREHEIGHT=FIGUREHEIGHT, wavelengthRange=wavelengthRange,
                            aerosolNormCoeff1=aerosolNormCoeff1, aerosolNormWavelen1=aerosolNormWavelen1,
                            aerosolNormCoeff2=aerosolNormCoeff2, aerosolNormWavelen2=aerosolNormWavelen2, figName=figName)
         if phiPlot:
-            self.phiPlot(bpDict1, bpDict2, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange, figName=figName)
+            self.phiPlot(bpDict1, bpDict2, FIGUREWIDTH=FIGUREWIDTH, FIGUREHEIGHT=FIGUREHEIGHT, wavelengthRange=wavelengthRange, figName=figName)
         if dphiPlot:
-            self.dphiPlot(bpDict1, bpDict2, plotWidth=plotWidth, plotHeight=plotHeight, wavelengthRange=wavelengthRange, figName=figName)
+            self.dphiPlot(bpDict1, bpDict2, FIGUREWIDTH=FIGUREWIDTH, FIGUREHEIGHT=FIGUREHEIGHT, wavelengthRange=wavelengthRange, figName=figName)
         if dmagsPlot:
             mag1 = self.mags(bpDict1)
             mag2 = self.mags(bpDict2)
