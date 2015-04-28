@@ -1156,8 +1156,6 @@ class AtmoBuilder():
     
     def hardwarePlot(self, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the hardware response curve from LSST hardware data."""
-        if self.sys == None:
-            self.readHardware()
 
         filters = self.y4Check(filters)
         
