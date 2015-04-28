@@ -1110,23 +1110,21 @@ class AtmoBuilder():
 
     def transPlot(self, atmo1, atmo2=None, includeStdAtmo=True, atmoColor1='blue', atmo2Color='black', atmo2Alpha=0.5, figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
-        
-        w=self.wavelength
-        
+                
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH,FIGUREHEIGHT)
         
-        ax.plot(w, atmo1.sb, color=atmoColor1, label=self.labelGen(atmo1.P,atmo1.X));
+        ax.plot(atmo1.wavelen, atmo1.sb, color=atmoColor1, label=self.labelGen(atmo1.P,atmo1.X));
         ax.set_xlabel("Wavelength, $\lambda$ (nm)")
         ax.set_ylabel("Transmission")
         ax.set_title("$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$");
         ax.legend(loc='lower right', shadow=False)
         
         if atmo2 != None:
-            ax.plot(w,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color)
+            ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color)
         elif includeStdAtmo == True:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
-            ax.plot(w, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color);
+            ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color);
         
         ax.legend(loc='lower right', shadow=False)
         
@@ -1179,15 +1177,13 @@ class AtmoBuilder():
             for comparison."""
         
         filters = self.y4Check(filters)
-
-        w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
         for f in filters:
-            ax.plot(w, bpDict1[f].phi, label=str(f))
-            ax.plot(w, bpDict2[f].phi, alpha=phi2Alpha, color=phi2Color)
+            ax.plot(bpDict1[f].wavelen, bpDict1[f].phi, label=str(f))
+            ax.plot(bpDict2[f].wavelen, bpDict2[f].phi, alpha=phi2Alpha, color=phi2Color)
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylabel("$\phi_b^{obs}(\lambda)$", fontsize=15);
@@ -1200,20 +1196,18 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict2, bpDict3=None, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
+    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         filters = self.y4Check(filters)
-
-        w = self.wavelength
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
         for f in filters:
-            ax.plot(w, bpDict1[f].phi - bpDict2[f].phi, label=str(f), color=self.filtercolors[f])
-            if bpDict3 != None:
-                ax.plot(w, bpDict3[f].phi - bpDict2[f].phi, label=str(f), color='black', alpha=0.7)
+            ax.plot(bpDict1[f].wavelen, bpDict1[f].phi - bpDict_std[f].phi, label=str(f), color=self.filtercolors[f])
+            if bpDict2 != None:
+                ax.plot(bpDict2[f].wavelen, bpDict2[f].phi - bpDict_std[f].phi, label=str(f), color='black', alpha=0.7)
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
