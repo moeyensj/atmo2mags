@@ -27,6 +27,7 @@ SIMSSEDLIBRARY = "SIMS_SED_LIBRARY_DIR"
 SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
 
 FILTERLIST = ['u','g','r','i','z','y4']
+COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
 
 FIGUREWIDTH = 10
 FIGUREHEIGHT = 7
@@ -594,6 +595,26 @@ class AtmoBuilder():
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
         gi = mags_std['g'] - mags_std['i']
         return gi
+
+    def ug(self, mags_std):
+    	ug = mags_std['u'] - mags_std['g']
+    	return ug
+
+	def gr(self, mags_std):
+		gr = mags_std['g'] - mags_std['r']
+    	return gr
+
+	def ri(self, mags_std):
+		ri = mags_std['r'] - mags_std['i']
+    	return ri
+
+    def iz(self, mags_std):
+    	iz = mags_std['i'] - mags_std['z']
+    	return iz
+
+    def zy(self, mags_std):
+    	zy = mags_std['z'] - mags_std['y4']
+    	return zy
 
 ### Regression Functions
 
@@ -1555,6 +1576,24 @@ class AtmoBuilder():
         if filters == 'y4':
             filters == ['y4']
         return filters
+
+    def colorCheck(self, color, mags_std):
+    	if color in COLORS:
+    		if color == 'g-i':
+    			return color, self.gi(mags_std)
+    		if color == 'u-g':
+    			return color, self.ug(mags_std)
+    		if color == 'g-r':
+    			return color, self.gr(mags_std)
+			if color == 'r-i':
+				return color, self.ri(mags_std)
+			if color == 'i-z':
+				return color, self.iz(mags_std)
+			if color == 'z-y' or color == 'z-y4':
+				return 'z-y', self.zy(mags_std)
+    	else:
+    		raise ValueError('Please choose a valid color from ' + str(COLORS))
+    	return
 
     def sedFinder(self, sedtype):
         """Returns seds and sedkeylist given an sedtype."""
