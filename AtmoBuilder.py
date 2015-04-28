@@ -543,6 +543,8 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
 
+        filters = self.y4Check(filters)
+
         if sys == None:
             sys = self.sys
 
@@ -559,7 +561,7 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
 
         mags = {}
         for f in filters:
@@ -575,7 +577,7 @@ class AtmoBuilder():
     def dmags(self, mags1, mags2, filters=None):
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
 
         dmags = {}
         for f in filters:
@@ -624,7 +626,7 @@ class AtmoBuilder():
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self.sedFinder(regressionSed)
         
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
@@ -718,7 +720,7 @@ class AtmoBuilder():
             comp1_range, pNum1 = self.componentCheck(comp1, Nbins)
             comp2_range, pNum2 = self.componentCheck(comp2, Nbins)
             
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
         seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
@@ -1133,7 +1135,7 @@ class AtmoBuilder():
     def filterPlot(self, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
         """Plots the filter response curve from LSST filter data."""
 
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
@@ -1154,7 +1156,7 @@ class AtmoBuilder():
         if self.sys == None:
             self.readHardware()
 
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(plotWidth, plotHeight)
@@ -1175,7 +1177,7 @@ class AtmoBuilder():
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
 
         w = self.wavelength
         
@@ -1200,7 +1202,7 @@ class AtmoBuilder():
     def dphiPlot(self, bpDict1, bpDict2, bpDict3=None, filters=None, plotWidth=12, plotHeight=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
-        filters = self.filterCheck(filters)
+        filters = self.y4Check(filters)
 
         w = self.wavelength
         
@@ -1552,7 +1554,7 @@ class AtmoBuilder():
                 raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
 
-    def filterCheck(self, filters):
+    def y4Check(self, filters):
         if filters == None:
             filters = self.filterlist
         if filters == 'y4':
