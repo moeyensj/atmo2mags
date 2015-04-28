@@ -7,16 +7,23 @@ import lsst.sims.photUtils.Bandpass as Bandpass
 
 class Atmo():
     def __init__(self, parameters, airmass, wavelength, transmission, aerosolNormCoeff, aerosolNormWavelen):
+        # Airmass
     	self.X = airmass
+        # List of parameters
     	self.P = parameters
+        # List of wavelengths
         self.wavelen = wavelength
+        # Aerosol normalization coefficient used to model aerosol transmission profile
     	self.aerosolNormCoeff = aerosolNormCoeff
+        # Aerosol normalization wavelength used to model aerosol transmission profile
     	self.aerosolNormWavelen = aerosolNormWavelen
+        # List of components
     	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
-
+        # List of total transmission profiles
     	self.sb = None
+        # Component-keyed dictionary of transmission profiles
     	self.sbDict = None
-
+        # Build atmosphere and return object
     	self.__buildAtmo(parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen)
 
     def __buildAtmo(self, parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen):
