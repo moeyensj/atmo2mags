@@ -5,7 +5,7 @@ import numpy as np
 import lsst.sims.photUtils.Bandpass as Bandpass
 
 class Atmo():
-    def __init__(self, parameters, airmass, wavelength, transmission, aerosolNormCoeff, aerosolNormWavelen):
+    def __init__(self, parameters, airmass, transmission, wavelength, aerosolNormCoeff, aerosolNormWavelen):
         # Airmass
     	self.X = airmass
         # List of parameters

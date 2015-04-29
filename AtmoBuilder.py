@@ -13,8 +13,8 @@ from astroML.plotting.mcmc import convert_to_stdev
 from astroML.decorators import pickle_results
 
 # Global wavelength variables set to MODTRAN defaults
-MINWAVELEN = 300
-MAXWAVELEN = 1100
+WAVELENMIN = 300
+WAVELENMAX = 1100
 WAVELENSTEP = 0.5
 
 STDPARAMETERS = [1.0,1.0,1.0,1.0,1.0,1.7]
@@ -37,7 +37,7 @@ FIGUREHEIGHT = 7
 
 """
 #### IMPORTANT NOTE ####
-MINWAVELEN,MAXWAVELEN,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
+WAVELENMIN,WAVELENMAX,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
 be gridded properly and array multiplication errors will occur.
     
 The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
@@ -60,7 +60,7 @@ class AtmoBuilder():
         # Effective wavelength range, set in readModtranFiles
         self.wavelength = None
         # Min, max values of wavelength range
-        self.wavelengthRange = [MINWAVELEN,MAXWAVELEN]
+        self.wavelengthRange = [WAVELENMIN,WAVELENMAX]
         # List of airmasses for which we have profiles, set in readModtranFiles
         self.airmasses = None
         # List of transmission profiles for individual airmasses
@@ -144,7 +144,7 @@ class AtmoBuilder():
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
-        self.wavelength = np.arange(MINWAVELEN, MAXWAVELEN+WAVELENSTEP, WAVELENSTEP, dtype='float')
+        self.wavelength = np.arange(WAVELENMIN, WAVELENMAX+WAVELENSTEP, WAVELENSTEP, dtype='float')
         self.transDict = {}
         self.airmasses = []
         
@@ -302,7 +302,7 @@ class AtmoBuilder():
         print "# Read %d MS stars from %s" %(len(starlist), stardir)
         # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
         for s in starlist:
-            stars[s].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+            stars[s].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.stars = stars
         self.starlist = starlist
@@ -358,7 +358,7 @@ class AtmoBuilder():
         print "# Read %d white dwarfs from %s" %(len(wdlist), whitedwarfdir)
         # synchronize seds for faster mag calcs later
         for w in wdlist:
-            wds[w].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+            wds[w].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.wds = wds
         self.wdslist = wdlist
@@ -405,7 +405,7 @@ class AtmoBuilder():
                                                                          redshifts.min(), redshifts.max())
         # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
         for g in gallist:
-            gals[g].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+            gals[g].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
         # add dust
         ax, bx = gals[gallist[0]].setupCCMab()
         for g in gallist:
@@ -443,7 +443,7 @@ class AtmoBuilder():
         print "# Read %d mlt stars from %s" %(len(mltlist), mltdir)
         # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
         for s in mltlist:
-            mlts[s].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+            mlts[s].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.mlts = mlts
         self.mltlist = mltlist
@@ -468,7 +468,7 @@ class AtmoBuilder():
         print "# Generated %d quasars at redshifts between %f and %f" %(len(redshifts), redshifts.min(), redshifts.max())
         # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
         for z in redshifts:
-            quasars[z].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+            quasars[z].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.quasars = quasars
         self.quasarRedshifts = redshifts
@@ -509,7 +509,7 @@ class AtmoBuilder():
         print "# Generated %d sn's at redshifts between %f and %f on days %s" %(len(snlist),redshifts.min(), redshifts.max(), days)
         # resample onto the standard bandpass for Bandpass obj's and calculate fnu to speed later calculations
         for s in snlist:
-            sns[s].synchronizeSED(wavelen_min=MINWAVELEN, wavelen_max=MAXWAVELEN, wavelen_step=WAVELENSTEP)
+            sns[s].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.sns = sns
         self.snList = snlist
@@ -542,7 +542,7 @@ class AtmoBuilder():
         self.parameterCheck(P)
         self.airmassCheck(X)
         
-        return Atmo(P, X, self.wavelength, self.transDict, aerosolNormCoeff, aerosolNormWavelen)
+        return Atmo(P, X, self.transDict, self.wavelength, aerosolNormCoeff, aerosolNormWavelen)
     
     def combineThroughputs(self, atmo, sys=None, filters=None):
         """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
@@ -551,6 +551,9 @@ class AtmoBuilder():
         # Set up the total throughput for this system bandpass
 
         filters = self.y4Check(filters)
+
+        if filters == 'y4':
+        	filters = ['y4']
 
         if sys == None:
             sys = self.sys
@@ -570,6 +573,9 @@ class AtmoBuilder():
         # pass the sedkeylist so you know what order the magnitudes are arranged in
         filters = self.y4Check(filters)
 
+        if filters == 'y4':
+        	filters = ['y4']
+
         mags = {}
         for f in filters:
             mags[f] = np.zeros(len(sedkeylist), dtype='float')
@@ -585,6 +591,9 @@ class AtmoBuilder():
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         filters = self.y4Check(filters)
+
+     	if filters == 'y4':
+        	filters = ['y4']
 
         dmags = {}
         for f in filters:
@@ -685,10 +694,11 @@ class AtmoBuilder():
 
         for f in filters:
             if pickleString != None:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
+                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
             else:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey, f=f) + '.pkl'
+                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '.pkl'
                     
+            print 'Calculating best parameters for ' + f + ' filter...'
             @pickle_results(pickleString_temp)
             def run_regression(comp1, comp2, f):
                 
@@ -697,7 +707,6 @@ class AtmoBuilder():
                 comp1best = []
                 comp2best = []
 
-                print 'Calculating best parameters for ' + f + ' filter...'
                 logL = np.empty((Nbins, Nbins))
                 for i in range(len(range1)):
                     for j in range(len(range2)):
@@ -718,15 +727,28 @@ class AtmoBuilder():
             pickleString_temp = ''
 
         if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey) + '_' + pickleString
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey) + '_' + pickleString
         else:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, regressionSed, deltaGrey)
+            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey)
 
         if verbose:
         	print ''
         	print 'Best fit parameters (Filter, ' + comp1 + ', ' + comp2 + '):'
         	for f in filters:
  				print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
+
+		if generateDphi == True:
+
+			throughput_fit = {}
+
+			for f in filters:
+				P_fit[pNum1] = comp1best[f]
+				P_fit[pNum2] = comp2best[f]
+				atmo_fit = self.buildAtmo(P_fit,X_fit)
+				throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
+
+			self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit)
+			self.ddphiPlot(throughput_obs, throughput_fit, throughput_std)
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_obs, X_obs, pNum1=pNum1, pNum2=pNum2,
@@ -1157,7 +1179,7 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def filterPlot(self, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def filterPlot(self, filters=None, wavelengthRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the filter response curve from LSST filter data."""
 
         filters = self.y4Check(filters)
@@ -1176,7 +1198,7 @@ class AtmoBuilder():
         ax.legend(loc=4, shadow=False);
         return
     
-    def hardwarePlot(self, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN]):
+    def hardwarePlot(self, filters=None, wavelengthRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the hardware response curve from LSST hardware data."""
 
         filters = self.y4Check(filters)
@@ -1195,7 +1217,7 @@ class AtmoBuilder():
         ax.legend(loc=4, shadow=False);
         return
     
-    def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+    def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelengthRange=[WAVELENMIN,WAVELENMAX],
         phi2Alpha=0.5, phi2Color='black', figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
@@ -1220,31 +1242,64 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, wavelengthRange=[MINWAVELEN,MAXWAVELEN], figName=None):
+    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, truth=False, wavelengthRange=[WAVELENMIN,WAVELENMAX], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         filters = self.y4Check(filters)
+
+        if filters == 'y4':
+        	filters = ['y4']
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
         for f in filters:
-            ax.plot(bpDict1[f].wavelen, bpDict1[f].phi - bpDict_std[f].phi, label=str(f), color=self.filtercolors[f])
+            ax.plot(self.wavelength, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f])
             if bpDict2 != None:
-                ax.plot(bpDict2[f].wavelen, bpDict2[f].phi - bpDict_std[f].phi, label=str(f), color='black', alpha=0.7)
+            	if truth:
+                	ax.plot(self.wavelength, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                else:
+                	ax.plot(self.wavelength, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
         
         ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Change in Normalized Bandpass Response");
-        ax.legend(loc=4, shadow=False)
+        #ax.legend(loc=4, shadow=False)
         
         if figName != None:
             title = figName + "_dphiPlot.png"
             plt.savefig(title, format='png')
         
         return
-    
+
+    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=None, truth=False, wavelengthRange=[WAVELENMIN,WAVELENMAX], figName=None):
+		"""Plots change in normalized bandpass response function given two phi functions."""
+
+		filters = self.y4Check(filters)
+
+		if filters == 'y4':
+			filters = ['y4']
+
+		fig,ax = plt.subplots(1,1)
+		fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
+
+		for f in filters:
+			ddphi = (bpDict2[f].phi - bpDict_std[f].phi) - (bpDict1[f].phi - bpDict_std[f].phi)
+			ax.plot(self.wavelength, ddphi, color=self.filtercolors[f])
+
+		ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+		ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
+		ax.set_xlabel("Wavelength, $\lambda$ (nm)");
+		ax.set_title("Delta Delta Normalized Bandpass Response");
+		#ax.legend(loc=4, shadow=False)
+
+		if figName != None:
+			title = figName + "_dphiPlot.png"
+			plt.savefig(title, format='png')
+
+		return
+
     def colorcolorPlot(self, bpDict, newfig=True, titletext=None): 
         seds = self.stars
         sedkeylist = self.starlist
@@ -1384,7 +1439,7 @@ class AtmoBuilder():
         
         return
     
-    def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, FIGUREWIDTH=12, FIGUREHEIGHT=6, wavelengthRange=[MINWAVELEN,MAXWAVELEN],
+    def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, FIGUREWIDTH=12, FIGUREHEIGHT=6, wavelengthRange=[WAVELENMIN,WAVELENMAX],
         aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
         aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
         transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
@@ -1501,22 +1556,23 @@ class AtmoBuilder():
             figName = None
         return figName
 
-    def pickleNameGen(self, comp1, comp2, P, X, Nbins, regressionSed, deltaGrey, f=None):
+    def pickleNameGen(self, comp1, comp2, P, X, Nbins, err, regressionSed, deltaGrey, f=None):
         """Generates a string for pickle files. """
         s1 = 'X' + str(int(X*10))
         s2 = self.pToString(P)
         s3 = comp1 + '_' + comp2
         s4 = 'XSTD' + str(int(STDAIRMASS*10))
         s5 = 'DG' + str(int(deltaGrey*10.0))
-        s6 = ''  
-        s7 = str(Nbins) + 'bins'
+        s6 = 'E' + str(int(err*1000))  
+        s7 = ''
+        s8 = str(Nbins) + 'b'
 
         if f != None:
-            s6 = regressionSed + '_' + f
+            s7 = regressionSed + '_' + f
         else:
-            s6 = regressionSed 
+            s7 = regressionSed 
 
-        return '%s_%s_%s_%s_%s_%s_%s' % (s1, s2, s3, s4, s5, s6, s7)
+        return '%s_%s_%s_%s_%s_%s_%s_%s' % (s1, s2, s3, s4, s5, s6, s7, s8)
 
     def componentCheck(self, comp, Nbins):
         """Returns a range of values of length Nbins for a given component."""
@@ -1577,7 +1633,7 @@ class AtmoBuilder():
         if filters == None:
             filters = self.filterlist
         if filters == 'y4':
-            filters == ['y4']
+            filters == np.array(['y4'])
         return filters
 
     def colorCheck(self, color, mags_std):
