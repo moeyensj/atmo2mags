@@ -1169,7 +1169,7 @@ class AtmoBuilder():
         if atmo2 != None:
             ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color)
         elif includeStdAtmo == True:
-            atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN)
+            atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS)
             ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=atmo2Alpha, color=atmo2Color);
         
         ax.legend(loc='lower right', shadow=False)
