@@ -23,9 +23,12 @@ STDAEROSOLNORMCOEFF = 0.1
 STDAEROSOLNORMWAVELEN = 550.0
 STDAEROSOLALPHA = STDPARAMETERS[5]
 
-SIMSSEDLIBRARY = "SIMS_SED_LIBRARY_DIR"
-SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
+SIMSSEDLIBRARY = 'SIMS_SED_LIBRARY_DIR'
+PICKLEDIRECTORY = 'pickles/'
+PLOTDIRECTORY = 'plots/'
+LOGLDIRECTORY = 'logls/'
 
+SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
 FILTERLIST = ['u','g','r','i','z','y4']
 COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
 
@@ -618,7 +621,7 @@ class AtmoBuilder():
 
 ### Regression Functions
 
-    def compute_logL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
+    def computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
         atmo = self.buildAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo)
@@ -636,7 +639,7 @@ class AtmoBuilder():
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def compute_mag_color_nonlinear(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
+    def computeAtmoFit(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
         comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
         # Insure valid parameters, airmass and sedtypes are given
         self.parameterCheck(P_obs)
@@ -700,7 +703,7 @@ class AtmoBuilder():
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[i, j] = self.compute_logL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                        logL[i, j] = self.computeLogL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                 print 'Completed ' + f + ' filter.'
 
