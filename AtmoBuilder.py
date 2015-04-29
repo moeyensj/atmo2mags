@@ -1438,45 +1438,6 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         
         return
-    
-    def allPlot(self, P1, X1, P2=None, X2=None, includeStdAtmo=True, FIGUREWIDTH=12, FIGUREHEIGHT=6, wavelengthRange=[WAVELENMIN,WAVELENMAX],
-        aerosolNormCoeff1=STDAEROSOLNORMCOEFF, aerosolNormWavelen1=STDAEROSOLNORMWAVELEN,
-        aerosolNormCoeff2=STDAEROSOLNORMCOEFF, aerosolNormWavelen2=STDAEROSOLNORMWAVELEN,
-        transPlot=True, phiPlot=True, dphiPlot=True, dmagsPlot=True, saveFig=False, figName=None):
-        """Plots transmission profile, normalized bandpass response function, change in normalized bandpass response function and change in magnitude 
-        against standard atmosphere given an array of parameters and a specific airmass. User can provide array of parameters and airmass in order to 
-        override the comparison to the standard atmosphere."""
-        
-        atmo1 = self.buildAtmo(P1, X1, aerosolNormCoeff1, aerosolNormWavelen1)
-        bpDict1 = self.combineThroughputs(atmo1)
-
-        if (P2 == None) & (X2 == None):
-            if includeStdAtmo == True:
-                atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS, STDAEROSOLNORMCOEFF, STDAEROSOLNORMWAVELEN)
-                bpDict2 = self.combineThroughputs(atmo2)
-                figName = self.figNameGen(saveFig, figName, P1, X1, STDPARAMETERS, STDAIRMASS)
-        else:
-            atmo2 = self.buildAtmo(P2, X2, aerosolNormCoeff=aerosolNormCoeff2, aerosolNormWavelen=aerosolNormWavelen2)
-            bpDict2 = self.combineThroughputs(atmo2)
-            figName = self.figNameGen(saveFig, figName, P1, X1, P2, X2)
-        
-        if transPlot:
-            self.transPlot(P1, X1, P2=P2, X2=X2, includeStdAtmo=includeStdAtmo, FIGUREWIDTH=FIGUREWIDTH, FIGUREHEIGHT=FIGUREHEIGHT, wavelengthRange=wavelengthRange,
-                           aerosolNormCoeff1=aerosolNormCoeff1, aerosolNormWavelen1=aerosolNormWavelen1,
-                           aerosolNormCoeff2=aerosolNormCoeff2, aerosolNormWavelen2=aerosolNormWavelen2, figName=figName)
-        if phiPlot:
-            self.phiPlot(bpDict1, bpDict2, FIGUREWIDTH=FIGUREWIDTH, FIGUREHEIGHT=FIGUREHEIGHT, wavelengthRange=wavelengthRange, figName=figName)
-        if dphiPlot:
-            self.dphiPlot(bpDict1, bpDict2, FIGUREWIDTH=FIGUREWIDTH, FIGUREHEIGHT=FIGUREHEIGHT, wavelengthRange=wavelengthRange, figName=figName)
-        if dmagsPlot:
-            mag1 = self.mags(bpDict1)
-            mag2 = self.mags(bpDict2)
-            
-            dmags = self.dmags(mag1, mag2)
-            gi = self.gi(mag2)
-            
-            self.dmagsPlot(gi, dmags, figName=figName)
-        return
 
 ### Secondary Functions
     
