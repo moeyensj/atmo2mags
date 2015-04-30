@@ -1191,7 +1191,7 @@ class AtmoBuilder():
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("LSST $S^{sys}_b$ Filters Only");
-        ax.legend(loc=4, shadow=False);
+        ax.legend(loc='best', shadow=False);
         return
     
     def hardwarePlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
@@ -1210,7 +1210,7 @@ class AtmoBuilder():
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("LSST $S^{sys}_b$ Filters and Hardware");
-        ax.legend(loc=4, shadow=False);
+        ax.legend(loc='best', shadow=False);
         return
     
     def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
