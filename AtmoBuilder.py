@@ -60,7 +60,7 @@ class AtmoBuilder():
         # Effective wavelength range, set in readModtranFiles
         self.wavelength = None
         # Min, max values of wavelength range
-        self.wavelengthRange = [WAVELENMIN,WAVELENMAX]
+        self.wavelenRange = [WAVELENMIN,WAVELENMAX]
         # List of airmasses for which we have profiles, set in readModtranFiles
         self.airmasses = None
         # List of transmission profiles for individual airmasses
@@ -167,7 +167,7 @@ class AtmoBuilder():
                 lineEle = line.split()
                 if (float(lineEle[0]) < 0):
                     break
-                if (float(lineEle[0]) > self.wavelengthRange[0]) | (float(lineEle[0]) > self.wavelengthRange[1]):
+                if (float(lineEle[0]) > self.wavelenRange[0]) | (float(lineEle[0]) > self.wavelenRange[1]):
                     wavelenTemp.append(float(lineEle[0]))
                     transTemp['H2O'].append(float(lineEle[2]))
                     transTemp['O2'].append(float(lineEle[3]))
@@ -1175,7 +1175,7 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def filterPlot(self, filters=None, wavelengthRange=[WAVELENMIN,WAVELENMAX]):
+    def filterPlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the filter response curve from LSST filter data."""
 
         filters = self.y4Check(filters)
@@ -1186,7 +1186,7 @@ class AtmoBuilder():
         for f in filters:
             ax.plot(self.filters[f].wavelen, self.filters[f].sb, label=str(f), color=self.filtercolors[f]);
         
-        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+        ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
@@ -1194,7 +1194,7 @@ class AtmoBuilder():
         ax.legend(loc=4, shadow=False);
         return
     
-    def hardwarePlot(self, filters=None, wavelengthRange=[WAVELENMIN,WAVELENMAX]):
+    def hardwarePlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the hardware response curve from LSST hardware data."""
 
         filters = self.y4Check(filters)
@@ -1205,7 +1205,7 @@ class AtmoBuilder():
         for f in filters:
             ax.plot(self.sys[f].wavelen, self.sys[f].sb, label=str(f), color=self.filtercolors[f]);
         
-        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+        ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylim(0,1);
         ax.set_ylabel("Transmission");
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
@@ -1213,7 +1213,7 @@ class AtmoBuilder():
         ax.legend(loc=4, shadow=False);
         return
     
-    def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelengthRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
@@ -1226,7 +1226,7 @@ class AtmoBuilder():
             ax.plot(bpDict1[f].wavelen, bpDict1[f].phi, label=str(f))
             ax.plot(bpDict2[f].wavelen, bpDict2[f].phi, alpha=0.5, color='black')
         
-        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+        ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel("$\phi_b^{obs}(\lambda)$", fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Normalized Bandpass Response");
@@ -1237,7 +1237,7 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, truth=False, wavelengthRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
         filters = self.y4Check(filters)
@@ -1256,7 +1256,7 @@ class AtmoBuilder():
                 else:
                 	ax.plot(self.wavelength, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
         
-        ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+        ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)");
         ax.set_title("Change in Normalized Bandpass Response");
@@ -1268,7 +1268,7 @@ class AtmoBuilder():
         
         return
 
-    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=None, truth=False, wavelengthRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=None, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
 		"""Plots change in normalized bandpass response function given two phi functions."""
 
 		filters = self.y4Check(filters)
@@ -1283,7 +1283,7 @@ class AtmoBuilder():
 			ddphi = (bpDict2[f].phi - bpDict_std[f].phi) - (bpDict1[f].phi - bpDict_std[f].phi)
 			ax.plot(self.wavelength, ddphi, color=self.filtercolors[f])
 
-		ax.set_xlim(wavelengthRange[0], wavelengthRange[1]);
+		ax.set_xlim(wavelenRange[0], wavelenRange[1]);
 		ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
 		ax.set_xlabel("Wavelength, $\lambda$ (nm)");
 		ax.set_title("Delta Delta Normalized Bandpass Response");
