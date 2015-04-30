@@ -58,7 +58,7 @@ class AtmoBuilder():
         # List of parameters used for plotting
         self.parametersPlot = [r'$t_{H_2O}$',r'$t_{O_2}$',r'$t_{O_3}$',r'$t_{Rayleigh}$',r'$t_{Aerosol}$',r'$\alpha$']
         # List of colors for used in plotting individual absorption components
-        self.componentsColor = ['blue','green','red','purple','cyan']
+        self.componentColors = {'H2O':'blue','O2':'green','O3':'red','Rayleigh':'purple','Aerosol':'cyan'}
         # Effective wavelength range, set in readModtranFiles
         self.wavelen = None
         # Min, max values of wavelength range
@@ -1152,7 +1152,7 @@ class AtmoBuilder():
 
         return
 
-    def transPlot(self, atmo1, atmo2=None, includeStdAtmo=True, figName=None):
+    def transPlot(self, atmo1, atmo2=None, includeStdAtmo=False, includeComponents=False, figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
                 
         fig,ax = plt.subplots(1,1)
@@ -1164,18 +1164,24 @@ class AtmoBuilder():
         ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
         
         if atmo2 != None:
-            ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=0.7, color='black')
-        elif includeStdAtmo == True:
+            ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black')
+        elif includeStdAtmo:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS)
-            ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.7, color='black');
-        
+            ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black');
+
+        if includeComponents:
+            for comp in self.components:
+                ax.plot(atmo1.wavelen,atmo1.sbDict[comp], color=self.componentColors[comp])
+                if atmo2 != None:
+                    ax.plot(atmo2.wavelen,atmo2.sbDict[comp], alpha=0.5, color='black')
+
         ax.legend(loc='lower right', shadow=False)
         
         if figName != None:
             title = figName + "_transPlot.png"
             plt.savefig(title, format='png')
         return
-    
+
     def filterPlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the filter response curve from LSST filter data."""
 
