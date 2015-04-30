@@ -587,7 +587,7 @@ class AtmoBuilder():
                 print f, mags[f].max(), mags[f].min()
         return mags
     
-    def dmags(self, mags1, mags2, filters=None):
+    def dmags(self, mags, mags_std, filters=None):
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
         filters = self.y4Check(filters)
@@ -598,7 +598,7 @@ class AtmoBuilder():
         dmags = {}
         for f in filters:
             # difference, in millimags
-            dmags[f] = (mags1[f] - mags2[f]) * 1000.0
+            dmags[f] = (mags[f] - mags_std[f]) * 1000.0
         return dmags
     
     def gi(self, mags_std):
