@@ -58,7 +58,7 @@ class AtmoBuilder():
         # List of colors for used in plotting individual absorption components
         self.componentsColor = ['blue','green','red','purple','cyan']
         # Effective wavelength range, set in readModtranFiles
-        self.wavelength = None
+        self.wavelen = None
         # Min, max values of wavelength range
         self.wavelenRange = [WAVELENMIN,WAVELENMAX]
         # List of airmasses for which we have profiles, set in readModtranFiles
@@ -144,7 +144,7 @@ class AtmoBuilder():
         if len(modtranFiles) > 0:
             print "Found " + str(len(modtranFiles)) + " MODTRAN files:"
         
-        self.wavelength = np.arange(WAVELENMIN, WAVELENMAX+WAVELENSTEP, WAVELENSTEP, dtype='float')
+        self.wavelen = np.arange(WAVELENMIN, WAVELENMAX+WAVELENSTEP, WAVELENSTEP, dtype='float')
         self.transDict = {}
         self.airmasses = []
         
@@ -181,7 +181,7 @@ class AtmoBuilder():
             modtranComponents = ['H2O','O2','O3','Rayleigh']
             for comp in modtranComponents:
                 trans[comp] = np.array(transTemp[comp], dtype='float')
-                trans[comp] = np.interp(self.wavelength, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
+                trans[comp] = np.interp(self.wavelen, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
             self.airmasses.append(self.airmassToString(airmass))
             self.transDict[airmass] = copy.deepcopy(trans)
         if self.transDict != None:
@@ -542,7 +542,7 @@ class AtmoBuilder():
         self.parameterCheck(P)
         self.airmassCheck(X)
         
-        return Atmo(P, X, self.transDict, self.wavelength, aerosolNormCoeff, aerosolNormWavelen)
+        return Atmo(P, X, self.transDict, self.wavelen, aerosolNormCoeff, aerosolNormWavelen)
     
     def combineThroughputs(self, atmo, sys=None, filters=None):
         """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
@@ -1249,12 +1249,12 @@ class AtmoBuilder():
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
         for f in filters:
-            ax.plot(self.wavelength, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f])
+            ax.plot(self.wavelen, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f])
             if bpDict2 != None:
             	if truth:
-                	ax.plot(self.wavelength, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                	ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
                 else:
-                	ax.plot(self.wavelength, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                	ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
@@ -1281,7 +1281,7 @@ class AtmoBuilder():
 
 		for f in filters:
 			ddphi = (bpDict2[f].phi - bpDict_std[f].phi) - (bpDict1[f].phi - bpDict_std[f].phi)
-			ax.plot(self.wavelength, ddphi, color=self.filtercolors[f])
+			ax.plot(self.wavelen, ddphi, color=self.filtercolors[f])
 
 		ax.set_xlim(wavelenRange[0], wavelenRange[1]);
 		ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
