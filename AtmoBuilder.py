@@ -648,11 +648,9 @@ class AtmoBuilder():
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def computeAtmoFit(self, comp1, comp2, P_obs, X_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
+    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
         comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
         # Insure valid parameters, airmass and sedtypes are given
-        self.parameterCheck(P_obs)
-        self.airmassCheck(X_obs)
         self.sedTypeCheck(regressionSed)
 
         # Find range over which to vary parameter and the parameter number for comp1, comp2
@@ -666,20 +664,19 @@ class AtmoBuilder():
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
-            print 'Observed atmosphere parameters: ' + str(P_obs)
-            print 'Observed atmosphere airmass:    ' + str(X_obs)
+            print 'Observed atmosphere parameters: ' + str(atmo_obs.P)
+            print 'Observed atmosphere airmass:    ' + str(atmo_obs.X)
             print 'Standard atmosphere parameters: ' + str(STDPARAMETERS)
             print 'Standard atmosphere airmass:    ' + str(STDAIRMASS)
-            print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(P_obs[pNum1])
-            print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(P_obs[pNum2])
+            print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(atmo_obs.P[pNum1])
+            print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(atmo_obs.P[pNum2])
             print ''
         
-        P_fit = copy.deepcopy(P_obs)
-        X_fit = copy.deepcopy(X_obs)
+        P_fit = copy.deepcopy(atmo_obs.P)
+        X_fit = copy.deepcopy(atmo_obs.X)
 
-        # Create observed atmosphere
-        obs = self.buildAtmo(P_obs,X_obs)
-        throughput_obs = self.combineThroughputs(obs)
+        # Create observed throughput
+        throughput_obs = self.combineThroughputs(atmo_obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
@@ -694,9 +691,9 @@ class AtmoBuilder():
 
         for f in filters:
             if pickleString != None:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
+                pickleString_temp = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
             else:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '.pkl'
+                pickleString_temp = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '.pkl'
                     
             print 'Calculating best parameters for ' + f + ' filter...'
             @pickle_results(pickleString_temp)
@@ -727,9 +724,9 @@ class AtmoBuilder():
             pickleString_temp = ''
 
         if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey) + '_' + pickleString
+            pickleString = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey) + '_' + pickleString
         else:
-            pickleString = self.pickleNameGen(comp1, comp2, P_obs, X_obs, Nbins, err, regressionSed, deltaGrey)
+            pickleString = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey)
 
         if verbose:
         	print ''
@@ -751,7 +748,7 @@ class AtmoBuilder():
 			self.ddphiPlot(throughput_obs, throughput_fit, throughput_std)
 
         if generateFig == True:
-            self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, P_obs, X_obs, pNum1=pNum1, pNum2=pNum2,
+            self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
                                 comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=pickleString, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, filters=filters, verbose=verbose)
 
@@ -759,7 +756,7 @@ class AtmoBuilder():
 
 ### Plotting Functions
 
-    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, P_obs, X_obs, pNum1=None, pNum2=None,
+    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
         deltaGrey=0.0, figName=None, filters=None , verbose=True):
         """Plots dmags with each filter in its own subplot."""
@@ -782,12 +779,11 @@ class AtmoBuilder():
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
 
         # Save observed parameters
-        comp1_obs = P_obs[pNum1]
-        comp2_obs = P_obs[pNum2]
+        comp1_obs = atmo_obs.P[pNum1]
+        comp2_obs = atmo_obs.P[pNum2]
     
-        # Create observed atmosphere
-        obs = self.buildAtmo(P_obs,X_obs)
-        throughput_obs = self.combineThroughputs(obs)
+        # Create observed throughput
+        throughput_obs = self.combineThroughputs(atmo_obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
@@ -795,8 +791,8 @@ class AtmoBuilder():
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
-        P_fit = copy.deepcopy(P_obs)
-        X_fit = copy.deepcopy(X_obs)
+        P_fit = copy.deepcopy(atmo_obs.P)
+        X_fit = copy.deepcopy(atmo_obs.X)
 
         # For each filter plot dmags and regression contours
         for i,f in enumerate(filters):
@@ -1517,10 +1513,10 @@ class AtmoBuilder():
             figName = None
         return figName
 
-    def pickleNameGen(self, comp1, comp2, P, X, Nbins, err, regressionSed, deltaGrey, f=None):
+    def pickleNameGen(self, comp1, comp2, atmo, Nbins, err, regressionSed, deltaGrey, f=None):
         """Generates a string for pickle files. """
-        s1 = 'X' + str(int(X*10))
-        s2 = self.pToString(P)
+        s1 = 'X' + str(int(atmo.X*10))
+        s2 = self.pToString(atmo.P)
         s3 = comp1 + '_' + comp2
         s4 = 'XSTD' + str(int(STDAIRMASS*10))
         s5 = 'DG' + str(int(deltaGrey*10.0))
