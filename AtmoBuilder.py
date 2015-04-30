@@ -34,6 +34,8 @@ COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
 
 FIGUREWIDTH = 10
 FIGUREHEIGHT = 7
+TITLESIZE = 14
+LABELSIZE = 13
 
 """
 #### IMPORTANT NOTE ####
@@ -1157,10 +1159,9 @@ class AtmoBuilder():
         fig.set_size_inches(FIGUREWIDTH,FIGUREHEIGHT)
         
         ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)")
-        ax.set_ylabel("Transmission")
-        ax.set_title("$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$");
-        ax.legend(loc='lower right', shadow=False)
+        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
+        ax.set_ylabel(r'Transmission', fontsize=LABELSIZE)
+        ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
         
         if atmo2 != None:
             ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=0.7, color='black')
@@ -1188,10 +1189,11 @@ class AtmoBuilder():
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylim(0,1);
-        ax.set_ylabel("Transmission");
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("LSST $S^{sys}_b$ Filters Only");
+        ax.set_ylabel(r'Transmission', fontsize=LABELSIZE);
+        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE);
+        ax.set_title(r'LSST $S^{sys}_b$ Filters Only', fontsize=TITLESIZE);
         ax.legend(loc='best', shadow=False);
+
         return
     
     def hardwarePlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
@@ -1207,9 +1209,9 @@ class AtmoBuilder():
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylim(0,1);
-        ax.set_ylabel("Transmission");
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("LSST $S^{sys}_b$ Filters and Hardware");
+        ax.set_ylabel(r'Transmission', fontsize=LABELSIZE);
+        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE);
+        ax.set_title(r'LSST $S^{sys}_b$ Filters and Hardware', fontsize=TITLESIZE);
         ax.legend(loc='best', shadow=False);
         return
     
@@ -1227,9 +1229,9 @@ class AtmoBuilder():
             ax.plot(bpDict2[f].wavelen, bpDict2[f].phi, alpha=0.5, color='black')
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\phi_b^{obs}(\lambda)$", fontsize=15);
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("Normalized Bandpass Response");
+        ax.set_ylabel(r'$\phi_b^{obs}(\lambda)$', fontsize=LABELSIZE);
+        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE);
+        ax.set_title(r'Normalized Bandpass Response', fontsize=TITLESIZE);
         ax.legend(loc=4, shadow=False);
         
         if figName != None:
