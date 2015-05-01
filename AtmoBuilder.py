@@ -651,7 +651,7 @@ class AtmoBuilder():
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, pickleString=None, filters=None, verbose=True):
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString=None, filters=None, verbose=True):
         # Insure valid parameters, airmass and sedtypes are given
         self.sedTypeCheck(regressionSed)
 
@@ -723,6 +723,10 @@ class AtmoBuilder():
                 return comp1best, comp2best, logL
 
             comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
+
+            if saveLogL:
+                np.savetxt(LOGLDIRECTORY + pickleString_temp + '_logL.txt', logL[f])
+
             pickleString_temp = ''
 
         if pickleString != None:
