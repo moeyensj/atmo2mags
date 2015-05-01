@@ -651,7 +651,7 @@ class AtmoBuilder():
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString=None, filters=None, verbose=True):
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString='', filters=None, verbose=True):
         # Insure valid parameters, airmass and sedtypes are given
         self.sedTypeCheck(regressionSed)
 
@@ -692,10 +692,7 @@ class AtmoBuilder():
         comp2best = {}
 
         for f in filters:
-            if pickleString != None:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '_' + pickleString + '.pkl'
-            else:
-                pickleString_temp = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, f=f) + '.pkl'
+            pickleString_temp = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best parameters for ' + f + ' filter...'
             @pickle_results(pickleString_temp)
@@ -725,14 +722,9 @@ class AtmoBuilder():
             comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
 
             if saveLogL:
-                np.savetxt(LOGLDIRECTORY + pickleString_temp + '_logL.txt', logL[f])
-
-            pickleString_temp = ''
-
-        if pickleString != None:
-            pickleString = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey) + '_' + pickleString
-        else:
-            pickleString = self.pickleNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey)
+                name = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                np.savetxt(LOGLDIRECTORY + name + '_logL.txt', logL[f])
+                print 'Saved LogL for ' + f + ' filter.'
 
         if verbose:
         	print ''
@@ -1385,23 +1377,31 @@ class AtmoBuilder():
             figName = None
         return figName
 
-    def pickleNameGen(self, comp1, comp2, atmo, Nbins, err, regressionSed, deltaGrey, f=None):
+    def regressionNameGen(self, comp1, comp2, atmo, Nbins, err, regressionSed, deltaGrey, add='', 
+        plot=False, pickle=False, f=None):
         """Generates a string for pickle files. """
-        s1 = 'X' + str(int(atmo.X*10))
-        s2 = self.pToString(atmo.P)
-        s3 = comp1 + '_' + comp2
-        s4 = 'XSTD' + str(int(STDAIRMASS*10))
-        s5 = 'DG' + str(int(deltaGrey*10.0))
-        s6 = 'E' + str(int(err*1000))  
-        s7 = ''
-        s8 = str(Nbins) + 'b'
+        X_obs = 'X' + str(int(atmo.X*10))
+        P_obs = self.pToString(atmo.P)
+        comps = comp1 + '_' + comp2
+        X_std = 'XSTD' + str(int(STDAIRMASS*10))
+        DG = 'DG' + str(int(deltaGrey*10.0))
+        ERR = 'E' + str(int(err*1000))  
+        REG = ''
+        bins = str(Nbins) + 'b'
+        ext = ''
 
         if f != None:
-            s7 = regressionSed + '_' + f
+            REG = regressionSed + '_' + f
         else:
-            s7 = regressionSed 
+            REG = regressionSed 
 
-        return '%s_%s_%s_%s_%s_%s_%s_%s' % (s1, s2, s3, s4, s5, s6, s7, s8)
+        if pickle == True:
+            ext = add + '.pkl'
+
+        if plot == True:
+            ext = add + '.png'
+
+        return '%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, ERR, REG, bins, ext)
 
     def componentCheck(self, comp, Nbins):
         """Returns a range of values of length Nbins for a given component."""
