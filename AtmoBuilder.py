@@ -552,7 +552,7 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
 
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
 
         if filters == 'y4':
         	filters = ['y4']
@@ -573,7 +573,7 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
 
         if filters == 'y4':
         	filters = ['y4']
@@ -592,7 +592,7 @@ class AtmoBuilder():
     def dmags(self, mags, mags_std, filters=None):
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
 
      	if filters == 'y4':
         	filters = ['y4']
@@ -662,7 +662,7 @@ class AtmoBuilder():
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self.sedFinder(regressionSed)
         
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
@@ -764,7 +764,7 @@ class AtmoBuilder():
             comp1_range, pNum1 = self.componentCheck(comp1, Nbins)
             comp2_range, pNum2 = self.componentCheck(comp2, Nbins)
             
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
         seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
@@ -1181,7 +1181,7 @@ class AtmoBuilder():
     def filterPlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the filter response curve from LSST filter data."""
 
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1201,7 +1201,7 @@ class AtmoBuilder():
     def hardwarePlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the hardware response curve from LSST hardware data."""
 
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1221,7 +1221,7 @@ class AtmoBuilder():
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
         
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1244,7 +1244,7 @@ class AtmoBuilder():
     def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
         
-        filters = self.y4Check(filters)
+        filters = self.filterCheck(filters)
 
         if filters == 'y4':
         	filters = ['y4']
@@ -1275,7 +1275,7 @@ class AtmoBuilder():
     def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=None, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
 		"""Plots change in normalized bandpass response function given two phi functions."""
 
-		filters = self.y4Check(filters)
+		filters = self.filterCheck(filters)
 
 		if filters == 'y4':
 			filters = ['y4']
@@ -1458,11 +1458,11 @@ class AtmoBuilder():
                 raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
 
-    def y4Check(self, filters):
+    def filterCheck(self, filters):
         if filters == None:
             filters = self.filterlist
         if filters == 'y4':
-            filters == np.array(['y4'])
+            filters == ['y4']
         return filters
 
     def colorCheck(self, color, mags_std):
