@@ -220,6 +220,7 @@ class AtmoBuilder():
         self.filters = filters
 
         print 'Read filter data from LSST software stack.'
+        print 'Filters: ' + str(self.filterlist)
 
         return
     
@@ -546,16 +547,11 @@ class AtmoBuilder():
         
         return Atmo(P, X, self.transDict, self.wavelen, aerosolNormCoeff, aerosolNormWavelen)
     
-    def combineThroughputs(self, atmo, sys=None, filters=None):
+    def combineThroughputs(self, atmo, sys=None, filters=FILTERLIST):
         """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
         dictionary. (S^{atm}*S^{sys})"""
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
-
-        filters = self.filterCheck(filters)
-
-        if filters == 'y4':
-        	filters = ['y4']
 
         if sys == None:
             sys = self.sys
@@ -567,16 +563,13 @@ class AtmoBuilder():
             total[f].sbTophi()
         return total
     
-    def mags(self, bpDict, seds=None, sedkeylist=None, filters=None, verbose=False):
+    def mags(self, bpDict, seds=None, sedkeylist=None, filters=FILTERLIST, verbose=False):
         """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not none
         returns mags for Kurucz model MS stars."""
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        filters = self.filterCheck(filters)
-
-        if filters == 'y4':
-        	filters = ['y4']
+        #filters = self.filterCheck(filters)
 
         mags = {}
         for f in filters:
@@ -589,13 +582,9 @@ class AtmoBuilder():
                 print f, mags[f].max(), mags[f].min()
         return mags
     
-    def dmags(self, mags, mags_std, filters=None):
+    def dmags(self, mags, mags_std, filters=FILTERLIST):
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
-        filters = self.filterCheck(filters)
-
-     	if filters == 'y4':
-        	filters = ['y4']
 
         dmags = {}
         for f in filters:
@@ -634,8 +623,9 @@ class AtmoBuilder():
 
     def computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
         """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
+
         atmo = self.buildAtmo(P,X)
-        throughputAtmo = self.combineThroughputs(atmo)
+        throughputAtmo = self.combineThroughputs(atmo, filters=f)
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
         
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
@@ -651,7 +641,8 @@ class AtmoBuilder():
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString='', filters=None, verbose=True):
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString='', filters=FILTERLIST, verbose=True):
+
         # Insure valid parameters, airmass and sedtypes are given
         self.sedTypeCheck(regressionSed)
 
@@ -661,8 +652,6 @@ class AtmoBuilder():
 
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self.sedFinder(regressionSed)
-        
-        filters = self.filterCheck(filters)
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
@@ -683,7 +672,7 @@ class AtmoBuilder():
 
         # Create standard atmosphere
         std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
-        throughput_std = self.combineThroughputs(std)
+        throughput_std = self.combineThroughputs(std, filters=filters)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         logL = {}
@@ -742,8 +731,8 @@ class AtmoBuilder():
 				atmo_fit = self.buildAtmo(P_fit,X_fit)
 				throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
 
-			self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit)
-			self.ddphiPlot(throughput_obs, throughput_fit, throughput_std)
+			self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters)
+			self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters)
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
@@ -756,7 +745,7 @@ class AtmoBuilder():
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        deltaGrey=0.0, figName=None, filters=None , verbose=True):
+        deltaGrey=0.0, figName=None, filters=FILTERLIST, verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
@@ -764,7 +753,6 @@ class AtmoBuilder():
             comp1_range, pNum1 = self.componentCheck(comp1, Nbins)
             comp2_range, pNum2 = self.componentCheck(comp2, Nbins)
             
-        filters = self.filterCheck(filters)
         seds, sedkeylist = self.sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
@@ -1178,10 +1166,8 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
 
-    def filterPlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
+    def filterPlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the filter response curve from LSST filter data."""
-
-        filters = self.filterCheck(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1198,11 +1184,9 @@ class AtmoBuilder():
 
         return
     
-    def hardwarePlot(self, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX]):
+    def hardwarePlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX]):
         """Plots the hardware response curve from LSST hardware data."""
 
-        filters = self.filterCheck(filters)
-        
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
@@ -1217,11 +1201,9 @@ class AtmoBuilder():
         ax.legend(loc='best', shadow=False);
         return
     
-    def phiPlot(self, bpDict1, bpDict2=None, filters=None, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def phiPlot(self, bpDict1, bpDict2=None, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
         """Plots normalized bandpass response function, with the possibility to add a second function
             for comparison."""
-        
-        filters = self.filterCheck(filters)
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1241,14 +1223,9 @@ class AtmoBuilder():
             plt.savefig(title, format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=None, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=FILTERLIST, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
         """Plots change in normalized bandpass response function given two phi functions."""
-        
-        filters = self.filterCheck(filters)
 
-        if filters == 'y4':
-        	filters = ['y4']
-        
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
@@ -1272,13 +1249,8 @@ class AtmoBuilder():
         
         return
 
-    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=None, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=FILTERLIST, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
 		"""Plots change in normalized bandpass response function given two phi functions."""
-
-		filters = self.filterCheck(filters)
-
-		if filters == 'y4':
-			filters = ['y4']
 
 		fig,ax = plt.subplots(1,1)
 		fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1315,17 +1287,6 @@ class AtmoBuilder():
             else:
                 stringP+=str(int(i * 10))
         return stringP
-
-    def meanParameter(self, compDict, filters=None):
-        """Given a filter-keyed dictionary of best fit values, returns mean value"""
-        if filters == None:
-            filters = self.filterlist
-
-        meanValue = 0;
-        for f in filters:
-            meanValue += compDict[f]
-            
-        return meanValue/float(len(filters))
 
     def dmagLimit(self, ax, f, dmags):
         # Initialize values to keep track of dmag range
@@ -1457,13 +1418,6 @@ class AtmoBuilder():
             if self.sns == None:
                 raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
-
-    def filterCheck(self, filters):
-        if filters == None:
-            filters = self.filterlist
-        if filters == 'y4':
-            filters == ['y4']
-        return filters
 
     def colorCheck(self, color, mags_std):
     	if color in COLORS:
