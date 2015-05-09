@@ -336,7 +336,7 @@ class AtmoBuilder():
                     hlist.append(filename)
                     temperatures.append(temperature)
                     loggs.append(logg)
-	                
+                    
             if len(tmp) == 5: # He dwarfs
                 tmp = filename.split('_')
                 temperature = float(tmp[2])
@@ -553,6 +553,9 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # Set up the total throughput for this system bandpass
 
+        if filters == 'y4':
+            filters = ['y4']
+
         if sys == None:
             sys = self.sys
 
@@ -569,7 +572,9 @@ class AtmoBuilder():
         ### Taken from plot_dmags and modified to suit specific needs.
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-        #filters = self.filterCheck(filters)
+
+        if filters == 'y4':
+            filters = ['y4']        
 
         mags = {}
         for f in filters:
@@ -586,6 +591,9 @@ class AtmoBuilder():
         """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
+        if filters == 'y4':
+            filters = ['y4']
+
         dmags = {}
         for f in filters:
             # difference, in millimags
@@ -600,24 +608,24 @@ class AtmoBuilder():
         return gi
 
     def ug(self, mags_std):
-    	ug = mags_std['u'] - mags_std['g']
-    	return ug
+        ug = mags_std['u'] - mags_std['g']
+        return ug
 
-	def gr(self, mags_std):
-		gr = mags_std['g'] - mags_std['r']
-    	return gr
+    def gr(self, mags_std):
+        gr = mags_std['g'] - mags_std['r']
+        return gr
 
-	def ri(self, mags_std):
-		ri = mags_std['r'] - mags_std['i']
-    	return ri
+    def ri(self, mags_std):
+        ri = mags_std['r'] - mags_std['i']
+        return ri
 
     def iz(self, mags_std):
-    	iz = mags_std['i'] - mags_std['z']
-    	return iz
+        iz = mags_std['i'] - mags_std['z']
+        return iz
 
     def zy(self, mags_std):
-    	zy = mags_std['z'] - mags_std['y4']
-    	return zy
+        zy = mags_std['z'] - mags_std['y4']
+        return zy
 
 ### Regression Functions
 
@@ -716,23 +724,23 @@ class AtmoBuilder():
                 print 'Saved LogL for ' + f + ' filter.'
 
         if verbose:
-        	print ''
-        	print 'Best fit parameters (Filter, ' + comp1 + ', ' + comp2 + '):'
-        	for f in filters:
- 				print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
+            print ''
+            print 'Best fit parameters (Filter, ' + comp1 + ', ' + comp2 + '):'
+            for f in filters:
+                print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
 
-		if generateDphi == True:
+        if generateDphi == True:
 
-			throughput_fit = {}
+            throughput_fit = {}
 
-			for f in filters:
-				P_fit[pNum1] = comp1best[f]
-				P_fit[pNum2] = comp2best[f]
-				atmo_fit = self.buildAtmo(P_fit,X_fit)
-				throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
+            for f in filters:
+                P_fit[pNum1] = comp1best[f]
+                P_fit[pNum2] = comp2best[f]
+                atmo_fit = self.buildAtmo(P_fit,X_fit)
+                throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
 
-			self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters)
-			self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters)
+            self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters)
+            self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters)
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
@@ -1232,10 +1240,10 @@ class AtmoBuilder():
         for f in filters:
             ax.plot(self.wavelen, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f])
             if bpDict2 != None:
-            	if truth:
-                	ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                if truth:
+                    ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
                 else:
-                	ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                    ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
@@ -1250,26 +1258,26 @@ class AtmoBuilder():
         return
 
     def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=FILTERLIST, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
-		"""Plots change in normalized bandpass response function given two phi functions."""
+        """Plots change in normalized bandpass response function given two phi functions."""
 
-		fig,ax = plt.subplots(1,1)
-		fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
+        fig,ax = plt.subplots(1,1)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
-		for f in filters:
-			ddphi = (bpDict2[f].phi - bpDict_std[f].phi) - (bpDict1[f].phi - bpDict_std[f].phi)
-			ax.plot(self.wavelen, ddphi, color=self.filtercolors[f])
+        for f in filters:
+            ddphi = (bpDict2[f].phi - bpDict_std[f].phi) - (bpDict1[f].phi - bpDict_std[f].phi)
+            ax.plot(self.wavelen, ddphi, color=self.filtercolors[f])
 
-		ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-		ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
-		ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-		ax.set_title("Delta Delta Normalized Bandpass Response");
-		#ax.legend(loc=4, shadow=False)
+        ax.set_xlim(wavelenRange[0], wavelenRange[1]);
+        ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
+        ax.set_xlabel("Wavelength, $\lambda$ (nm)");
+        ax.set_title("Delta Delta Normalized Bandpass Response");
+        #ax.legend(loc=4, shadow=False)
 
-		if figName != None:
-			title = figName + "_dphiPlot.png"
-			plt.savefig(title, format='png')
+        if figName != None:
+            title = figName + "_dphiPlot.png"
+            plt.savefig(title, format='png')
 
-		return
+        return
 
 ### Secondary Functions
     
@@ -1420,22 +1428,22 @@ class AtmoBuilder():
         return
 
     def colorCheck(self, color, mags_std):
-    	if color in COLORS:
-    		if color == 'g-i':
-    			return color, self.gi(mags_std)
-    		if color == 'u-g':
-    			return color, self.ug(mags_std)
-    		if color == 'g-r':
-    			return color, self.gr(mags_std)
-			if color == 'r-i':
-				return color, self.ri(mags_std)
-			if color == 'i-z':
-				return color, self.iz(mags_std)
-			if color == 'z-y' or color == 'z-y4':
-				return 'z-y', self.zy(mags_std)
-    	else:
-    		raise ValueError('Please choose a valid color from ' + str(COLORS))
-    	return
+        if color in COLORS:
+            if color == 'g-i':
+                return color, self.gi(mags_std)
+            if color == 'u-g':
+                return color, self.ug(mags_std)
+            if color == 'g-r':
+                return color, self.gr(mags_std)
+            if color == 'r-i':
+                return color, self.ri(mags_std)
+            if color == 'i-z':
+                return color, self.iz(mags_std)
+            if color == 'z-y' or color == 'z-y4':
+                return 'z-y', self.zy(mags_std)
+        else:
+            raise ValueError('Please choose a valid color from ' + str(COLORS))
+        return
 
     def sedFinder(self, sedtype):
         """Returns seds and sedkeylist given an sedtype."""
