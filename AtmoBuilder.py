@@ -693,7 +693,7 @@ class AtmoBuilder():
                     
             print 'Calculating best parameters for ' + f + ' filter...'
 
-            @pickle_results(os.path.join(PICKLEDIRECTORY,pickleString_temp))
+            @pickle_results(os.path.join(PICKLEDIRECTORY, pickleString_temp))
             def run_regression(comp1, comp2, f):
                 
                 logL = []
@@ -730,6 +730,8 @@ class AtmoBuilder():
             for f in filters:
                 print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
 
+        figName = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString)
+
         if generateDphi == True:
 
             throughput_fit = {}
@@ -740,12 +742,12 @@ class AtmoBuilder():
                 atmo_fit = self.buildAtmo(P_fit,X_fit)
                 throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
 
-            self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters)
-            self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters)
+            self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, figName=figName)
+            self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, figName=figName)
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
-                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=pickleString, deltaGrey=deltaGrey,
+                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, filters=filters, verbose=verbose)
 
         return range1, range2, comp1best, comp2best, logL
@@ -1275,7 +1277,7 @@ class AtmoBuilder():
         #ax.legend(loc=4, shadow=False)
 
         if figName != None:
-            title = figName + "_dphiPlot.png"
+            title = figName + "_ddphiPlot.png"
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
