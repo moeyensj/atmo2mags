@@ -692,7 +692,8 @@ class AtmoBuilder():
             pickleString_temp = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best parameters for ' + f + ' filter...'
-            @pickle_results(pickleString_temp)
+
+            @pickle_results(os.path.join(PICKLEDIRECTORY,pickleString_temp))
             def run_regression(comp1, comp2, f):
                 
                 logL = []
@@ -720,7 +721,7 @@ class AtmoBuilder():
 
             if saveLogL:
                 name = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString, f=f)
-                np.savetxt(LOGLDIRECTORY + name + '_logL.txt', logL[f])
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
                 print 'Saved LogL for ' + f + ' filter.'
 
         if verbose:
@@ -853,7 +854,7 @@ class AtmoBuilder():
             
         if figName != None:
             title = figName+"_regressionPlot.png"
-            plt.savefig(title, format='png')
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
 
@@ -1171,7 +1172,7 @@ class AtmoBuilder():
         
         if figName != None:
             title = figName + "_transPlot.png"
-            plt.savefig(title, format='png')
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         return
 
     def filterPlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX]):
@@ -1228,7 +1229,7 @@ class AtmoBuilder():
         
         if figName != None:
             title = figName + "_phiPlot.png"
-            plt.savefig(title, format='png')
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         return
     
     def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=FILTERLIST, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
@@ -1253,7 +1254,7 @@ class AtmoBuilder():
         
         if figName != None:
             title = figName + "_dphiPlot.png"
-            plt.savefig(title, format='png')
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         
         return
 
@@ -1275,7 +1276,7 @@ class AtmoBuilder():
 
         if figName != None:
             title = figName + "_dphiPlot.png"
-            plt.savefig(title, format='png')
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
 
