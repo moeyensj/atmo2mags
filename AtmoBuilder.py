@@ -630,8 +630,6 @@ class AtmoBuilder():
 ### Regression Functions
 
     def computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
-        """Return logL for a given array of parameters P, airmass X, error, a filter and the magnitudes of a standard atmosphere."""
-
         atmo = self.buildAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo, filters=f)
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
@@ -648,15 +646,40 @@ class AtmoBuilder():
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, Nbins=50, deltaGrey=0.0, regressionSed='kurucz', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString='', filters=FILTERLIST, verbose=True):
+    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='kurucz', 
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString='', 
+        filters=FILTERLIST, returnData=False, verbose=True):
+        """
+        Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
+        SED data for the specified regression and comparison SEDs to be read in. 
 
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        comp1: (string), name of component to regress
+        comp2: (string), name of component to regress
+        atmo_obs: (atmo object), observed atmosphere
+        err: (float) [0.0005], percent error
+        bins: (int) [50], number of bins for regression
+        deltaGrey: (float) [0.0], adds extinction factor due to clouds
+        regressionSed: (string) ['kurucz'], SED type to run regress over
+        comparisonSeds: (list of strings) [SEDTYPES], 
+        generateFig: (boolean) [True], generate a regression plot
+        generateDphi: (boolean) [True], generate a dphi and ddphi plot
+        saveLogL: (boolean) [True], save logL as txt file
+        pickleString: (string) [''], add custom string to plot titles
+        filters: (list of strings) [FILTERLIST], list of filters
+        returnData: (boolean) [False], return data elements
+        verbose: (boolean) [True], print out verbose statements
+        ----------------------
+        """
         # Insure valid parameters, airmass and sedtypes are given
         self.sedTypeCheck(regressionSed)
 
         # Find range over which to vary parameter and the parameter number for comp1, comp2
-        range1, pNum1 = self.componentCheck(comp1,Nbins)
-        range2, pNum2 = self.componentCheck(comp2,Nbins)
+        range1, pNum1 = self.componentCheck(comp1,bins)
+        range2, pNum2 = self.componentCheck(comp2,bins)
 
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self.sedFinder(regressionSed)
@@ -689,7 +712,7 @@ class AtmoBuilder():
         comp2best = {}
 
         for f in filters:
-            pickleString_temp = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
+            pickleString_temp = self.regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best parameters for ' + f + ' filter...'
 
@@ -701,7 +724,7 @@ class AtmoBuilder():
                 comp1best = []
                 comp2best = []
 
-                logL = np.empty((Nbins, Nbins))
+                logL = np.empty((bins, bins))
                 for i in range(len(range1)):
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
@@ -720,7 +743,7 @@ class AtmoBuilder():
             comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
 
             if saveLogL:
-                name = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                name = self.regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
                 print 'Saved LogL for ' + f + ' filter.'
 
@@ -730,7 +753,7 @@ class AtmoBuilder():
             for f in filters:
                 print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
 
-        figName = self.regressionNameGen(comp1, comp2, atmo_obs, Nbins, err, regressionSed, deltaGrey, add=pickleString)
+        figName = self.regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
 
         if generateDphi == True:
 
@@ -747,22 +770,24 @@ class AtmoBuilder():
 
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
-                                comp1_range=range1, comp2_range=range2, Nbins=Nbins, figName=figName, deltaGrey=deltaGrey,
+                                comp1_range=range1, comp2_range=range2, bins=bins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, filters=filters, verbose=verbose)
-
-        return range1, range2, comp1best, comp2best, logL
+        if returnData == True:
+            return range1, range2, comp1best, comp2best, logL
+        else:
+            return
 
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
-        comp1_range=None, comp2_range=None, Nbins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
+        comp1_range=None, comp2_range=None, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
         deltaGrey=0.0, figName=None, filters=FILTERLIST, verbose=True):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
         if any([pNum1,pNum2,comp1_range,comp2_range]) == None:
-            comp1_range, pNum1 = self.componentCheck(comp1, Nbins)
-            comp2_range, pNum2 = self.componentCheck(comp2, Nbins)
+            comp1_range, pNum1 = self.componentCheck(comp1, bins)
+            comp2_range, pNum2 = self.componentCheck(comp2, bins)
             
         seds, sedkeylist = self.sedFinder(regressionSed)
         
@@ -1349,7 +1374,7 @@ class AtmoBuilder():
             figName = None
         return figName
 
-    def regressionNameGen(self, comp1, comp2, atmo, Nbins, err, regressionSed, deltaGrey, add='', 
+    def regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, add='', 
         plot=False, pickle=False, f=None):
         """Generates a string for pickle files. """
         X_obs = 'X' + str(int(atmo.X*10))
@@ -1359,7 +1384,7 @@ class AtmoBuilder():
         DG = 'DG' + str(int(deltaGrey*10.0))
         ERR = 'E' + str(int(err*1000))  
         REG = ''
-        bins = str(Nbins) + 'b'
+        bins = str(bins) + 'b'
         ext = ''
 
         if f != None:
@@ -1375,20 +1400,20 @@ class AtmoBuilder():
 
         return '%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, ERR, REG, bins, ext)
 
-    def componentCheck(self, comp, Nbins):
-        """Returns a range of values of length Nbins for a given component."""
+    def componentCheck(self, comp, bins):
+        """Returns a range of values of length bins for a given component."""
         if comp == 'H2O':
-            return np.linspace(0.0,5.0,Nbins), 0
+            return np.linspace(0.0,5.0,bins), 0
         elif comp == 'O2':
-            return np.linspace(0.0,5.0,Nbins), 1
+            return np.linspace(0.0,5.0,bins), 1
         elif comp == 'O3':
-            return np.linspace(0.0,5.0,Nbins), 2
+            return np.linspace(0.0,5.0,bins), 2
         elif comp == 'Rayleigh':
-            return np.linspace(0.0,5.0,Nbins), 3
+            return np.linspace(0.0,5.0,bins), 3
         elif comp == 'Aerosol':
-            return np.linspace(0.0,5.0,Nbins), 4
+            return np.linspace(0.0,5.0,bins), 4
         elif comp == 'Alpha':
-            return np.linspace(0.0,5.0,Nbins), 5
+            return np.linspace(0.0,5.0,bins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
         
