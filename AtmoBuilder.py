@@ -574,7 +574,12 @@ class AtmoBuilder():
         # pass the sedkeylist so you know what order the magnitudes are arranged in
 
         if filters == 'y4':
-            filters = ['y4']        
+            filters = ['y4']
+
+        if seds == None:
+            seds = self.stars
+        if sedkeylist == None:
+            sedkeylist = self.starlist
 
         mags = {}
         for f in filters:
