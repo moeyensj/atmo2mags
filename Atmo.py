@@ -4,6 +4,10 @@ import numpy as np
 # LSST stack software
 import lsst.sims.photUtils.Bandpass as Bandpass
 
+WAVELENMIN = 300
+WAVELENMAX = 1100
+WAVELENSTEP = 0.5
+
 class Atmo():
     def __init__(self, parameters, airmass, transmission, wavelength, aerosolNormCoeff, aerosolNormWavelen):
         # Airmass
@@ -18,6 +22,7 @@ class Atmo():
     	self.aerosolNormWavelen = aerosolNormWavelen
         # List of components
     	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
+        # Atmosphere name (optional)
         # List of total transmission profiles
     	self.sb = None
         # Component-keyed dictionary of transmission profiles
@@ -40,7 +45,7 @@ class Atmo():
         transDict['Aerosol'] = self.__aerosol(self.wavelen, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
         totalTrans = transDict['H2O']*transDict['O2']*transDict['O3']*transDict['Rayleigh']*transDict['Aerosol']
 
-        atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans)
+        atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans,wavelen_min=WAVELENMIN,wavelen_max=WAVELENMAX,wavelen_step=WAVELENSTEP)
 
         self.sb = atmo.sb
         self.sbDict = transDict
