@@ -47,7 +47,7 @@ atmospheres.
     
 """
 
-class AtmoBuilder():
+class AtmoBuilder(object):
     def __init__(self):
         # List of strings containing component names
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']

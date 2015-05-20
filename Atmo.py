@@ -8,7 +8,7 @@ WAVELENMIN = 300
 WAVELENMAX = 1100
 WAVELENSTEP = 0.5
 
-class Atmo():
+class Atmo(object):
     def __init__(self, parameters, airmass, transmission, wavelength, aerosolNormCoeff, aerosolNormWavelen):
         # Airmass
     	self.X = airmass
