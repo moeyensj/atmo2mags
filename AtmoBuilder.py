@@ -836,7 +836,7 @@ class AtmoBuilder(object):
 
             # Plot parameter space regression plots
             # Plot contours and true values
-            contour = ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/np.median(logL[f])), levels=(0.683, 0.955, 0.997), colors='k')
+            contour = ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/np.median(-logL[f])), levels=(0.683, 0.955, 0.997), colors='k')
             #ax[i][1].contour(comp1_range, comp2_range, logL[f].T, colors='k')
             ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
             ax[i][1].clabel(contour, fontsize=9, inline=1)
@@ -1183,22 +1183,27 @@ class AtmoBuilder(object):
         fig, ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
-        ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
         ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
         ax.set_ylabel(r'Transmission', fontsize=LABELSIZE)
-        ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
+        ax.set_title(r'$S^{atm}(\lambda)$', fontsize=TITLESIZE)
         
         if atmo2 != None:
+            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
             ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black')
         elif includeStdAtmo:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS)
             ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black');
+            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
+            ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
 
         if includeComponents:
+            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X), linestyle='--');
             for comp in self.components:
                 ax.plot(atmo1.wavelen,atmo1.sbDict[comp], color=self.componentColors[comp])
                 if atmo2 != None:
                     ax.plot(atmo2.wavelen,atmo2.sbDict[comp], alpha=0.5, color='black')
+        else: 
+            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
 
         ax.legend(loc='lower right', shadow=False)
         
@@ -1224,11 +1229,12 @@ class AtmoBuilder(object):
             if bpDict2 != None:
                 ax.plot(bpDict2[f].wavelen, bpDict2[f].sb, alpha=0.5, color='black')
 
-        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
-        ax.set_ylabel(r'Throughput', fontsize=LABELSIZE)
         ax.set_title(r'$S^{atm}(\lambda)S_{b}^{sys}(\lambda)$', fontsize=TITLESIZE)
         if includeStdAtmo:
             ax.set_title(r'$S^{atm}(\lambda)S_{b}^{sys}(\lambda)$ and $S^{atm, std}(\lambda)S_{b}^{sys}(\lambda)$', fontsize=TITLESIZE)
+
+        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
+        ax.set_ylabel(r'Throughput', fontsize=LABELSIZE)
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.legend(loc='best')
 
