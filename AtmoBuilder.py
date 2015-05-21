@@ -1180,8 +1180,8 @@ class AtmoBuilder(object):
     def transPlot(self, atmo1, atmo2=None, includeStdAtmo=False, includeComponents=False, figName=None):
         """Plots atmospheric transmission profile given a parameter array."""
                 
-        fig,ax = plt.subplots(1,1)
-        fig.set_size_inches(FIGUREWIDTH,FIGUREHEIGHT)
+        fig, ax = plt.subplots(1,1)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
         ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
         ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
@@ -1205,6 +1205,37 @@ class AtmoBuilder(object):
         if figName != None:
             title = figName + "_transPlot.png"
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
+        return
+
+    def throughputPlot(self, bpDict1, bpDict2=None, includeStdAtmo=False, wavelenRange=[WAVELENMIN,WAVELENMAX], 
+        filters=FILTERLIST, figname=None):
+
+        fig,ax = plt.subplots(1,1)
+        fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
+
+        if includeStdAtmo:
+            atmo_std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
+            bpDict_std = self.combineThroughputs(atmo_std)
+
+        for f in filters: 
+            ax.plot(bpDict1[f].wavelen, bpDict1[f].sb, label=str(f), color=self.filtercolors[f])
+            if includeStdAtmo:
+                ax.plot(bpDict_std[f].wavelen, bpDict_std[f].sb, alpha=0.5, color='black')
+            if bpDict2 != None:
+                ax.plot(bpDict2[f].wavelen, bpDict2[f].sb, alpha=0.5, color='black')
+
+        ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
+        ax.set_ylabel(r'Throughput', fontsize=LABELSIZE)
+        ax.set_title(r'$S^{atm}(\lambda)S_{b}^{sys}(\lambda)$', fontsize=TITLESIZE)
+        if includeStdAtmo:
+            ax.set_title(r'$S^{atm}(\lambda)S_{b}^{sys}(\lambda)$ and $S^{atm, std}(\lambda)S_{b}^{sys}(\lambda)$', fontsize=TITLESIZE)
+        ax.set_xlim(wavelenRange[0], wavelenRange[1]);
+        ax.legend(loc='best')
+
+        if figName != None:
+            title = figName + "_throughputPlot.png"
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
+
         return
 
     def filterPlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX]):
