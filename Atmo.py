@@ -28,9 +28,9 @@ class Atmo(object):
         # Component-keyed dictionary of transmission profiles
     	self.sbDict = None
         # Build atmosphere and return object
-    	self.__buildAtmo(parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen)
+    	self._buildAtmo(parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen)
 
-    def __buildAtmo(self, parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen):
+    def _buildAtmo(self, parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
 
@@ -42,7 +42,7 @@ class Atmo(object):
         transDict['O2'] = transmission[airmass]['O2']**parameters[1]
         transDict['O3'] = transmission[airmass]['O3']**parameters[2]
         transDict['Rayleigh'] = transmission[airmass]['Rayleigh']**parameters[3]
-        transDict['Aerosol'] = self.__aerosol(self.wavelen, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
+        transDict['Aerosol'] = self._aerosol(self.wavelen, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
         totalTrans = transDict['H2O']*transDict['O2']*transDict['O3']*transDict['Rayleigh']*transDict['Aerosol']
 
         atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans,wavelen_min=WAVELENMIN,wavelen_max=WAVELENMAX,wavelen_step=WAVELENSTEP)
@@ -52,7 +52,7 @@ class Atmo(object):
         
         return
 
-    def __aerosol(self, wavelength, airmass, alpha, aerosolNormCoeff, aerosolNormWavelen):
+    def _aerosol(self, wavelength, airmass, alpha, aerosolNormCoeff, aerosolNormWavelen):
         """Standard aerosol transmission function, returns array of transmission values over a range of
             wavelengths."""
         return np.e**(-aerosolNormCoeff * airmass * (aerosolNormWavelen / wavelength) * alpha)
