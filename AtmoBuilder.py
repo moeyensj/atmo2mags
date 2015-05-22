@@ -1188,8 +1188,7 @@ class AtmoBuilder(object):
         ax.set_title(r'$S^{atm}(\lambda)$', fontsize=TITLESIZE)
         
         if atmo2 != None:
-            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
-            ax.plot(atmo2.wavelen,atmo2.sb,label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black')
+            ax.plot(atmo2.wavelen,atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black')
         elif includeStdAtmo:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS)
             ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black');
