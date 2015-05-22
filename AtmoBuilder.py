@@ -37,17 +37,17 @@ FIGUREHEIGHT = 7
 TITLESIZE = 14
 LABELSIZE = 13
 
-"""
-#### IMPORTANT NOTE ####
-WAVELENMIN,WAVELENMAX,WAVELENSTEP must also be set to the above in Sed.py and Bandpass.py or else the wavelengths will not
-be gridded properly and array multiplication errors will occur.
-    
-The limiting factor is the MODTRAN data from which we build the standard atmosphere profile used to generate all subsequent
-atmospheres.
-    
-"""
-
 class AtmoBuilder(object):
+    """
+    Functions:
+    ----------------------
+    function: description
+
+    readModtranFiles: Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
+    readFilters: Reads LSST filter data and returns a filter-keyed dictionary. (S^{filters})
+    readHardware: Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})
+
+    """
     def __init__(self):
         # List of strings containing component names
         self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
