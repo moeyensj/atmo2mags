@@ -1392,6 +1392,7 @@ class AtmoBuilder(object):
         return stringP
 
     def _dmagLimit(self, ax, f, dmags):
+        """Set appropriate axes limits given a set of dmags."""
         # Initialize values to keep track of dmag range
         dmag_max = np.max(dmags[f]);
         dmag_min = np.min(dmags[f]);
@@ -1416,6 +1417,7 @@ class AtmoBuilder(object):
         return ' '.join(label) + ' $X$:' + str(X)
 
     def _sedLabelGen(self, sedtype):
+        """Generates an appropriate SED label given a valid SED type."""
         if sedtype == 'kurucz':
             return 'Kurucz MS'
         elif sedtype == 'quasar':
@@ -1523,6 +1525,7 @@ class AtmoBuilder(object):
         return
 
     def _colorCheck(self, color, mags_std):
+        """Checks if given color is valid, if valid returns the color given standard magnitudes."""
         if color in COLORS:
             if color == 'g-i':
                 return color, self.gi(mags_std)
