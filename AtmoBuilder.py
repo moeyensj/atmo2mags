@@ -1178,8 +1178,20 @@ class AtmoBuilder(object):
         return
 
     def transPlot(self, atmo1, atmo2=None, includeStdAtmo=False, includeComponents=False, figName=None):
-        """Plots atmospheric transmission profile given a parameter array."""
-                
+        """
+        Plots atmospheric transmission profile given an atmosphere object.
+        
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        atmo1: (atmo object), atmosphere
+        atmo2: (atmo object) [None], optional comparison atmosphere
+        includeStdAtmo: (boolean) [False], add comparison standard atmosphere
+        includeComponents: (boolean) [False], include atmospheric components
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """ 
         fig, ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
