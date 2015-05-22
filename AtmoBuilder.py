@@ -634,7 +634,7 @@ class AtmoBuilder(object):
 
 ### Regression Functions
 
-    def computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
+    def _computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
         atmo = self.buildAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo, filters=f)
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
@@ -734,7 +734,7 @@ class AtmoBuilder(object):
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[i, j] = self.computeLogL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                        logL[i, j] = self._computeLogL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                 print 'Completed ' + f + ' filter.'
 
@@ -831,8 +831,8 @@ class AtmoBuilder(object):
             fit = self.buildAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
-            self.dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed)
-            self.dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, truth=True)
+            self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed)
+            self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, truth=True)
 
             # Plot parameter space regression plots
             # Plot contours and true values
@@ -860,15 +860,15 @@ class AtmoBuilder(object):
             if plotDifference == False:
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, _dmagLimit=False)
+                        self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, _dmagLimit=False)
 
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, _dmagLimit=False, truth=True)
+                        self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, _dmagLimit=False, truth=True)
             else:
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs)
+                        self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs)
 
             if i == 0:
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
@@ -890,7 +890,8 @@ class AtmoBuilder(object):
 
         return
 
-    def dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, _dmagLimit=True):
+    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, _dmagLimit=True):
+        """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
         # Check if valid sedtype, check if sed data read:
         self._sedTypeCheck(sedtype)
         self._sedReadCheck(sedtype)
