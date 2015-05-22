@@ -1018,7 +1018,6 @@ class AtmoBuilder(object):
                         else:
                             ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
-
         elif sedtype == 'mlt':
             mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist)
             mags_std = self.mags(bpDict_std, seds=self.mlts, sedkeylist=self.mltlist)
@@ -1269,8 +1268,19 @@ class AtmoBuilder(object):
 
         return
 
-    def filterPlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX]):
-        """Plots the filter response curve from LSST filter data."""
+    def filterPlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+        """
+        Plots the filter response curve from LSST filter data.
+        
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        filters: (list of strings) [FILTERLIST], list of filters to plot
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range     
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """ 
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1285,10 +1295,25 @@ class AtmoBuilder(object):
         ax.set_title(r'LSST $S^{sys}_b$ Filters Only', fontsize=TITLESIZE);
         ax.legend(loc='best', shadow=False);
 
+        if figName != None:
+            title = figName + "_filterPlot.png"
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
+
         return
     
-    def hardwarePlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX]):
-        """Plots the hardware response curve from LSST hardware data."""
+    def hardwarePlot(self, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+        """
+        Plots the hardware response curve from LSST hardware data.
+        
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        filters: (list of strings) [FILTERLIST], list of filters to plot
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range     
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """ 
 
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1302,6 +1327,10 @@ class AtmoBuilder(object):
         ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE);
         ax.set_title(r'LSST $S^{sys}_b$ Filters and Hardware', fontsize=TITLESIZE);
         ax.legend(loc='best', shadow=False);
+
+        if figName != None:
+            title = figName + "_hardwarePlot.png"
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         return
     
     def phiPlot(self, bpDict1, bpDict2=None, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
