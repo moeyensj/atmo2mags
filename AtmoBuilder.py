@@ -184,7 +184,7 @@ class AtmoBuilder(object):
             for comp in modtranComponents:
                 trans[comp] = np.array(transTemp[comp], dtype='float')
                 trans[comp] = np.interp(self.wavelen, wavelenTemp, transTemp[comp], left=0.0, right=0.0)
-            self.airmasses.append(self.airmassToString(airmass))
+            self.airmasses.append(self._airmassToString(airmass))
             self.transDict[airmass] = copy.deepcopy(trans)
         if self.transDict != None:
             print "MODTRAN files have been read."
@@ -542,8 +542,8 @@ class AtmoBuilder(object):
         """Builds an atmospheric transmission profile given a set of component parameters and 
         returns bandpass object. (S^{atm})"""
         
-        self.parameterCheck(P)
-        self.airmassCheck(X)
+        self._parameterCheck(P)
+        self._airmassCheck(X)
         
         return Atmo(P, X, self.transDict, self.wavelen, aerosolNormCoeff, aerosolNormWavelen)
     
@@ -680,14 +680,14 @@ class AtmoBuilder(object):
         ----------------------
         """
         # Insure valid parameters, airmass and sedtypes are given
-        self.sedTypeCheck(regressionSed)
+        self._sedTypeCheck(regressionSed)
 
         # Find range over which to vary parameter and the parameter number for comp1, comp2
-        range1, pNum1 = self.componentCheck(comp1,bins)
-        range2, pNum2 = self.componentCheck(comp2,bins)
+        range1, pNum1 = self._componentCheck(comp1,bins)
+        range2, pNum2 = self._componentCheck(comp2,bins)
 
         # Find seds and sedkeylist for sedtype
-        seds, sedkeylist = self.sedFinder(regressionSed)
+        seds, sedkeylist = self._sedFinder(regressionSed)
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp1 + ' and ' + comp2 + '.'
@@ -717,7 +717,7 @@ class AtmoBuilder(object):
         comp2best = {}
 
         for f in filters:
-            pickleString_temp = self.regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
+            pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best parameters for ' + f + ' filter...'
 
@@ -748,7 +748,7 @@ class AtmoBuilder(object):
             comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
 
             if saveLogL:
-                name = self.regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
                 print 'Saved LogL for ' + f + ' filter.'
 
@@ -758,7 +758,7 @@ class AtmoBuilder(object):
             for f in filters:
                 print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
 
-        figName = self.regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
+        figName = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
 
         if generateDphi == True:
 
@@ -791,10 +791,10 @@ class AtmoBuilder(object):
         ### Taken from plot_dmags and modified to suit specific needs.
 
         if any([pNum1,pNum2,comp1_range,comp2_range]) == None:
-            comp1_range, pNum1 = self.componentCheck(comp1, bins)
-            comp2_range, pNum2 = self.componentCheck(comp2, bins)
+            comp1_range, pNum1 = self._componentCheck(comp1, bins)
+            comp2_range, pNum2 = self._componentCheck(comp2, bins)
             
-        seds, sedkeylist = self.sedFinder(regressionSed)
+        seds, sedkeylist = self._sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
         if deltaGrey == 0.0:
@@ -860,11 +860,11 @@ class AtmoBuilder(object):
             if plotDifference == False:
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, dmaglimit=False)
+                        self.dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, _dmagLimit=False)
 
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, dmaglimit=False, truth=True)
+                        self.dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, _dmagLimit=False, truth=True)
             else:
                 for s in comparisonSeds:
                     if s != regressionSed:
@@ -874,7 +874,7 @@ class AtmoBuilder(object):
                 ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
                 ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
 
-                label = self.sedLabelGen(regressionSed)
+                label = self._sedLabelGen(regressionSed)
                 col1Title = r'%s $\Delta$mmags' % (label)
                 col2Title = 'Log-Likelihood'
                 col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
@@ -890,10 +890,10 @@ class AtmoBuilder(object):
 
         return
 
-    def dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, dmaglimit=True):
+    def dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, _dmagLimit=True):
         # Check if valid sedtype, check if sed data read:
-        self.sedTypeCheck(sedtype)
-        self.sedReadCheck(sedtype)
+        self._sedTypeCheck(sedtype)
+        self._sedReadCheck(sedtype)
 
         # Label axes, only label y if not comparison sed
         ax.set_xlabel("g-i")
@@ -904,7 +904,7 @@ class AtmoBuilder(object):
         ax.grid(b=True)
 
         if comparisonSed == True:
-            label = self.sedLabelGen(sedtype)
+            label = self._sedLabelGen(sedtype)
 
         if sedtype == 'kurucz':
             mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist)
@@ -1170,10 +1170,10 @@ class AtmoBuilder(object):
                             ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
 
         # Add appropriate y-axis limits
-        if dmaglimit == True:
-            self.dmagLimit(ax, f, dmags)
+        if _dmagLimit == True:
+            self._dmagLimit(ax, f, dmags)
             if bpDict2 != None:
-                self.dmagLimit(ax, f, dmags2)
+                self._dmagLimit(ax, f, dmags2)
 
         return
 
@@ -1200,10 +1200,10 @@ class AtmoBuilder(object):
         ax.set_title(r'$S^{atm}(\lambda)$', fontsize=TITLESIZE)
         
         if atmo2 != None:
-            ax.plot(atmo2.wavelen,atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black')
+            ax.plot(atmo2.wavelen,atmo2.sb, label=self._labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black')
         elif includeStdAtmo:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS)
-            ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black');
+            ax.plot(atmo2.wavelen, atmo2.sb, label=self._labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black');
             ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
 
         if includeComponents:
@@ -1213,7 +1213,7 @@ class AtmoBuilder(object):
                 if atmo2 != None:
                     ax.plot(atmo2.wavelen,atmo2.sbDict[comp], alpha=0.5, color='black')
         else: 
-            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
+            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self._labelGen(atmo1.P,atmo1.X));
 
         ax.legend(loc='lower right', shadow=False)
         
@@ -1375,12 +1375,12 @@ class AtmoBuilder(object):
 
 ### Secondary Functions
     
-    def airmassToString(self, airmass):
+    def _airmassToString(self, airmass):
         """Converts airmass to string"""
         X = float(airmass)
         return "%.3f" % (X)
 
-    def pToString(self, P):
+    def _pToString(self, P):
         """Returns string version of parameter array."""
         stringP = "P"
         for i in P:
@@ -1390,7 +1390,7 @@ class AtmoBuilder(object):
                 stringP+=str(int(i * 10))
         return stringP
 
-    def dmagLimit(self, ax, f, dmags):
+    def _dmagLimit(self, ax, f, dmags):
         # Initialize values to keep track of dmag range
         dmag_max = np.max(dmags[f]);
         dmag_min = np.min(dmags[f]);
@@ -1405,7 +1405,7 @@ class AtmoBuilder(object):
 
         return
     
-    def labelGen(self, P, X):
+    def _labelGen(self, P, X):
         """Generates label for use in plot legends."""
         label = []
         for paramNum,param in enumerate(P):
@@ -1414,7 +1414,7 @@ class AtmoBuilder(object):
             label.append(labelEle)
         return ' '.join(label) + ' $X$:' + str(X)
 
-    def sedLabelGen(self, sedtype):
+    def _sedLabelGen(self, sedtype):
         if sedtype == 'kurucz':
             return 'Kurucz MS'
         elif sedtype == 'quasar':
@@ -1429,22 +1429,22 @@ class AtmoBuilder(object):
             return 'Supernovas'
         return
 
-    def figNameGen(self, saveFig, figName, P1, X1, P2, X2):
+    def _figNameGen(self, saveFig, figName, P1, X1, P2, X2):
         """Generates a string for figure names: 'X1_P1_X2_P2_figName' """
         if saveFig == True:
             if figName != None:
-                figName='X'+str(int(X1*10))+'_'+self.pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self.pToString(P2)+'_'+figName
+                figName='X'+str(int(X1*10))+'_'+self._pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self._pToString(P2)+'_'+figName
             else:
-                figName='X'+str(int(X1*10))+'_'+self.pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self.pToString(P2)
+                figName='X'+str(int(X1*10))+'_'+self._pToString(P1)+'_'+'X'+str(int(X2*10))+'_'+self._pToString(P2)
         else:
             figName = None
         return figName
 
-    def regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, add='', 
+    def _regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, add='', 
         plot=False, pickle=False, f=None):
         """Generates a string for pickle files. """
         X_obs = 'X' + str(int(atmo.X*10))
-        P_obs = self.pToString(atmo.P)
+        P_obs = self._pToString(atmo.P)
         comps = comp1 + '_' + comp2
         X_std = 'XSTD' + str(int(STDAIRMASS*10))
         DG = 'DG' + str(int(deltaGrey*10.0))
@@ -1466,7 +1466,7 @@ class AtmoBuilder(object):
 
         return '%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, ERR, REG, bins, ext)
 
-    def componentCheck(self, comp, bins):
+    def _componentCheck(self, comp, bins):
         """Returns a range of values of length bins for a given component."""
         if comp == 'H2O':
             return np.linspace(0.0,5.0,bins), 0
@@ -1483,23 +1483,23 @@ class AtmoBuilder(object):
         else:
             raise ValueError(comp + ' is not a valid component')
         
-    def parameterCheck(self, P):
+    def _parameterCheck(self, P):
         """Checks if parameter array is of appropriate length."""
         if len(P) != 6:
             raise ValueError('Need 6 parameters to build atmosphere!')
         return
 
-    def airmassCheck(self, X):
-        if self.airmassToString(X) not in self.airmasses:
+    def _airmassCheck(self, X):
+        if self._airmassToString(X) not in self.airmasses:
             raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
         return
 
-    def sedTypeCheck(self, sedtype):
+    def _sedTypeCheck(self, sedtype):
         sedtypes = SEDTYPES
         if sedtype not in sedtypes:
             raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(sedtypes))
     
-    def sedReadCheck(self, sedtype):
+    def _sedReadCheck(self, sedtype):
         """Checks if Kurucz model data has been read in."""
         if sedtype == 'kurucz':
             if self.stars == None:
@@ -1521,7 +1521,7 @@ class AtmoBuilder(object):
                 raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
         return
 
-    def colorCheck(self, color, mags_std):
+    def _colorCheck(self, color, mags_std):
         if color in COLORS:
             if color == 'g-i':
                 return color, self.gi(mags_std)
@@ -1539,7 +1539,7 @@ class AtmoBuilder(object):
             raise ValueError('Please choose a valid color from ' + str(COLORS))
         return
 
-    def sedFinder(self, sedtype):
+    def _sedFinder(self, sedtype):
         """Returns seds and sedkeylist given an sedtype."""
         seds = []
         sedkeylist = []
