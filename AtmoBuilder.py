@@ -1192,13 +1192,12 @@ class AtmoBuilder(object):
         elif includeStdAtmo:
             atmo2 = self.buildAtmo(STDPARAMETERS, STDAIRMASS)
             ax.plot(atmo2.wavelen, atmo2.sb, label=self.labelGen(atmo2.P, atmo2.X), alpha=0.5, color='black');
-            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X));
             ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
 
         if includeComponents:
-            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label=self.labelGen(atmo1.P,atmo1.X), linestyle='--');
-            for comp in self.components:
-                ax.plot(atmo1.wavelen,atmo1.sbDict[comp], color=self.componentColors[comp])
+            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label='Total', linestyle='--');
+            for i,comp in enumerate(self.components):
+                ax.plot(atmo1.wavelen,atmo1.sbDict[comp], color=self.componentColors[comp], label=self.componentsPlot[i])
                 if atmo2 != None:
                     ax.plot(atmo2.wavelen,atmo2.sbDict[comp], alpha=0.5, color='black')
         else: 
