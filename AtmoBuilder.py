@@ -1223,8 +1223,22 @@ class AtmoBuilder(object):
         return
 
     def throughputPlot(self, bpDict1, bpDict2=None, includeStdAtmo=False, wavelenRange=[WAVELENMIN,WAVELENMAX], 
-        filters=FILTERLIST, figname=None):
+        filters=FILTERLIST, figName=None):
+        """
+        Plots combined throughput given appropriate filter-keyed bandpass dictionary.
+        
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
 
+        bpDict1: (dictionary), filter-keyed throughput dictionary
+        bpDict2: (dictionary) [None], optional filter-keyed throughput dictionary
+        includeStdAtmo: (boolean) [False], add standard atmosphere throughput dictionary
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range
+        filters: (list of strings) [FILTERLIST], list of filters to plot
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """ 
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
