@@ -890,7 +890,7 @@ class AtmoBuilder(object):
 
         return
 
-    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, _dmagLimit=True):
+    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, dmagLimit=True):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
         # Check if valid sedtype, check if sed data read:
         self._sedTypeCheck(sedtype)
@@ -1170,7 +1170,7 @@ class AtmoBuilder(object):
                             ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
 
         # Add appropriate y-axis limits
-        if _dmagLimit == True:
+        if dmagLimit == True:
             self._dmagLimit(ax, f, dmags)
             if bpDict2 != None:
                 self._dmagLimit(ax, f, dmags2)
