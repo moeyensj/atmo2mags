@@ -28,7 +28,7 @@ PICKLEDIRECTORY = 'pickles/'
 PLOTDIRECTORY = 'plots/'
 LOGLDIRECTORY = 'logls/'
 
-SEDTYPES = ['kurucz','quasar','galaxy','sn','wd','mlt']
+SEDTYPES = ['mss','qsos','gals','sns','wds','mlts']
 FILTERLIST = ['u','g','r','i','z','y4']
 COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
 
@@ -76,36 +76,37 @@ class AtmoBuilder(object):
         # List of filter colors
         self.filtercolors = {'u': 'b', 'g': 'm', 'r': 'r','i': 'g','z': 'y','y4': 'k'}
         
-        # Kurucz model data
-        self.stars = None
-        self.starlist = None
-        self.temperature = None
-        self.met = None
-        self.logg = None
+        # SED data set with read functions:
+        # Kurucz main sequence stars model data
+        self.mss = None
+        self.msList = None
+        self.msMet = None
+        self.msTemp = None
+        self.msLogg = None
 
-        # White Dwarf Model data
+        # White dwarfs model data
         self.wds = None
-        self.wdslist = None
-        self.wdslist_H = None
-        self.wdslist_He = None
-        self.wdtemperature = None
-        self.wdlogg = None
+        self.wdList = None
+        self.wdListH = None
+        self.wdListHe = None
+        self.wdTemp = None
+        self.wdLogg = None
 
         # Galaxy model data
         self.gals = None
-        self.gallist = None        
-        self.galredshifts = None
+        self.galList = None        
+        self.galRedshifts = None
 
-        # MLT model data
+        # MLT dwarf model data
         self.mlts = None
-        self.mltlist = None
-        self.mlist = None
-        self.llist = None
-        self.tlist = None
+        self.mltList = None
+        self.mList = None
+        self.lList = None
+        self.tList = None
 
         # Quasar model data
-        self.quasars = None
-        self.quasarRedshifts = None
+        self.qsos = None
+        self.qsoRedshifts = None
 
         # Supernova model data
         self.sns = None
@@ -260,12 +261,31 @@ class AtmoBuilder(object):
 
         return
 
-    def readKurucz(self):
-        """Reads Kurucz model data from LSST software stack and sets relevant class attributes."""
+    def readMSs(self, sedDirectory=SIMSSEDLIBRARY, subDirectory='starSED/kurucz/'):
+        """
+        Reads Kurucz main sequence star model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.mss            # list of main sequence stars (SED objects)
+        self.msList         # list of main sequence stars
+        self.msMet          # list of main sequence star metallicities
+        self.msTemp         # list of main sequence star temperatures
+        self.msLogg         # list of main sequence star log surface gravities
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        sedDirectory: (string) [SIMSSEDLIBRARY], LSST SED library directory
+        subDirectory: (string) ['starSED/kurucz/'], SED sub directory within sedDirectory
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
         ### Taken from plot_dmags and modified to suit specific needs.
         # read kurucz model MS, g40 stars SEDs
-        homedir = os.getenv(SIMSSEDLIBRARY)  
-        stardir = os.path.join(homedir, "starSED/kurucz/")
+        homedir = os.getenv(sedDirectory)  
+        stardir = os.path.join(homedir, subDirectory)
         allfilelist = os.listdir(stardir)
         starlist = []
         # make preliminary cut for ms, g40 stars
@@ -307,18 +327,39 @@ class AtmoBuilder(object):
         for s in starlist:
             stars[s].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
-        self.stars = stars
-        self.starlist = starlist
-        self.temperature = temperature
-        self.met = met
-        self.logg = logg
+        self.mss = stars
+        self.msList = starlist
+        self.msTemp = temperature
+        self.msMet = met
+        self.msLogg = logg
 
         return
 
-    def readWhiteDwarf(self):
+    def readWDs(self, sedDirectory=SIMSSEDLIBRARY, subDirectory='starSED/wDs/'):
+        """
+        Reads white dwarf model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.wds            # list of white dwarfs (SED objects)
+        self.wdList         # list of white dwarfs
+        self.wdListH        # list of hydrogen white dwarfs 
+        self.wdListHe       # list of helium white dwarfs
+        self.wdTemp         # list of white dwarf temperatures
+        self.wdLogg         # list of white dwarf surface gravities
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        sedDirectory: (string) [SIMSSEDLIBRARY], LSST SED library directory
+        subDirectory: (string) ['starSED/wDs/'], SED sub directory within sedDirectory
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
         # read white dwarf bergeron models
-        homedir = os.getenv(SIMSSEDLIBRARY)
-        whitedwarfdir = os.path.join(homedir, "starSED/wDs/")
+        homedir = os.getenv(sedDirectory)
+        whitedwarfdir = os.path.join(homedir, subDirectory)
         
         allfilelist = os.listdir(whitedwarfdir)
         hlist = []
@@ -360,22 +401,42 @@ class AtmoBuilder(object):
 
         print "# Read %d white dwarfs from %s" %(len(wdlist), whitedwarfdir)
         # synchronize seds for faster mag calcs later
-        for w in wdlist:
-            wds[w].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
+        for wd in wdlist:
+            wds[wd].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.wds = wds
-        self.wdslist = wdlist
-        self.wdslist_H = hlist
-        self.wdslist_He = helist
-        self.wdtemperature = temperatures
-        self.wdlogg = loggs
+        self.wdList = wdlist
+        self.wdListH = hlist
+        self.wdListHe = helist
+        self.wdTemp = temperatures
+        self.wdLogg = loggs
 
         return 
 
-    def readGalaxies(self, redshiftRange=[0,3.0], redshiftStep=0.5):
+    def readGals(self, redshiftRange=[0,3.0], redshiftStep=0.5, sedDirectory=SIMSSEDLIBRARY, subDirectory='galaxySED/'):
+        """
+        Reads galaxy model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.gals           # list of galaxies (SED objects)
+        self.galList        # list of galaxies      
+        self.galRedshifts   # list of galaxy redshifts
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        redshiftRange: (list of floats) [0.0,3.0], range over which to redshift SEDs
+        redshiftStep: (float) [0.5], redshift step
+        sedDirectory: (string) [SIMSSEDLIBRARY], LSST SED library directory
+        subDirectory: (string) ['galaxySED/'], SED sub directory within sedDirectory
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
         # read sn spectra and redshift
-        homedir = os.getenv(SIMSSEDLIBRARY)
-        galdir = os.path.join(homedir, "galaxySED/")
+        homedir = os.getenv(sedDirectory)
+        galdir = os.path.join(homedir, subDirectory)
         allfilelist = os.listdir(galdir)
         gallist_base = []
         metal = ['002Z', '04Z', '25Z']
@@ -415,16 +476,36 @@ class AtmoBuilder(object):
             gals[g].addCCMDust(ax, bx, A_v=0.02)
 
         self.gals = gals
-        self.gallist = gallist
-        self.galredshifts = redshifts 
+        self.galList = gallist
+        self.galRedshifts = redshifts 
 
         return 
 
-    def readMLT(self):
+    def readMLTs(self, sedDirectory=SIMSSEDLIBRARY, subDirectory='starSED/mlt/'):
+        """
+        Reads MLT dwarf model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.mlts           # list of mlt dwarfs (SED objects)
+        self.mltList        # list of mlt dwarfs
+        self.mList          # list of m dwarfs
+        self.lList          # list of l dwarfs
+        self.tList          # list of t dwarfs
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        sedDirectory: (string) [SIMSSEDLIBRARY], LSST SED library directory
+        subDirectory: (string) ['starSED/mlt/'], SED sub directory within sedDirectory
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
         # read mlt stars - only keep 'm's
         # find the filenames and mark 'm', 'l', 't' stars separately
-        homedir = os.getenv(SIMSSEDLIBRARY)
-        mltdir = os.path.join(homedir, "starSED/mlt/")
+        homedir = os.getenv(sedDirectory)
+        mltdir = os.path.join(homedir, subDirectory)
         allfilelist = os.listdir(mltdir)
         mltlist = []
         mlist = []
@@ -449,16 +530,35 @@ class AtmoBuilder(object):
             mlts[s].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
         self.mlts = mlts
-        self.mltlist = mltlist
-        self.mlist = mlist
-        self.llist = llist
-        self.tlist = tlist
+        self.mltList = mltlist
+        self.mList = mlist
+        self.lList = llist
+        self.tList = tlist
         
         return 
 
-    def readQuasar(self, redshiftRange=[0,7.5], redshiftStep=0.1):
-        homedir = os.getenv("HOME")
-        quasardir = os.path.join(homedir, "atmo2mags/seds/quasar")
+    def readQsos(self, redshiftRange=[0,7.5], redshiftStep=0.1, sedDirectory='HOME', subDirectory='atmo2mags/seds/quasar/'):
+        """
+        Reads quasar model data and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.qsos           # list of quasars (SED objects)    
+        self.qsoRedshifts   # list of quasar redshifts
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        redshiftRange: (list of floats) [0.0,7.5], range over which to redshift SEDs
+        redshiftStep: (float) [0.1], redshift step
+        sedDirectory: (string) ['HOME'], LSST SED library directory
+        subDirectory: (string) ['galaxySED/'], SED sub directory within sedDirectory
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
+        homedir = os.getenv(sedDirectory)
+        quasardir = os.path.join(homedir, subDirectory)
         # read zero redshift quasar
         base = Sed()
         base.readSED_flambda(os.path.join(quasardir, "quasar.dat"))
@@ -473,15 +573,38 @@ class AtmoBuilder(object):
         for z in redshifts:
             quasars[z].synchronizeSED(wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
 
-        self.quasars = quasars
-        self.quasarRedshifts = redshifts
+        self.qsos = quasars
+        self.qsoRedshifts = redshifts
 
         return
 
-    def readSNes(self, redshiftRange=[0,1.2], redshiftStep=0.1, days=['0', '20', '40']):
+    def readSNs(self, redshiftRange=[0,1.2], redshiftStep=0.1, days=['0', '20', '40'], sedDirectory='HOME', 
+        subDirectory='atmo2mags/seds/sn/'):
+        """
+        Reads supernova model data and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.sns            # list of supernova (SED objects)
+        self.snList         # list of supernova
+        self.snDays         # list of supernova days
+        self.snRedshifts    # list of supernova redshifts
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        redshiftRange: (list of floats) [0.0,1.2], range over which to redshift SEDs
+        redshiftStep: (float) [0.1], redshift step
+        days: (list of strings) ['0','20','40'], supernova days
+        sedDirectory: (string) ['HOME'], LSST SED library directory
+        subDirectory: (string) ['atmo2mags/seds/sn/'], SED sub directory within sedDirectory
+        ----------------------
+
+        * Modified from plot_dmags.py *
+        """
         # read sn spectra and redshift
-        homedir = os.getenv("HOME")
-        sndir = os.path.join(homedir, "atmo2mags/seds/sn")
+        homedir = os.getenv(sedDirectory)
+        sndir = os.path.join(homedir, subDirectory)
         allfilelist = os.listdir(sndir)
         snlist = []
         redshifts= np.arange(redshiftRange[0], redshiftRange[1]+redshiftStep, redshiftStep)
@@ -521,19 +644,35 @@ class AtmoBuilder(object):
         
         return
 
-    def readAll(self, kurucz=True, galaxies=True, whiteDwarfs=True, mltDwarfs=True, quasars=True, SNes=True):
-        if kurucz:
-            self.readKurucz()
-        if whiteDwarfs:
-            self.readWhiteDwarf()
-        if mltDwarfs:
-            self.readMLT()
-        if galaxies:
-            self.readGalaxies()
-        if quasars:
-            self.readQuasar()
-        if SNes:
-            self.readSNes()
+    def readAll(self, mss=True, gals=True, wds=True, mlts=True, qsos=True, sns=True):
+        """
+        Read all (or subset of) SED model data.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        mss: (boolean) [True], read kurucz main sequence star model data
+        gals: (boolean) [True], read galaxy model data
+        wds: (boolean) [True], read white dwarf model data
+        mlts: (boolean) [True], read mlt dwarf model data
+        qsos: (boolean) [True], read quasar model data
+        sns: (boolean) [True], read supernova data
+        ----------------------
+        """
+        if mss:
+            self.readMSs()
+        if wds:
+            self.readWDs()
+        if mlts:
+            self.readMLTs()
+        if gals:
+            self.readGals()
+        if qsos:
+            self.readQsos()
+        if sns:
+            self.readSNs()
+            
         return
 
 ### Calculator / Generator Functions
@@ -1192,7 +1331,7 @@ class AtmoBuilder(object):
         figName: (string) [None], if passed a string will save figure with string as title
         ----------------------
         """ 
-        fig, ax = plt.subplots(1,1)
+        fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
         
         ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE)
