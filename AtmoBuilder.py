@@ -1046,18 +1046,20 @@ class AtmoBuilder(object):
         if comparisonSed == True:
             label = self._sedLabelGen(sedtype)
 
-        if sedtype == 'kurucz':
-            mags = self.mags(bpDict1, seds=self.stars, sedkeylist=self.starlist)
-            mags_std = self.mags(bpDict_std, seds=self.stars, sedkeylist=self.starlist)
+        seds, sedkeylist = self._sedFinder(sedtype)
+
+        if sedtype == 'mss':
+            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
             if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=self.stars, sedkeylist=self.starlist)
+                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
 
-            metallicity = np.array(self.met)
-            logg = np.array(self.logg)
+            metallicity = np.array(self.msMet)
+            logg = np.array(self.msLogg)
             metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
             metbinsize = abs(metallicity.min() - metallicity.max())/6.0
             metbins = np.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
@@ -1085,17 +1087,17 @@ class AtmoBuilder(object):
                         else:
                             ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
-        elif sedtype == 'quasar':
-            mags = self.mags(bpDict1, seds=self.quasars, sedkeylist=self.quasarRedshifts)
-            mags_std = self.mags(bpDict_std, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+        elif sedtype == 'qsos':
+            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
             if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=self.quasars, sedkeylist=self.quasarRedshifts)
+                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
 
-            redshift = self.quasarRedshifts
+            redshift = self.qsoRedshifts
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
             redbinsize = 0.5
             redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
@@ -1120,17 +1122,17 @@ class AtmoBuilder(object):
                         else: 
                             ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray')
         
-        elif sedtype == 'galaxy':
-            mags = self.mags(bpDict1, seds=self.gals, sedkeylist=self.gallist)
-            mags_std = self.mags(bpDict_std, seds=self.gals, sedkeylist=self.gallist)
+        elif sedtype == 'gals':
+            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
             if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=self.gals, sedkeylist=self.gallist)
+                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
 
-            gallist = self.gallist
+            gallist = self.galList
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
             redbinsize = 0.5
             redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
@@ -1157,14 +1159,14 @@ class AtmoBuilder(object):
                         else:
                             ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
-        elif sedtype == 'mlt':
-            mags = self.mags(bpDict1, seds=self.mlts, sedkeylist=self.mltlist)
-            mags_std = self.mags(bpDict_std, seds=self.mlts, sedkeylist=self.mltlist)
+        elif sedtype == 'mlts':
+            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
             if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=self.mlts, sedkeylist=self.mltlist)
+                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
 
             mltlist = self.mltlist
@@ -1220,19 +1222,19 @@ class AtmoBuilder(object):
                             elif (mltlist[j] in tlist):
                                 ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
 
-        elif sedtype == 'wd':
-            mags = self.mags(bpDict1, seds=self.wds, sedkeylist=self.wdslist)
-            mags_std = self.mags(bpDict_std, seds=self.wds, sedkeylist=self.wdslist)
+        elif sedtype == 'wds':
+            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
             if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=self.wds, sedkeylist=self.wdslist)
+                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
 
-            wdslist = self.wdslist
-            hlist = self.wdslist_H
-            helist = self.wdslist_He
+            wdslist = self.wdList
+            hlist = self.wdListH
+            helist = self.wdListHe
 
             for j in range(len(wdslist)):
                 if bpDict2 != None:
@@ -1270,14 +1272,14 @@ class AtmoBuilder(object):
                             else:
                                 ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
 
-        elif sedtype == 'sn':
-            mags = self.mags(bpDict1, seds=self.sns, sedkeylist=self.snList)
-            mags_std = self.mags(bpDict_std, seds=self.sns, sedkeylist=self.snList)
+        elif sedtype == 'sns':
+            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
 
             if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=self.sns, sedkeylist=self.snList)
+                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
  
             snlist = self.snList
@@ -1542,13 +1544,13 @@ class AtmoBuilder(object):
 
         return
 
-    def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, figName=None):
+    def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, dmagLimit=True, figName=None):
         rows, columns = self._subplotFinder(filters)
         fig,ax = plt.subplots(rows, columns)
 
-        for f in filters:
-            self._dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, dmagLimit=True)
-
+        for i in range(rows):
+            for j in range(columns):
+                self._dmagSED(ax[i][j], filters[i+j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit)
         return
 
 ### Secondary Functions
@@ -1729,7 +1731,7 @@ class AtmoBuilder(object):
             seds = self.mss
             sedkeylist = self.msList
         elif sedtype == 'qsos':
-            seds = self.quasars
+            seds = self.qsos
             sedkeylist = self.qsoRedshifts
         elif sedtype == 'gals':
             seds = self.gals
