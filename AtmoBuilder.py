@@ -1542,6 +1542,15 @@ class AtmoBuilder(object):
 
         return
 
+    def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, figName=None):
+        rows, columns = self._subplotFinder(filters)
+        fig,ax = plt.subplots(rows, columns)
+
+        for f in filters:
+            self._dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, dmagLimit=True)
+
+        return
+
 ### Secondary Functions
     
     def _airmassToString(self, airmass):
@@ -1653,7 +1662,7 @@ class AtmoBuilder(object):
             return np.linspace(0.0,5.0,bins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
-        
+
     def _parameterCheck(self, P):
         """Checks if parameter array is of appropriate length."""
         if len(P) != 6:
@@ -1735,4 +1744,17 @@ class AtmoBuilder(object):
             seds = self.sns
             sedkeylist = self.snList
 
-        return seds, sedkeylis
+        return seds, sedkeylist
+
+    def _subplotFinder(self, filters):
+        """Returns rows and columns for a given filter list."""
+        subplots = len(filters)
+        if subplots == 1:
+            return 1, 1
+        elif subplots % 2 == 0:
+            return subplots / 2, 2
+        elif subplots == 3:
+            return 3, 1
+        else:
+            return 3, 2
+        return 
