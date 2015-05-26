@@ -716,9 +716,9 @@ class AtmoBuilder(object):
             filters = ['y4']
 
         if seds == None:
-            seds = self.stars
+            seds = self.mss
         if sedkeylist == None:
-            sedkeylist = self.starlist
+            sedkeylist = self.msList
 
         mags = {}
         for f in filters:
@@ -1595,17 +1595,17 @@ class AtmoBuilder(object):
 
     def _sedLabelGen(self, sedtype):
         """Generates an appropriate SED label given a valid SED type."""
-        if sedtype == 'kurucz':
+        if sedtype == 'mss':
             return 'Kurucz MS'
-        elif sedtype == 'quasar':
+        elif sedtype == 'qsos':
             return 'Quasars'
-        elif sedtype == 'galaxy':
+        elif sedtype == 'gals':
             return 'Galaxies'
-        elif sedtype == 'wd':
+        elif sedtype == 'wds':
             return 'White Dwarfs'
         elif sedtype == 'mlt':
             return 'MLT Dwarfs'
-        elif sedtype == 'sn':
+        elif sedtype == 'sns':
             return 'Supernovas'
         return
 
@@ -1680,25 +1680,25 @@ class AtmoBuilder(object):
             raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(sedtypes))
     
     def _sedReadCheck(self, sedtype):
-        """Checks if Kurucz model data has been read in."""
-        if sedtype == 'kurucz':
-            if self.stars == None:
-                raise ValueError('No Kurucz model data found, please run self.readKurucz() or self.readAll()')
-        elif sedtype == 'quasar':
-            if self.quasars == None:
-                raise ValueError('No quasar data found, please run self.readQuasars() or self.readAll()')
-        elif sedtype == 'galaxy':
+        """Checks if sed model data has been read in."""
+        if sedtype == 'mss':
+            if self.mss == None:
+                raise ValueError('No Kurucz model data found, please run self.readMSs() or self.readAll()')
+        elif sedtype == 'qsos':
+            if self.qsos == None:
+                raise ValueError('No quasar data found, please run self.readQsos() or self.readAll()')
+        elif sedtype == 'gals':
             if self.gals == None:
-                raise ValueError('No galaxy data found, please run self.readGalaxies() or self.readAll()')
+                raise ValueError('No galaxy data found, please run self.readGals() or self.readAll()')
         elif sedtype == 'wds':
             if self.wds == None:
-                raise ValueError('No white dwarf data found, please run self.readWhiteDwarf or self.readAll()')
-        elif sedtype == 'mlt':
+                raise ValueError('No white dwarf data found, please run self.readWDs() or self.readAll()')
+        elif sedtype == 'mlts':
             if self.mlts == None:
-                raise ValueError('No mlt dwarf data found, please run self.readMLT or self.readAll()')
-        elif sedtype == 'sn':
+                raise ValueError('No mlt dwarf data found, please run self.readMLTs() or self.readAll()')
+        elif sedtype == 'sns':
             if self.sns == None:
-                raise ValueError('No supernova data found, please run self.readSNes or self.readAll()')
+                raise ValueError('No supernova data found, please run self.readSNs() or self.readAll()')
         return
 
     def _colorCheck(self, color, mags_std):
@@ -1725,22 +1725,22 @@ class AtmoBuilder(object):
         seds = []
         sedkeylist = []
 
-        if sedtype == 'kurucz':
-            seds = self.stars
-            sedkeylist = self.starlist
-        elif sedtype == 'quasar':
+        if sedtype == 'mss':
+            seds = self.mss
+            sedkeylist = self.msList
+        elif sedtype == 'qsos':
             seds = self.quasars
-            sedkeylist = self.quasarRedshifts
-        elif sedtype == 'galaxy':
+            sedkeylist = self.qsoRedshifts
+        elif sedtype == 'gals':
             seds = self.gals
-            sedkeylist = self.gallist
+            sedkeylist = self.galList
         elif sedtype == 'wds':
             seds = self.wds
-            sedkeylist = self.wdslist
-        elif sedtype == 'mlt':
+            sedkeylist = self.wdsList
+        elif sedtype == 'mlts':
             seds = self.mlts
-            sedkeylist = self.mltlist
-        elif sedtype == 'sn':
+            sedkeylist = self.mltList
+        elif sedtype == 'sns':
             seds = self.sns
             sedkeylist = self.snList
 
