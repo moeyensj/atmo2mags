@@ -56,7 +56,7 @@ class AtmoBuilder(object):
         # List of parameters (H2O,O2,O3,Rayleigh,Aerosol,Alpha)
         self.parameters = [1.0,1.0,1.0,1.0,1.0,1.7]
         # List of parameters used for plotting
-        self.parametersPlot = [r'$t_{H_2O}$',r'$t_{O_2}$',r'$t_{O_3}$',r'$t_{Rayleigh}$',r'$t_{Aerosol}$',r'$\alpha$']
+        self.parametersPlot = [r'$t_{H_2O}$',r'$t_{O_2}$',r'$t_{O_3}$',r'$t_{Rayleigh}$',r'$t_{Aerosol}$',r'$t_{\alpha}$']
         # List of colors for used in plotting individual absorption components
         self.componentColors = {'H2O':'blue','O2':'green','O3':'red','Rayleigh':'purple','Aerosol':'cyan'}
         # Effective wavelength range, set in readModtranFiles
@@ -672,7 +672,7 @@ class AtmoBuilder(object):
             self.readQsos()
         if sns:
             self.readSNs()
-            
+
         return
 
 ### Calculator / Generator Functions
@@ -1735,4 +1735,4 @@ class AtmoBuilder(object):
             seds = self.sns
             sedkeylist = self.snList
 
-        return seds, sedkeylist
+        return seds, sedkeylis
