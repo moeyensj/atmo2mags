@@ -1346,7 +1346,7 @@ class AtmoBuilder(object):
             ax.set_title(r'$S^{atm}(\lambda)$ and $S^{atm,std}(\lambda)$', fontsize=TITLESIZE)
 
         if includeComponents:
-            ax.plot(atmo1.wavelen, atmo1.sb, color='blue', label='Total', linestyle='--');
+            ax.plot(atmo1.wavelen, atmo1.sb, color='black', label='Total', linestyle='--', alpha=0.7);
             for i,comp in enumerate(self.components):
                 ax.plot(atmo1.wavelen,atmo1.sbDict[comp], color=self.componentColors[comp], label=self.componentsPlot[i])
                 if atmo2 != None:
