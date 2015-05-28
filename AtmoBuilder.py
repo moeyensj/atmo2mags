@@ -1546,11 +1546,21 @@ class AtmoBuilder(object):
 
     def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, dmagLimit=True, figName=None):
         rows, columns = self._subplotFinder(filters)
+        self._sedTypeCheck(sedtype)
+        
         fig,ax = plt.subplots(rows, columns)
+        fig.set_size_inches(10,len(filters)*2.5)
+        fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
+        fig.suptitle(r'$\Delta$mmags', fontsize=TITLESIZE)
 
         for i in range(rows):
             for j in range(columns):
                 self._dmagSED(ax[i][j], filters[i+j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit)
+
+        if figName != None:
+            title = figName + "_dmagPlot.png"
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
+
         return
 
 ### Secondary Functions
@@ -1677,9 +1687,9 @@ class AtmoBuilder(object):
         return
 
     def _sedTypeCheck(self, sedtype):
-        sedtypes = SEDTYPES
-        if sedtype not in sedtypes:
-            raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(sedtypes))
+        if sedtype not in SEDTYPES:
+            raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(SEDTYPES))
+        return
     
     def _sedReadCheck(self, sedtype):
         """Checks if sed model data has been read in."""
