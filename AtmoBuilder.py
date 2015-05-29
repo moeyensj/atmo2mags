@@ -939,10 +939,13 @@ class AtmoBuilder(object):
         
         fig, ax = plt.subplots(len(filters),3)
         if deltaGrey == 0.0:
-            fig.suptitle(r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter', fontsize=14)
+            fig.suptitle(r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter', fontsize=TITLESIZE)
+        elif useLogL:
+            title = r'$\Delta$mmags, Log-Likelihood, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
+            fig.suptitle(title, fontsize=TITLESIZE)
         else:
             title = r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
-            fig.suptitle(title, fontsize=14)
+            fig.suptitle(title, fontsize=TITLESIZE)
         fig.set_size_inches(15,len(filters)*5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
 
@@ -997,8 +1000,8 @@ class AtmoBuilder(object):
             # Label axes
             str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best[f], comp1_obs)
             str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best[f], comp2_obs)
-            ax[i][1].set_xlabel(str1)
-            ax[i][1].set_ylabel(str2)
+            ax[i][1].set_xlabel(str1, fontsize=LABELSIZE)
+            ax[i][1].set_ylabel(str2, fontsize=LABELSIZE)
 
             # Plot dmags for other SEDS:
             
@@ -1019,18 +1022,19 @@ class AtmoBuilder(object):
                 self._axisLimiter(ax[i][0], [-2.0,2.0])
                 self._axisLimiter(ax[i][2], [-2.0,2.0])
 
-        ax[0][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
-        ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
+        ax[0][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
+        ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
 
         label = self._sedLabelGen(regressionSed)
         col1Title = r'%s $\Delta$mmags' % (label)
         col2Title = 'Log-Likelihood'
         col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
-        ax[0][0].set_title(col1Title, y=1.20)
-        ax[0][1].set_title(col2Title, y=1.20)
-        ax[0][2].set_title(col3Title, y=1.20)
+        ax[0][0].set_title(col1Title, y=1.20, fontsize=LABELSIZE)
+        ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
+        ax[0][2].set_title(col3Title, y=1.20, fontsize=LABELSIZE)
             
-        ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), title='Comparison SEDs')
+        ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), 
+            fontsize=LABELSIZE, title='Comparison SEDs')
             
         if figName != None:
             title = figName+"_regressionPlot.png"
