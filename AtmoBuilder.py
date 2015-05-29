@@ -1049,9 +1049,9 @@ class AtmoBuilder(object):
         self._sedReadCheck(sedtype)
 
         # Label axes, only label y if not comparison sed
-        ax.set_xlabel("g-i")
+        ax.set_xlabel("g-i", fontsize=LABELSIZE)
         if comparisonSed == False:
-            ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f))
+            ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f), fontsize=LABELSIZE)
         
         # Add grid
         ax.grid(b=True)
@@ -1518,9 +1518,9 @@ class AtmoBuilder(object):
                     ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("Change in Normalized Bandpass Response");
+        ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
+        ax.set_title("Change in Normalized Bandpass Response", fontsize=TITLESIZE);
         #ax.legend(loc=4, shadow=False)
         
         if figName != None:
@@ -1540,9 +1540,9 @@ class AtmoBuilder(object):
             ax.plot(self.wavelen, ddphi, color=self.filtercolors[f])
 
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=15);
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)");
-        ax.set_title("Delta Delta Normalized Bandpass Response");
+        ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
+        ax.set_title("Delta Delta Normalized Bandpass Response", fontsize=TITLESIZE);
         #ax.legend(loc=4, shadow=False)
 
         if figName != None:
