@@ -41,15 +41,22 @@ class AtmoBuilder(object):
     """
     Functions:
     ----------------------
-    function: description
+    function: 
+        description
 
     ## Reading Functions ###
 
-    readModtranFiles: Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
-    readFilters: Reads LSST filter data and returns a filter-keyed dictionary. (S^{filters})
-    readHardware: Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})
+    readModtranFiles: 
+        Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
 
-    readMSs: Reads Kurucz main sequence star model data from LSST software stack and sets relevant class attributes.
+    readFilters: 
+        Reads LSST filter data and returns a filter-keyed dictionary. (S^{filters})
+    
+    readHardware: 
+        Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})
+
+    readMSs: 
+        Reads Kurucz main sequence star model data from LSST software stack and sets relevant class attributes.
 
         The following attributes will be set:
         self.mss            # list of main sequence stars (SED objects)
@@ -58,7 +65,8 @@ class AtmoBuilder(object):
         self.msTemp         # list of main sequence star temperatures
         self.msLogg         # list of main sequence star log surface gravities
 
-    readWDs: Reads white dwarf model data from LSST software stack and sets relevant class attributes.
+    readWDs: 
+        Reads white dwarf model data from LSST software stack and sets relevant class attributes.
 
         The following attributes will be set:
         self.wds            # list of white dwarfs (SED objects)
@@ -68,14 +76,16 @@ class AtmoBuilder(object):
         self.wdTemp         # list of white dwarf temperatures
         self.wdLogg         # list of white dwarf surface gravities
 
-    readGals: Reads galaxy model data from LSST software stack and sets relevant class attributes.
+    readGals: 
+        Reads galaxy model data from LSST software stack and sets relevant class attributes.
 
         The following attributes will be set:
         self.gals           # list of galaxies (SED objects)
         self.galList        # list of galaxies      
         self.galRedshifts   # list of galaxy redshifts
 
-    readMLTs: Reads MLT dwarf model data from LSST software stack and sets relevant class attributes.
+    readMLTs: 
+        Reads MLT dwarf model data from LSST software stack and sets relevant class attributes.
 
         The following attributes will be set:
         self.mlts           # list of mlt dwarfs (SED objects)
@@ -84,13 +94,15 @@ class AtmoBuilder(object):
         self.lList          # list of l dwarfs
         self.tList          # list of t dwarfs
 
-    readQsos: Reads quasar model data and sets relevant class attributes.
+    readQsos: 
+        Reads quasar model data and sets relevant class attributes.
 
         The following attributes will be set:
         self.qsos           # list of quasars (SED objects)    
         self.qsoRedshifts   # list of quasar redshifts
 
-    readSns: Reads supernova model data and sets relevant class attributes.
+    readSns: 
+        Reads supernova model data and sets relevant class attributes.
 
         The following attributes will be set:
         self.sns            # list of supernova (SED objects)
@@ -98,29 +110,69 @@ class AtmoBuilder(object):
         self.snDays         # list of supernova days
         self.snRedshifts    # list of supernova redshifts
 
-    readAll: Read all (or subset of) SED model data.
+    readAll: 
+        Read all (or subset of) SED model data.
 
 
     ### Calculator / Generator Functions ###
 
-    buildAtmo: Builds an atmospheric transmission profile (as an atmo object) given a set of component parameters 
+    buildAtmo: 
+        Builds an atmospheric transmission profile (as an atmo object) given a set of component parameters 
         and an airmass. (S^{atm})
-    combineThroughputs: Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
+
+    combineThroughputs: 
+        Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
         dictionary. (S^{atm}*S^{sys})
-    mags: Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and 
+
+    mags: 
+        Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and 
         sedkeylist are not none returns mags for Kurucz model MS stars.
-    dmags: Returns filter-keyed dictionary of change in magnitude in millimagnitudes.
-    gi: Returns standard color temperature given standard magnitude dictionary keyed on filters.
+
+    dmags: 
+        Returns filter-keyed dictionary of change in magnitude in millimagnitudes.
+
+    gi: 
+        Returns standard color temperature given standard magnitude dictionary keyed on filters.
 
 
     ### Regression Functions ###
 
-    computeAtmoFit: Computes the best fit atmospheric parameters for two given components and an observed atmosphere. 
+    computeAtmoFit: 
+        Computes the best fit atmospheric parameters for two given components and an observed atmosphere. 
         Requires the SED data for the specified regression and comparison SEDs to be read in. 
 
 
     ### Plotting Functions ###
 
+    regressionPlot: 
+        Plots regression data with each filter in its own row of subplots. Requires the 
+        SED data for the specified regression and comparison SEDs to be read in.
+
+    transPlot: 
+        Plots atmospheric transmission profile given an atmosphere object.
+
+    throughputPlot: 
+        Plots combined throughput given appropriate filter-keyed bandpass dictionary.
+
+    filterPlot: 
+        Plots the filter response curve from LSST filter data.
+
+    hardwarePlot: 
+        Plots the hardware response curve from LSST hardware data.
+
+    phiPlot: 
+        Plots normalized bandpass response function.
+
+    dphiPlot: 
+        Plots change in normalized bandpass response function given two filter-keyed 
+        bandpass dictionaries.
+
+    ddphiPlot: 
+        Plots change in normalized bandpass response function given two filter-keyed bandpass 
+        dictionaries and a standard filter-keyed bandpass dictionary.
+
+    dmagPlot: 
+        Given two filter-keyed bandpass dictionaries and a valid SED type, will plot dmags. 
     """
     def __init__(self):
         # List of strings containing component names
@@ -921,7 +973,8 @@ class AtmoBuilder(object):
         atmo_obs: (atmo object), observed atmosphere
         err: (float) [0.0005], percent error
         bins: (int) [50], number of bins for regression
-        deltaGrey: (float) [0.0], adds extinction factor due to clouds
+        deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
+            if greater than zero will subtract as mmag value from delta magnitudes during regression)
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
         generateFig: (boolean) [True], generate a regression plot
@@ -1045,8 +1098,43 @@ class AtmoBuilder(object):
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        deltaGrey=0.0, useLogL=False, includeColorBar=False, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
-        """Plots regression data with each filter in its own row of subplots."""
+        useLogL=False, includeColorBar=False, deltaGrey=0.0, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
+        """
+        Plots regression data with each filter in its own row of subplots. Requires the 
+        SED data for the specified regression and comparison SEDs to be read in.
+
+        Recommendation: Use computeAtmoFit to call this function, will save a lot of work! 
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        comp1: (string), name of component to regress
+        comp1_best: (dictionary), filter-keyed dictionary of best fit values
+        comp2: (string), name of component to regress
+        comp2_best: (dictionary), filter-keyed dictionary of best fit values
+        logL: (dictionary), filter-keyed dictionary of logL arrays
+        atmo_obs: (atmo object), observed atmosphere
+        pNum1: (int) [None], will find parameter number if None from comp1 name
+        pNum2: (int) [None], will find parameter number if None from comp2 name
+        comp1_range: (list of floats) [None], will find parameter range if None
+        comp2_range: (list of floats) [None], will find parameter range if None
+        bins: (int) [50], number of bins for regression
+        regressionSed: (string) ['mss'], SED type to run regress over
+        comparisonSeds: (list of strings) [SEDTYPES], 
+        plotDifference: (boolean) [True], will plot difference between fit and truth for 
+            comparisonSeds
+        useLogL: (boolean) [False], use LogL to replace contour plots
+        includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
+        deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
+            if greater than zero will subtract as mmag value from delta magnitudes during regression)
+        dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
+            are met. 
+        filters: (list of strings) [FILTERLIST], list of filters
+        verbose: (boolean) [True], print out verbose statements
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """
 
         if any([pNum1,pNum2,comp1_range,comp2_range]) == None:
             comp1_range, pNum1 = self._componentCheck(comp1, bins)
@@ -1106,7 +1194,7 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if useLogL:
-                im = ax[i][1].imshow(logL[f][::-1]/np.median(logL[f]), interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0))
+                im = ax[i][1].imshow(logL[f][::-1]/np.median(-logL[f]), interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0))
                 ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
                 if includeColorBar:
                     fig.colorbar(im, ax=ax[i][1], format='%.0e')
@@ -1608,8 +1696,20 @@ class AtmoBuilder(object):
         return
     
     def phiPlot(self, bpDict1, bpDict2=None, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
-        """Plots normalized bandpass response function, with the possibility to add a second function
-            for comparison."""
+        """
+        Plots normalized bandpass response function.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        bpDict1: (dictionary), filter-keyed bandpass dictionary
+        bpDict2: (dictionary) [None], optional comparison filter-keyed bandpass dictionary
+        filters: (list of strings) [FILTERLIST], list of filters
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range     
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """
         
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
@@ -1621,7 +1721,7 @@ class AtmoBuilder(object):
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel(r'$\phi_b^{obs}(\lambda)$', fontsize=LABELSIZE);
         ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE);
-        ax.set_title(r'Normalized Bandpass Response', fontsize=TITLESIZE);
+        ax.set_title(r'Normalized Bandpass Response Function', fontsize=TITLESIZE);
         ax.legend(loc=4, shadow=False);
         
         if figName != None:
@@ -1629,25 +1729,36 @@ class AtmoBuilder(object):
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=FILTERLIST, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
-        """Plots change in normalized bandpass response function given two phi functions."""
+    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+        """
+        Plots change in normalized bandpass response function given two filter-keyed bandpass dictionaries.
+        
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        bpDict1: (dictionary), filter-keyed bandpass dictionary
+        bpDict_std: (dictionary), filter-keyed bandpass dictionary created at standard atmosphere
+        bpDict2: (dictionary) [None], optional comparison filter-keyed bandpass dictionary
+        filters: (list of strings) [FILTERLIST], list of filters
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range     
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """
 
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
         for f in filters:
-            ax.plot(self.wavelen, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f])
+            ax.plot(self.wavelen, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f], label=str(f))
             if bpDict2 != None:
-                if truth:
-                    ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
-                else:
-                    ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\Delta\phi_b^{obs}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_ylabel("$\Delta\phi_b(\lambda)$", fontsize=LABELSIZE);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
-        ax.set_title("Change in Normalized Bandpass Response", fontsize=TITLESIZE);
-        #ax.legend(loc=4, shadow=False)
+        ax.set_title("Change in Normalized Bandpass Response Function", fontsize=TITLESIZE);
+        ax.legend(loc=4, shadow=False)
         
         if figName != None:
             title = figName + "_dphiPlot.png"
@@ -1655,21 +1766,36 @@ class AtmoBuilder(object):
         
         return
 
-    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=FILTERLIST, truth=False, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
-        """Plots change in normalized bandpass response function given two phi functions."""
+    def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+        """
+        Plots change in normalized bandpass response function given two filter-keyed bandpass dictionaries and a standard
+        filter-keyed bandpass dictionary.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        bpDict1: (dictionary), filter-keyed bandpass dictionary
+        bpDict2: (dictionary), filter-keyed bandpass dictionary
+        bpDict_std: (dictionary), filter-keyed bandpass dictionary created at standard atmosphere
+        filters: (list of strings) [FILTERLIST], list of filters
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range     
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """
 
         fig,ax = plt.subplots(1,1)
         fig.set_size_inches(FIGUREWIDTH, FIGUREHEIGHT)
 
         for f in filters:
             ddphi = (bpDict2[f].phi - bpDict_std[f].phi) - (bpDict1[f].phi - bpDict_std[f].phi)
-            ax.plot(self.wavelen, ddphi, color=self.filtercolors[f])
+            ax.plot(self.wavelen, ddphi, color=self.filtercolors[f], label=str(f))
 
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\Delta\Delta\phi_b^{obs}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_ylabel("$\Delta\phi_b^{fit}\lambda) - \Delta\phi_b^{truth}(\lambda)$", fontsize=LABELSIZE);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
-        ax.set_title("Delta Delta Normalized Bandpass Response", fontsize=TITLESIZE);
-        #ax.legend(loc=4, shadow=False)
+        ax.set_title("Change in Normalized Bandpass Response Function Comparison", fontsize=TITLESIZE);
+        ax.legend(loc=4, shadow=False)
 
         if figName != None:
             title = figName + "_ddphiPlot.png"
@@ -1678,13 +1804,29 @@ class AtmoBuilder(object):
         return
 
     def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, dmagLimit=True, figName=None):
+        """
+        Given two filter-keyed bandpass dictionaries and a valid SED type, will plot dmags. 
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        bpDict1: (dictionary), filter-keyed bandpass dictionary
+        bpDict_std: (dictionary), filter-keyed bandpass dictionary created at standard atmosphere
+        sedtype: (string), name of SED type to plot
+        filters: (list of strings) [FILTERLIST], list of filters
+        dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
+            are met.   
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """
         rows, columns = self._subplotFinder(filters)
         self._sedTypeCheck(sedtype)
 
         fig,ax = plt.subplots(rows, columns)
         fig.set_size_inches(10,len(filters)*2.5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
-        fig.suptitle(r'$\Delta$mmags', fontsize=TITLESIZE)
+        fig.suptitle(r'$\Delta$mmags for ' + self._sedLabelGen(sedtype), fontsize=TITLESIZE)
 
         for i in range(rows):
             for j in range(columns):
@@ -1751,7 +1893,7 @@ class AtmoBuilder(object):
         return figName
 
     def _regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, add='', 
-        plot=False, pickle=False, f=None):
+        pickle=False, f=None):
         """Generates a string for pickle files. """
         X_obs = 'X' + str(int(atmo.X*10))
         P_obs = self._pToString(atmo.P)
@@ -1768,11 +1910,11 @@ class AtmoBuilder(object):
         else:
             REG = regressionSed 
 
+        if add != '':
+            add = '_' + add 
+
         if pickle == True:
             ext = add + '.pkl'
-
-        if plot == True:
-            ext = add + '.png'
 
         return '%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, ERR, REG, bins, ext)
 
