@@ -1716,13 +1716,14 @@ class AtmoBuilder(object):
         
         for f in filters:
             ax.plot(bpDict1[f].wavelen, bpDict1[f].phi, label=str(f))
-            ax.plot(bpDict2[f].wavelen, bpDict2[f].phi, alpha=0.5, color='black')
+            if bpDict2 != None:
+                ax.plot(bpDict2[f].wavelen, bpDict2[f].phi, alpha=0.5, color='black')
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel(r'$\phi_b^{obs}(\lambda)$', fontsize=LABELSIZE);
         ax.set_xlabel(r'Wavelength, $\lambda$ (nm)', fontsize=LABELSIZE);
         ax.set_title(r'Normalized Bandpass Response Function', fontsize=TITLESIZE);
-        ax.legend(loc=4, shadow=False);
+        ax.legend(loc='best', shadow=False);
         
         if figName != None:
             title = figName + "_phiPlot.png"
@@ -1752,13 +1753,13 @@ class AtmoBuilder(object):
         for f in filters:
             ax.plot(self.wavelen, bpDict1[f].phi - bpDict_std[f].phi, color=self.filtercolors[f], label=str(f))
             if bpDict2 != None:
-                ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='black', alpha=0.7)
+                ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='gray', alpha=0.5)
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         ax.set_ylabel("$\Delta\phi_b(\lambda)$", fontsize=LABELSIZE);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
         ax.set_title("Change in Normalized Bandpass Response Function", fontsize=TITLESIZE);
-        ax.legend(loc=4, shadow=False)
+        ax.legend(loc='best', shadow=False)
         
         if figName != None:
             title = figName + "_dphiPlot.png"
@@ -1792,10 +1793,10 @@ class AtmoBuilder(object):
             ax.plot(self.wavelen, ddphi, color=self.filtercolors[f], label=str(f))
 
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\Delta\phi_b^{fit}\lambda) - \Delta\phi_b^{truth}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_ylabel("$\Delta\phi_b^{fit}(\lambda) - \Delta\phi_b^{truth}(\lambda)$", fontsize=LABELSIZE);
         ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
         ax.set_title("Change in Normalized Bandpass Response Function Comparison", fontsize=TITLESIZE);
-        ax.legend(loc=4, shadow=False)
+        ax.legend(loc='best', shadow=False)
 
         if figName != None:
             title = figName + "_ddphiPlot.png"
@@ -2054,4 +2055,3 @@ class AtmoBuilder(object):
 
         ax.set_ylim(min_y,max_y)
         return
-

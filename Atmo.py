@@ -22,7 +22,6 @@ class Atmo(object):
     	self.aerosolNormWavelen = aerosolNormWavelen
         # List of components
     	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']
-        # Atmosphere name (optional)
         # List of total transmission profiles
     	self.sb = None
         # Component-keyed dictionary of transmission profiles
