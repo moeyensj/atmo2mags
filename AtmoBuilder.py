@@ -43,9 +43,83 @@ class AtmoBuilder(object):
     ----------------------
     function: description
 
+    ## Reading Functions ###
+
     readModtranFiles: Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
     readFilters: Reads LSST filter data and returns a filter-keyed dictionary. (S^{filters})
     readHardware: Reads LSST hardware data and returns a filter-keyed dictionary. (S^{sys})
+
+    readMSs: Reads Kurucz main sequence star model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.mss            # list of main sequence stars (SED objects)
+        self.msList         # list of main sequence stars
+        self.msMet          # list of main sequence star metallicities
+        self.msTemp         # list of main sequence star temperatures
+        self.msLogg         # list of main sequence star log surface gravities
+
+    readWDs: Reads white dwarf model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.wds            # list of white dwarfs (SED objects)
+        self.wdList         # list of white dwarfs
+        self.wdListH        # list of hydrogen white dwarfs 
+        self.wdListHe       # list of helium white dwarfs
+        self.wdTemp         # list of white dwarf temperatures
+        self.wdLogg         # list of white dwarf surface gravities
+
+    readGals: Reads galaxy model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.gals           # list of galaxies (SED objects)
+        self.galList        # list of galaxies      
+        self.galRedshifts   # list of galaxy redshifts
+
+    readMLTs: Reads MLT dwarf model data from LSST software stack and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.mlts           # list of mlt dwarfs (SED objects)
+        self.mltList        # list of mlt dwarfs
+        self.mList          # list of m dwarfs
+        self.lList          # list of l dwarfs
+        self.tList          # list of t dwarfs
+
+    readQsos: Reads quasar model data and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.qsos           # list of quasars (SED objects)    
+        self.qsoRedshifts   # list of quasar redshifts
+
+    readSns: Reads supernova model data and sets relevant class attributes.
+
+        The following attributes will be set:
+        self.sns            # list of supernova (SED objects)
+        self.snList         # list of supernova
+        self.snDays         # list of supernova days
+        self.snRedshifts    # list of supernova redshifts
+
+    readAll: Read all (or subset of) SED model data.
+
+
+    ### Calculator / Generator Functions ###
+
+    buildAtmo: Builds an atmospheric transmission profile (as an atmo object) given a set of component parameters 
+        and an airmass. (S^{atm})
+    combineThroughputs: Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
+        dictionary. (S^{atm}*S^{sys})
+    mags: Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and 
+        sedkeylist are not none returns mags for Kurucz model MS stars.
+    dmags: Returns filter-keyed dictionary of change in magnitude in millimagnitudes.
+    gi: Returns standard color temperature given standard magnitude dictionary keyed on filters.
+
+
+    ### Regression Functions ###
+
+    computeAtmoFit: Computes the best fit atmospheric parameters for two given components and an observed atmosphere. 
+        Requires the SED data for the specified regression and comparison SEDs to be read in. 
+
+
+    ### Plotting Functions ###
 
     """
     def __init__(self):
@@ -678,19 +752,43 @@ class AtmoBuilder(object):
 ### Calculator / Generator Functions
         
     def buildAtmo(self, P, X, aerosolNormCoeff=STDAEROSOLNORMCOEFF, aerosolNormWavelen=STDAEROSOLNORMWAVELEN):
-        """Builds an atmospheric transmission profile given a set of component parameters and 
-        returns bandpass object. (S^{atm})"""
-        
+        """
+        Builds an atmospheric transmission profile (as an atmo object) given a set of component parameters 
+        and an airmass. (S^{atm})
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        P: (list of floats), parameter array of t_k values for each atmospheric component
+        X: (float), airmass
+        aerosolNormCoeff: (float) [STDAEROSOLNORMCOEFF], aerosol power law normalization coefficient
+        aerosolNormWavelen: (float) [STDAEROSOLNORMWAVELEN], aerosol normalization wavelength
+        ----------------------
+        """
+
         self._parameterCheck(P)
         self._airmassCheck(X)
         
         return Atmo(P, X, self.transDict, self.wavelen, aerosolNormCoeff, aerosolNormWavelen)
     
     def combineThroughputs(self, atmo, sys=None, filters=FILTERLIST):
-        """Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
-        dictionary. (S^{atm}*S^{sys})"""
-        ### Taken from plot_dmags and modified to suit specific needs.
-        # Set up the total throughput for this system bandpass
+        """
+        Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
+        dictionary. (S^{atm}*S^{sys})
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        atmo: (atmo object), atmosphere
+        sys: (dictionary) [None], filter-keyed bandpass dictionary of system responsiveness (if none
+            will set to self.sys)
+        filters: (list of strings) [FILTERLIST], list of filters
+        ----------------------
+
+        * Taken from plot_dmags and modified to suit specific needs. *
+        """
 
         if filters == 'y4':
             filters = ['y4']
@@ -706,9 +804,23 @@ class AtmoBuilder(object):
         return total
     
     def mags(self, bpDict, seds=None, sedkeylist=None, filters=FILTERLIST, verbose=False):
-        """Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not none
-        returns mags for Kurucz model MS stars."""
-        ### Taken from plot_dmags and modified to suit specific needs.
+        """
+        Calculates magnitudes given a bandpass dictionary, returns filter-keyed magnitude dictionary. If seds and sedkeylist are not none
+        returns mags for Kurucz model MS stars.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        bpDict: (dictionary), filter-keyed throughput dictionary
+        seds: (list) [None], list of SED objects (if None, will set to main sequence stars' SED list)
+        sedkeylist: (list) [None], list of SEDs (if None, will set to main sequence stars' SED key list)
+        filters: (list of strings) [FILTERLIST], list of strings
+        verbose: (boolean) [False], print out verbose statements
+        ----------------------
+
+        * Taken from plot_dmags and modified to suit specific needs. *
+        """
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
 
@@ -732,8 +844,20 @@ class AtmoBuilder(object):
         return mags
     
     def dmags(self, mags, mags_std, filters=FILTERLIST):
-        """Returns filter-keyed dictionary of change in magnitude in millimagnitudes."""
-        ### Taken from plot_dmags and modified to suit specific needs.
+        """
+        Returns filter-keyed dictionary of change in magnitude in millimagnitudes.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        mags: (dictionary), filter-keyed dictionary of magnitudes
+        mags_std: (dictionary), filter-keyed dictionary of magnitudes created at standard atmosphere
+        filters: (list of strings) [FILTERLIST], list of filters
+        ----------------------
+
+        * Taken from plot_dmags and modified to suit specific needs. *
+        """
 
         if filters == 'y4':
             filters = ['y4']
@@ -745,31 +869,21 @@ class AtmoBuilder(object):
         return dmags
     
     def gi(self, mags_std):
-        """Returns standard color temperature given standard magnitude dictionary keyed on filters."""
-        ### Taken from plot_dmags and modified to suit specific needs.
+        """
+        Returns standard color temperature given standard magnitude dictionary keyed on filters.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        mags_std: (dictionary), filter-keyed dictionary of magnitudes created at standard atmosphere
+        ----------------------       
+
+        * Taken from plot_dmags and modified to suit specific needs. *
+        """
         # calculate some colors in the standard atmosphere, should be also standard bandpass, not shifted)
         gi = mags_std['g'] - mags_std['i']
         return gi
-
-    def ug(self, mags_std):
-        ug = mags_std['u'] - mags_std['g']
-        return ug
-
-    def gr(self, mags_std):
-        gr = mags_std['g'] - mags_std['r']
-        return gr
-
-    def ri(self, mags_std):
-        ri = mags_std['r'] - mags_std['i']
-        return ri
-
-    def iz(self, mags_std):
-        iz = mags_std['i'] - mags_std['z']
-        return iz
-
-    def zy(self, mags_std):
-        zy = mags_std['z'] - mags_std['y4']
-        return zy
 
 ### Regression Functions
 
@@ -792,8 +906,8 @@ class AtmoBuilder(object):
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='mss', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, pickleString='', 
-        filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, plotLogL=False, 
+        pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -808,13 +922,17 @@ class AtmoBuilder(object):
         err: (float) [0.0005], percent error
         bins: (int) [50], number of bins for regression
         deltaGrey: (float) [0.0], adds extinction factor due to clouds
-        regressionSed: (string) ['kurucz'], SED type to run regress over
+        regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
         generateFig: (boolean) [True], generate a regression plot
         generateDphi: (boolean) [True], generate a dphi and ddphi plot
         saveLogL: (boolean) [True], save logL as txt file
+        useLogL: (boolean) [False], use LogL to replace contour plots
+        plotLogL: (boolean) [False], plot individual logLs and contours seperately
         pickleString: (string) [''], add custom string to plot titles
         filters: (list of strings) [FILTERLIST], list of filters
+        dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
+            are met. 
         returnData: (boolean) [False], return data elements
         verbose: (boolean) [True], print out verbose statements
         ----------------------
@@ -927,9 +1045,8 @@ class AtmoBuilder(object):
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        deltaGrey=0.0, useLogL=False, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
-        """Plots dmags with each filter in its own subplot."""
-        ### Taken from plot_dmags and modified to suit specific needs.
+        deltaGrey=0.0, useLogL=False, includeColorBar=False, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
+        """Plots regression data with each filter in its own row of subplots."""
 
         if any([pNum1,pNum2,comp1_range,comp2_range]) == None:
             comp1_range, pNum1 = self._componentCheck(comp1, bins)
@@ -938,14 +1055,22 @@ class AtmoBuilder(object):
         seds, sedkeylist = self._sedFinder(regressionSed)
         
         fig, ax = plt.subplots(len(filters),3)
+
         if deltaGrey == 0.0:
-            fig.suptitle(r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter', fontsize=TITLESIZE)
-        elif useLogL:
-            title = r'$\Delta$mmags, Log-Likelihood, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
-            fig.suptitle(title, fontsize=TITLESIZE)
+            if useLogL:
+                title = r'$\Delta$mmags, Log-Likelihood, $\Delta\Delta$mmags for each LSST filter'
+                fig.suptitle(title, fontsize=TITLESIZE)
+            else:
+                title = r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter'
+                fig.suptitle(title, fontsize=TITLESIZE)
         else:
-            title = r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
-            fig.suptitle(title, fontsize=TITLESIZE)
+            if useLogL:
+                title = r'$\Delta$mmags, Log-Likelihood, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
+                fig.suptitle(title, fontsize=TITLESIZE)
+            else:
+                title = r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
+                fig.suptitle(title, fontsize=TITLESIZE)
+
         fig.set_size_inches(15,len(filters)*5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
 
@@ -981,9 +1106,10 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if useLogL:
-                im = ax[i][1].imshow(logL[f][::-1], interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0))
+                im = ax[i][1].imshow(logL[f][::-1]/np.median(logL[f]), interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0))
                 ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-                #fig.colorbar(im, ax=ax[i][1], format='%.0e')
+                if includeColorBar:
+                    fig.colorbar(im, ax=ax[i][1], format='%.0e')
             else:
                 contour = ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/np.median(-logL[f])), levels=(0.683, 0.955, 0.997), colors='k')
                 ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
@@ -1674,11 +1800,13 @@ class AtmoBuilder(object):
         return
 
     def _airmassCheck(self, X):
+        """Checks if airmass is valid (one that has data)."""
         if self._airmassToString(X) not in self.airmasses:
             raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
         return
 
     def _sedTypeCheck(self, sedtype):
+        """Checks if SED type is valid."""
         if sedtype not in SEDTYPES:
             raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(SEDTYPES))
         return
