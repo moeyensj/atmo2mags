@@ -774,6 +774,7 @@ class AtmoBuilder(object):
 ### Regression Functions
 
     def _computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
+        """Regression Function: returns log-likelihood given P, X, error, mags_obs, mags_std, seds, sedkeylist and deltaGrey."""
         atmo = self.buildAtmo(P,X)
         throughputAtmo = self.combineThroughputs(atmo, filters=f)
         mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
