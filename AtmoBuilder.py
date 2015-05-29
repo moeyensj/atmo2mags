@@ -790,9 +790,9 @@ class AtmoBuilder(object):
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
-    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='kurucz', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, pickleString='', 
-        filters=FILTERLIST, returnData=False, verbose=True):
+    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='mss', 
+        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, pickleString='', 
+        filters=FILTERLIST, dmagLimit=False, returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -915,7 +915,8 @@ class AtmoBuilder(object):
         if generateFig == True:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
                                 comp1_range=range1, comp2_range=range2, bins=bins, figName=figName, deltaGrey=deltaGrey,
-                                regressionSed=regressionSed, comparisonSeds=comparisonSeds, filters=filters, verbose=verbose)
+                                regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
+                                filters=filters, verbose=verbose)
         if returnData == True:
             return range1, range2, comp1best, comp2best, logL
         else:
@@ -925,7 +926,7 @@ class AtmoBuilder(object):
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        deltaGrey=0.0, figName=None, filters=FILTERLIST, verbose=True):
+        deltaGrey=0.0, useLogL=False, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """Plots dmags with each filter in its own subplot."""
         ### Taken from plot_dmags and modified to suit specific needs.
 
@@ -975,10 +976,14 @@ class AtmoBuilder(object):
 
             # Plot parameter space regression plots
             # Plot contours and true values
-            contour = ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/np.median(-logL[f])), levels=(0.683, 0.955, 0.997), colors='k')
-            #ax[i][1].contour(comp1_range, comp2_range, logL[f].T, colors='k')
-            ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-            ax[i][1].clabel(contour, fontsize=9, inline=1)
+            if useLogL:
+                im = ax[i][1].imshow(logL[f][::-1], interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0))
+                ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+                #fig.colorbar(im, ax=ax[i][1], format='%.0e')
+            else:
+                contour = ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/np.median(-logL[f])), levels=(0.683, 0.955, 0.997), colors='k')
+                ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+                ax[i][1].clabel(contour, fontsize=9, inline=1)
 
             # Plot dashed lines at best fit parameters
             ax[i][1].axvline(comp1_best[f], color='black', linestyle='--', label='Fit')
@@ -999,29 +1004,32 @@ class AtmoBuilder(object):
             if plotDifference == False:
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, _dmagLimit=False)
+                        self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, dmagLimit=False)
 
                 for s in comparisonSeds:
                     if s != regressionSed:
-                        self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, _dmagLimit=False, truth=True)
+                        self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, dmagLimit=False, truth=True)
             else:
                 for s in comparisonSeds:
                     if s != regressionSed:
                         self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs)
 
-            if i == 0:
-                ax[i][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
-                ax[i][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
+            if dmagLimit:
+                self._axisLimiter(ax[i][0], [-2.0,2.0])
+                self._axisLimiter(ax[i][2], [-2.0,2.0])
 
-                label = self._sedLabelGen(regressionSed)
-                col1Title = r'%s $\Delta$mmags' % (label)
-                col2Title = 'Log-Likelihood'
-                col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
-                ax[i][0].set_title(col1Title, y=1.20)
-                ax[i][1].set_title(col2Title, y=1.20)
-                ax[i][2].set_title(col3Title, y=1.20)
+        ax[0][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
+        ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2)
+
+        label = self._sedLabelGen(regressionSed)
+        col1Title = r'%s $\Delta$mmags' % (label)
+        col2Title = 'Log-Likelihood'
+        col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
+        ax[0][0].set_title(col1Title, y=1.20)
+        ax[0][1].set_title(col2Title, y=1.20)
+        ax[0][2].set_title(col3Title, y=1.20)
             
-            ax[i][2].legend(loc='upper center', bbox_to_anchor=(1.30,0.75))
+        ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), title='Comparison SEDs')
             
         if figName != None:
             title = figName+"_regressionPlot.png"
@@ -1169,10 +1177,10 @@ class AtmoBuilder(object):
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
 
-            mltlist = self.mltlist
-            mlist = self.mlist
-            llist = self.llist
-            tlist = self.tlist
+            mltlist = self.mltList
+            mlist = self.mList
+            llist = self.lList
+            tlist = self.tList
         
             for j in range(len(mltlist)):
                 if bpDict2 != None:
@@ -1309,12 +1317,6 @@ class AtmoBuilder(object):
                             ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label='Fit')
                         else:
                             ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
-
-        # Add appropriate y-axis limits
-        if dmagLimit == True:
-            self._dmagLimit(ax, f, dmags)
-            if bpDict2 != None:
-                self._dmagLimit(ax, f, dmags2)
 
         return
 
@@ -1547,7 +1549,7 @@ class AtmoBuilder(object):
     def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, dmagLimit=True, figName=None):
         rows, columns = self._subplotFinder(filters)
         self._sedTypeCheck(sedtype)
-        
+
         fig,ax = plt.subplots(rows, columns)
         fig.set_size_inches(10,len(filters)*2.5)
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
@@ -1579,22 +1581,6 @@ class AtmoBuilder(object):
             else:
                 stringP+=str(int(i * 10))
         return stringP
-
-    def _dmagLimit(self, ax, f, dmags):
-        """Set appropriate axes limits given a set of dmags."""
-        # Initialize values to keep track of dmag range
-        dmag_max = np.max(dmags[f]);
-        dmag_min = np.min(dmags[f]);
-        dmag_range = abs((dmag_max - dmag_min)/2.0);
-
-        # If dmag range exceeds 2.0, plot dashed lines at +-2dmmags
-        if dmag_range > 2.0:
-            ax.axhline(2,color='black',linestyle='--')
-            ax.axhline(-2,color='black',linestyle='--')
-        else:
-            ax.set_ylim(-2,2)
-
-        return
     
     def _labelGen(self, P, X):
         """Generates label for use in plot legends."""
@@ -1615,7 +1601,7 @@ class AtmoBuilder(object):
             return 'Galaxies'
         elif sedtype == 'wds':
             return 'White Dwarfs'
-        elif sedtype == 'mlt':
+        elif sedtype == 'mlts':
             return 'MLT Dwarfs'
         elif sedtype == 'sns':
             return 'Supernovas'
@@ -1748,7 +1734,7 @@ class AtmoBuilder(object):
             sedkeylist = self.galList
         elif sedtype == 'wds':
             seds = self.wds
-            sedkeylist = self.wdsList
+            sedkeylist = self.wdList
         elif sedtype == 'mlts':
             seds = self.mlts
             sedkeylist = self.mltList
@@ -1769,4 +1755,27 @@ class AtmoBuilder(object):
             return 3, 1
         else:
             return 3, 2
-        return 
+        return
+
+    def _axisLimiter(self, ax, limits):
+        """Sets appropriate axis limits given an axis and threshold limits."""
+        min_y, max_y = ax.get_ylim()
+
+        if max_y < limits[0]:
+            max_y = limits[0]
+        elif min_y > limits[1]:
+            min_y = limits[1]
+        elif min_y < limits[0] and max_y < limits[1]:
+            ax.axhline(limits[0], color='black', linestyle='--')
+        elif min_y > limits[0] and max_y > limits[1]:
+            ax.axhline(limits[1], color='black', linestyle='--')
+        elif min_y < limits[0] and max_y > limits[1]:
+            ax.axhline(limits[0], color='black', linestyle='--')
+            ax.axhline(limits[1], color='black', linestyle='--')
+        else:
+            min_y = limits[0]
+            max_y = limits[1]
+
+        ax.set_ylim(min_y,max_y)
+        return
+
