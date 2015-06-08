@@ -959,7 +959,7 @@ class AtmoBuilder(object):
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='mss', 
         comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, plotLogL=False, 
-        pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
+        normalize=True, includeColorBar=False, pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -982,6 +982,8 @@ class AtmoBuilder(object):
         saveLogL: (boolean) [True], save logL as txt file
         useLogL: (boolean) [False], use LogL to replace contour plots
         plotLogL: (boolean) [False], plot individual logLs and contours seperately
+        normalize: (boolean) [True], normalize logL by median when plotting
+        includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
         pickleString: (string) [''], add custom string to plot titles
         filters: (list of strings) [FILTERLIST], list of filters
         dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
@@ -1088,7 +1090,7 @@ class AtmoBuilder(object):
             self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
                                 comp1_range=range1, comp2_range=range2, bins=bins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
-                                filters=filters, verbose=verbose)
+                                includeColorBar=includeColorBar, normalize=normalize, filters=filters, verbose=verbose)
         if returnData == True:
             return range1, range2, comp1best, comp2best, logL
         else:
@@ -1098,7 +1100,7 @@ class AtmoBuilder(object):
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
         comp1_range=None, comp2_range=None, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        useLogL=False, includeColorBar=False, deltaGrey=0.0, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
+        useLogL=False, includeColorBar=False, normalize=True, deltaGrey=0.0, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1126,6 +1128,7 @@ class AtmoBuilder(object):
             comparisonSeds
         useLogL: (boolean) [False], use LogL to replace contour plots
         includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
+        normalize: (boolean) [True], normalize logL by median when plotting
         deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
             if greater than zero will subtract as mmag value from delta magnitudes during regression)
         dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
@@ -1194,31 +1197,13 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if useLogL:
-                im = ax[i][1].imshow(logL[f][::-1]/np.median(-logL[f]), interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0))
-                ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-                if includeColorBar:
-                    fig.colorbar(im, ax=ax[i][1], format='%.0e')
+                self._logL(fig, ax[i][1], f, logL, 'imshow', comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, 
+                    comp2_range, comp2_best, normalize=normalize, includeColorBar=includeColorBar)
             else:
-                contour = ax[i][1].contour(comp1_range, comp2_range, convert_to_stdev(logL[f].T/np.median(-logL[f])), levels=(0.683, 0.955, 0.997), colors='k')
-                ax[i][1].scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-                ax[i][1].clabel(contour, fontsize=9, inline=1)
-
-            # Plot dashed lines at best fit parameters
-            ax[i][1].axvline(comp1_best[f], color='black', linestyle='--', label='Fit')
-            ax[i][1].axhline(comp2_best[f], color='black', linestyle='--')
-
-            # Set y-axis, x-axis limits
-            ax[i][1].set_xlim(min(comp1_range), max(comp1_range))
-            ax[i][1].set_ylim(min(comp2_range), max(comp2_range))
-
-            # Label axes
-            str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best[f], comp1_obs)
-            str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best[f], comp2_obs)
-            ax[i][1].set_xlabel(str1, fontsize=LABELSIZE)
-            ax[i][1].set_ylabel(str2, fontsize=LABELSIZE)
+                self._logL(fig, ax[i][1], f, logL, 'contour', comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, 
+                    comp2_range, comp2_best, normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
-            
             if plotDifference == False:
                 for s in comparisonSeds:
                     if s != regressionSed:
@@ -1847,6 +1832,42 @@ class AtmoBuilder(object):
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
+
+    def _logL(self, fig, ax, f, logL, plotType, comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, comp2_range, comp2_best, normalize=True, includeColorBar=False):
+        """Plots desired logL plot type given figure and axis object along with appropriate data."""
+
+        if normalize: 
+            logL = logL[f] / np.median(-logL[f])
+        else:
+            logL = logL[f]
+
+        if plotType == 'contour':
+            contour = ax.contour(comp1_range, comp2_range, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
+            ax.scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+            ax.clabel(contour, fontsize=9, inline=1)
+
+        elif plotType == 'imshow':
+            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0), origin='lower')
+            ax.scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+            if includeColorBar:
+                fig.colorbar(im, ax=ax, format='%.0e')
+
+        # Plot dashed lines at best fit parameters
+        ax.axvline(comp1_best[f], color='black', linestyle='--', label='Fit')
+        ax.axhline(comp2_best[f], color='black', linestyle='--')
+
+        # Set y-axis, x-axis limits
+        ax.set_xlim(min(comp1_range), max(comp1_range))
+        ax.set_ylim(min(comp2_range), max(comp2_range))
+
+        # Label axes
+        str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best[f], comp1_obs)
+        str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best[f], comp2_obs)
+        ax.set_xlabel(str1, fontsize=LABELSIZE)
+        ax.set_ylabel(str2, fontsize=LABELSIZE)
+
+        return
+
 
 ### Secondary Functions
     
