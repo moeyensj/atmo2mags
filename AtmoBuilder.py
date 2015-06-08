@@ -1027,6 +1027,8 @@ class AtmoBuilder(object):
         comp1best = {}
         comp2best = {}
 
+        figName = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
+
         for f in filters:
             pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
@@ -1068,8 +1070,6 @@ class AtmoBuilder(object):
             print 'Best fit parameters (Filter, ' + comp1 + ', ' + comp2 + '):'
             for f in filters:
                 print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
-
-        figName = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
 
         if generateDphi == True:
 
@@ -1916,6 +1916,8 @@ class AtmoBuilder(object):
 
         if pickle == True:
             ext = add + '.pkl'
+        else:
+            ext = add
 
         return '%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, ERR, REG, bins, ext)
 
