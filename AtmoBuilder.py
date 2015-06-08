@@ -1794,7 +1794,7 @@ class AtmoBuilder(object):
             ax.plot(self.wavelen, ddphi, color=self.filtercolors[f], label=str(f))
 
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        if regession:
+        if regression:
             ax.set_ylabel("$\Delta\phi_b^{fit}(\lambda) - \Delta\phi_b^{truth}(\lambda)$", fontsize=LABELSIZE);
         else:
             ax.set_ylabel("$\Delta\phi_b^{1}(\lambda) - \Delta\phi_b^{2}(\lambda)$", fontsize=LABELSIZE);
