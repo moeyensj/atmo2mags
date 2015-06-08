@@ -1221,16 +1221,21 @@ class AtmoBuilder(object):
                 self._axisLimiter(ax[i][0], [-2.0,2.0])
                 self._axisLimiter(ax[i][2], [-2.0,2.0])
 
-        ax[0][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
-        ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
-
         label = self._sedLabelGen(regressionSed)
         col1Title = r'%s $\Delta$mmags' % (label)
         col2Title = 'Log-Likelihood'
         col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
         ax[0][0].set_title(col1Title, y=1.20, fontsize=LABELSIZE)
-        ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
         ax[0][2].set_title(col3Title, y=1.20, fontsize=LABELSIZE)
+
+        ax[0][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
+        if includeColorBar:
+            ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.27), ncol=2, fontsize=LABELSIZE)
+            ax[0][1].set_title(col2Title, y=1.33, fontsize=LABELSIZE)
+        else:
+            ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
+            ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
+
             
         ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), 
             fontsize=LABELSIZE, title='Comparison SEDs')
