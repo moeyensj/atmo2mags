@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"STD",
+				"STDAEROSOLNORMCOEFF"
+			],
+			[
 				"wds",
 				"wds"
 			]
@@ -15,35 +19,15 @@
 			"file": "AtmoBuilder.py",
 			"settings":
 			{
-				"buffer_size": 62238,
+				"buffer_size": 89680,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"contents": "# Python packages\nimport numpy as np\n\n# LSST stack software\nimport lsst.sims.photUtils.Bandpass as Bandpass\n\nclass Atmo():\n    def __init__(self, parameters, airmass, transmission, wavelength, aerosolNormCoeff, aerosolNormWavelen):\n        # Airmass\n    	self.X = airmass\n        # List of parameters\n    	self.P = parameters\n        # List of wavelengths\n        self.wavelen = wavelength\n        # Aerosol normalization coefficient used to model aerosol transmission profile\n    	self.aerosolNormCoeff = aerosolNormCoeff\n        # Aerosol normalization wavelength used to model aerosol transmission profile\n    	self.aerosolNormWavelen = aerosolNormWavelen\n        # List of components\n    	self.components = ['H2O','O2','O3','Rayleigh','Aerosol']\n        # Atmosphere name (optional)\n        # List of total transmission profiles\n    	self.sb = None\n        # Component-keyed dictionary of transmission profiles\n    	self.sbDict = None\n        # Build atmosphere and return object\n    	self.__buildAtmo(parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen)\n\n    def __buildAtmo(self, parameters, airmass, transmission, aerosolNormCoeff, aerosolNormWavelen):\n        \"\"\"Builds an atmospheric transmission profile given a set of component parameters and \n        returns bandpass object. (S^{atm})\"\"\"\n\n        parameters = np.array(parameters)\n\n        transDict = {}\n\n        transDict['H2O'] = transmission[airmass]['H2O']**parameters[0]\n        transDict['O2'] = transmission[airmass]['O2']**parameters[1]\n        transDict['O3'] = transmission[airmass]['O3']**parameters[2]\n        transDict['Rayleigh'] = transmission[airmass]['Rayleigh']**parameters[3]\n        transDict['Aerosol'] = self.__aerosol(self.wavelen, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]\n        totalTrans = transDict['H2O']*transDict['O2']*transDict['O3']*transDict['Rayleigh']*transDict['Aerosol']\n\n        atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans)\n\n        self.sb = atmo.sb\n        self.sbDict = transDict\n        \n        return\n\n    def __aerosol(self, wavelength, airmass, alpha, aerosolNormCoeff, aerosolNormWavelen):\n        \"\"\"Standard aerosol transmission function, returns array of transmission values over a range of\n            wavelengths.\"\"\"\n        return np.e**(-aerosolNormCoeff * airmass * (aerosolNormWavelen / wavelength) * alpha)",
 			"file": "Atmo.py",
-			"file_size": 2354,
-			"file_write_time": 130747627670000000,
 			"settings":
 			{
-				"buffer_size": 2391,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "Decorators.py",
-			"settings":
-			{
-				"buffer_size": 34,
-				"line_ending": "Unix",
-				"name": "import cpickle"
-			}
-		},
-		{
-			"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/1.0.0-77-g82a337b+26/python/lsst/sims/photUtils/Bandpass.py",
-			"settings":
-			{
-				"buffer_size": 23201,
+				"buffer_size": 2481,
 				"line_ending": "Unix"
 			}
 		},
@@ -52,6 +36,14 @@
 			"settings":
 			{
 				"buffer_size": 57493,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/1.0.0-77-g82a337b+26/python/lsst/sims/photUtils/Bandpass.py",
+			"settings":
+			{
+				"buffer_size": 23201,
 				"line_ending": "Unix"
 			}
 		},
@@ -87,12 +79,12 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 0.0,
+		"height": 392.0,
 		"last_filter": "",
 		"selected_items":
 		[
 		],
-		"width": 0.0
+		"width": 392.0
 	},
 	"console":
 	{
@@ -113,11 +105,15 @@
 	"expanded_folders":
 	[
 		"/Users/joachim/atmo2mags",
-		"/Users/joachim/atmo2mags/seds"
+		"/Users/joachim/atmo2mags/plots"
 	],
 	"file_history":
 	[
 		"/Users/joachim/.bash_profile",
+		"/Users/joachim/repos/astro480/irafvi/easy_phot.py",
+		"/Users/joachim/iraf/login.cl",
+		"/Users/joachim/atmo2mags/Decorators.py",
+		"/Users/joachim/.bash_profile.bak",
 		"/Users/joachim/atmo2mags/test/test.py",
 		"/Users/joachim/atmo2mags/old/astroML/fig_nonlinear_mu_z.py",
 		"/Users/joachim/atmo2mags/old/provided scripts/plot_dmags.py",
@@ -141,9 +137,10 @@
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 93.0,
 		"where_history":
 		[
+			""
 		]
 	},
 	"find_state":
@@ -151,6 +148,32 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_regressionNameGen",
+			"mssLIst",
+			"mlt",
+			"computeLogL",
+			"dmagSED",
+			"sedFinder",
+			"colorCheck",
+			"sedReadCheck",
+			"sedTypeCheck",
+			"airmassCheck",
+			"parameterCheck",
+			"componentCheck",
+			"regressionNameGen",
+			"figNameGen",
+			"sed_labelGen",
+			"labelGen",
+			"dmagLimit",
+			"pToString",
+			"airmassToString",
+			"Bandpass",
+			"Nbins",
+			"bins",
+			"filters = 'y4'",
+			"readKurucz",
+			"filters=None",
+			"y4Check",
 			"pickleNameGen",
 			"self.wavelength",
 			"wavelengthRange",
@@ -185,6 +208,26 @@
 		"regex": false,
 		"replace_history":
 		[
+			"_computeLogL",
+			"_dmagSED",
+			"_sedFinder",
+			"_colorCheck",
+			"_sedReadCheck",
+			"_sedTypeCheck",
+			"_airmassCheck",
+			"_parameterCheck",
+			"_componentCheck",
+			"_regressionNameGen",
+			"_figNameGen",
+			"_sedLabelGen",
+			"_labelGen",
+			"_dmagLimit",
+			"_pToString",
+			"_airmassToString",
+			"bins",
+			"filters == 'y4'",
+			"filters=FILTERLIST",
+			"filterCheck",
 			"regressionNameGen",
 			"self.wavelen",
 			"wavelenRange",
@@ -209,7 +252,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -218,44 +261,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 62238,
+						"buffer_size": 89680,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								28057,
-								28057
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2075.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "Atmo.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2391,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2011,
-								2011
+								527,
+								527
 							]
 						],
 						"settings":
@@ -264,48 +278,79 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 12.0,
-						"translation.y": 0.0,
+						"translation.x": 0.0,
+						"translation.y": 32.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "Decorators.py",
+					"buffer": 1,
+					"file": "Atmo.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 34,
+						"buffer_size": 2481,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								34,
-								34
+								809,
+								809
 							]
 						],
 						"settings":
 						{
-							"auto_name": "import cpickle",
-							"syntax": "Packages/Python/Python.tmLanguage"
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 96.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 2,
 					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 0,
+			"selected": 4,
 			"sheets":
 			[
+				{
+					"buffer": 2,
+					"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/1.0.0-77-g82a337b+26/python/lsst/sims/photUtils/Sed.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 57493,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								12860,
+								12864
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 6879.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
 				{
 					"buffer": 3,
 					"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/1.0.0-77-g82a337b+26/python/lsst/sims/photUtils/Bandpass.py",
@@ -330,44 +375,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 6120.0,
+						"translation.y": 1568.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/1.0.0-77-g82a337b+26/python/lsst/sims/photUtils/Sed.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 57493,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 6467.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
 					"file": "old/provided scripts/AtmoComp.py",
 					"semi_transient": false,
 					"settings":
@@ -390,14 +405,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 910.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 5,
 					"file": "old/provided scripts/plot_dmags.py",
 					"semi_transient": false,
 					"settings":
@@ -420,14 +435,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 12279.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 6,
 					"file": "/Users/joachim/lsst/DarwinX86/sims_photUtils/1.0.0-77-g82a337b+26/python/lsst/sims/photUtils/photometricDefaults.py",
 					"semi_transient": false,
 					"settings":
@@ -440,7 +455,7 @@
 						[
 							[
 								379,
-								379
+								315
 							]
 						],
 						"settings":
@@ -450,10 +465,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 101.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -492,7 +507,7 @@
 		"rows":
 		[
 			0.0,
-			0.774085294967,
+			0.553972020762,
 			1.0
 		]
 	},
@@ -500,6 +515,10 @@
 	"output.find_results":
 	{
 		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 25.0
 	},
 	"pinned_build_system": "",
 	"project": "atmo2mags.sublime-project",
@@ -528,12 +547,12 @@
 	},
 	"select_symbol":
 	{
-		"height": 0.0,
+		"height": 392.0,
 		"last_filter": "",
 		"selected_items":
 		[
 		],
-		"width": 0.0
+		"width": 392.0
 	},
 	"selected_group": 0,
 	"settings":
@@ -543,7 +562,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 350.0,
+	"side_bar_width": 226.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
