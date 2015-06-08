@@ -1081,7 +1081,7 @@ class AtmoBuilder(object):
                 atmo_fit = self.buildAtmo(P_fit,X_fit)
                 throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
 
-            self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, figName=figName)
+            self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
         if generateFig == True:
@@ -1730,7 +1730,7 @@ class AtmoBuilder(object):
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         return
     
-    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], figName=None):
+    def dphiPlot(self, bpDict1, bpDict_std, bpDict2=None, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], regression=False, figName=None):
         """
         Plots change in normalized bandpass response function given two filter-keyed bandpass dictionaries.
         
@@ -1742,7 +1742,8 @@ class AtmoBuilder(object):
         bpDict_std: (dictionary), filter-keyed bandpass dictionary created at standard atmosphere
         bpDict2: (dictionary) [None], optional comparison filter-keyed bandpass dictionary
         filters: (list of strings) [FILTERLIST], list of filters
-        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range     
+        wavelenRange: (list of ints) [WAVELENMIN, WAVELENMAX], wavelength plot range
+        regression: (boolean) [False], if True will adjust y-labels for regression plotting 
         figName: (string) [None], if passed a string will save figure with string as title
         ----------------------
         """
@@ -1756,9 +1757,12 @@ class AtmoBuilder(object):
                 ax.plot(self.wavelen, bpDict2[f].phi - bpDict_std[f].phi, color='gray', alpha=0.5)
         
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
-        ax.set_ylabel("$\Delta\phi_b(\lambda)$", fontsize=LABELSIZE);
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
-        ax.set_title("Change in Normalized Bandpass Response Function", fontsize=TITLESIZE);
+        if regression:
+            ax.set_ylabel(r"$\Delta\phi_b^{truth}(\lambda)$ and $\Delta\phi_b^{fit}(\lambda)$", fontsize=LABELSIZE);
+        else:
+            ax.set_ylabel(r"$\Delta\phi_b^{obs-std}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_xlabel(r"Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
+        ax.set_title(r"Change in Normalized Bandpass Response Function", fontsize=TITLESIZE);
         ax.legend(loc='best', shadow=False)
         
         if figName != None:
@@ -1795,11 +1799,11 @@ class AtmoBuilder(object):
 
         ax.set_xlim(wavelenRange[0], wavelenRange[1]);
         if regression:
-            ax.set_ylabel("$\Delta\phi_b^{fit}(\lambda) - \Delta\phi_b^{truth}(\lambda)$", fontsize=LABELSIZE);
+            ax.set_ylabel(r"$\Delta\phi_b^{fit}(\lambda) - \Delta\phi_b^{truth}(\lambda)$", fontsize=LABELSIZE);
         else:
-            ax.set_ylabel("$\Delta\phi_b^{1}(\lambda) - \Delta\phi_b^{2}(\lambda)$", fontsize=LABELSIZE);
-        ax.set_xlabel("Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
-        ax.set_title("Change in Normalized Bandpass Response Comparison", fontsize=TITLESIZE);
+            ax.set_ylabel(r"$\Delta\phi_b^{obs1-std}(\lambda) - \Delta\phi_b^{obs2-std}(\lambda)$", fontsize=LABELSIZE);
+        ax.set_xlabel(r"Wavelength, $\lambda$ (nm)", fontsize=LABELSIZE);
+        ax.set_title(r"Change in Normalized Bandpass Response Comparison", fontsize=TITLESIZE);
         ax.legend(loc='best', shadow=False)
 
         if figName != None:
