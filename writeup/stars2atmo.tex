@@ -1,0 +1,230 @@
+\documentclass[12pt,preprint]{aastex}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{graphicx}
+%\usepackage{subfig}
+\usepackage{fixltx2e}
+\usepackage{hyperref}
+\usepackage{boxedminipage}
+\usepackage{pdflscape}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% author-defined commands
+\newcommand\x         {\hbox{$\times$}}
+\def\mic              {\hbox{$\mu{\rm m}$}}
+\def\about            {\hbox{$\sim$}}
+\def\Mo               {\hbox{$M_{\odot}$}}
+\def\Lo               {\hbox{$L_{\odot}$}}
+\newcommand{\water}   {H\textsubscript{2}O}
+\newcommand{\ozone}    {O\textsubscript{3}}
+\newcommand{\oxy}     {O\textsubscript{2}}
+
+%\captionsetup[figure]{labelformat=simple}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\title{Constraints on Atmospheric Transmissivity from Stellar Photometry}
+
+\author{
+Joachim Moeyens\altaffilmark{1}, \\  
+{\v Z}eljko Ivezi{\'c}\altaffilmark{1},  R. Lynne Jones\altaffilmark{1}, Peter Yoachim\altaffilmark{1}, \\
+Robert Lupton\altaffilmark{2} \\
+}
+\altaffiltext{1}{University of Washington}
+\altaffiltext{2}{Princeton University}
+
+
+\begin{abstract}
+This document will describe the results of analysis by Joachim. 
+\end{abstract}
+
+%\tableofcontents
+
+\section{Introduction}
+
+This document will describe the results of analysis by Joachim which aims
+to quantify how well we can constrain atmospheric transmissivity using stellar photometry. 
+
+
+
+\subsection{Definitions of Relevant Photometric Quantities} 
+
+The following nomenclature is adopted from LSST document LSE-180 (Jones et al.; ``Level 2 Calibration Plan''). 
+
+Given a ``normalized bandpass response function'' for an observation,
+\begin{equation}
+\label{eqn:PhiDef}
+   \phi_b^{obs}(\lambda) =  {
+     {S^{atm}(\lambda)\, S_b^{sys}(\lambda) \,
+       \lambda^{-1}} \over
+     \int_0^\infty { {S^{atm}(\lambda) \,
+         S_b^{sys}(\lambda) \, \lambda^{-1}} \,d\lambda}},
+\end{equation}
+the in-band flux at the top of the atmosphere is defined as
+\begin{equation}
+\label{eqn:Fb}
+F_b^{obs} = \int_0^\infty {F_\nu(\lambda) \,\phi_b^{obs}(\lambda) \, d\lambda}.
+\end{equation}
+The normalization of $F_b^{obs}$ corresponds to the top of the atmosphere because 
+$\phi_b$ only represents {\it shape} information about the bandpass, as by definition
+\begin{equation}
+\int_0^\infty {\phi_b(\lambda)  d\lambda}=1. 
+\end{equation}
+
+In eq.~\ref{eqn:PhiDef}, $S^{atm}(\lambda)$ is the (dimensionless) probability that a photon of 
+wavelength $\lambda$ makes it through the atmosphere, and $S_b^{sys}(\lambda)$ is the 
+(dimensionless) probability that a photon will pass through the telescope's optical path to be
+converted into an ADU count, and includes the mirror reflectivities, lens transmissions, filter
+transmissions, and detector sensitivities. Both $S^{atm}$ and $S_b^{sys}$ can vary with position 
+within the field of view, and with time. 
+
+The difference in magnitudes between two observations of a temporally constant source obtained with 
+different $\phi_b(\lambda)$ is given by 
+\begin{equation}
+\label{eqn:Delta_m}
+\Delta m_b^{obs}  \equiv m_b^{nat} - m_b^{std}  =  -2.5 \, log_{10} \,  \left( { \int_0^\infty {F_\nu(\lambda) \,
+    \phi_b^{obs}(\lambda) \, d\lambda} \over \int_0^\infty {F_\nu(\lambda) \,
+    \phi_b^{std}(\lambda) \, d\lambda}} \right)
+\end{equation}
+where $\phi_b^{std}(\lambda)$ corresponds to a ``standard'' bandpass, and $m_b^{nat}$ are
+known as ``natural'' magnitudes. Note that $\Delta m_b^{obs}$ depends on the {\it shape} of the 
+source spectrum, $F_\nu(\lambda)$ and the {\it shape} of the bandpass
+$\phi_b^{obs}(\lambda)$; for a source with flat (constant with respect to wavelength) SED (spectral
+energy distribution), $\Delta m_b^{obs}=0$ because the integral of $\phi_b(\lambda)$ is always one by definition. 
+
+Assuming that $\Delta m_b^{obs} \ll 1$, 
+\begin{equation}
+  \Delta m_b^{obs}   \approx - \, \int_0^\infty { \Delta\phi_b^{obs}(\lambda) \,  {F_\nu(\lambda) \over F_b^{std}} \, d\lambda},
+\end{equation}
+where $\Delta\phi_b^{obs}(\lambda) = \phi_b^{obs}(\lambda) - \phi_b^{std}(\lambda)$. The integral of 
+$\Delta\phi_b^{obs}(\lambda)$ over wavelength is always zero. 
+
+Unless $F_\nu(\lambda)$ is a flat SED ($F_\nu(\lambda)=$constant), $F_b^{obs}$ will vary with 
+changes in $\phi_b^{obs}(\lambda)$ due simply to changes in the bandpass shape,
+such as changes with position in the focal plane or differing atmospheric absorption 
+characteristics, {\it even if the source is non-variable}. This behavior can be used to constrain
+$\phi_b^{obs}(\lambda)$ when $\Delta m_b^{obs}$ is known for a large number of sources
+with non-flat SEDs. 
+
+
+
+
+\subsection{Atmospheric Extinction} 
+
+Atmospheric extinction can be modeled as due to five components: molecular (Rayleigh) scattering, 
+aerosol (Mie) scattering, and molecular absorption by ozone (O$_3$), water vapor and combined
+O$_2$/trace species (see Section 5.2 in LSST document LSE-180),
+\begin{equation}
+\label{eq:atmModel}
+ S^{atm}(\lambda) = \Pi_{k=1}^5 \, {\rm e}^{- t_k \, \tau_k^{std}(\lambda, X)} 
+                           =  {\rm e}^{-\sum_{k=1}^5  t_k \, \tau_k^{std}(\lambda, X)}. 
+\end{equation}
+Here $X$ is airmass, $t_k$ is the ratio of the column density (or optical depth) of the $k$-th 
+component and its value for the standard atmosphere, and $\tau_k^{std}(\lambda, X)$ is the 
+wavelength-dependent optical depth of the $k$-th component for the standard 
+atmosphere (with $t_k=1$) viewed at airmass $X$. For the two scattering components and ozone, the {\it shape} of 
+$\tau_k^{std}$ (variation with wavelength) is practically independent of airmass (and column
+density) 
+\begin{equation}
+         \tau_{scat}^{std}(\lambda, X) = X \, \tau_{scat}^{std}(\lambda, X=1),
+\end{equation}
+and analogously for O$_3$. For molecular absorption by H$_2$O and O$_2$, even the 
+shape of $\tau_k^{std}$ varies with airmass (we don't know yet whether these shapes
+vary when $X$ is fixed and $t_k$ are varied - work in progress...). 
+
+The MODTRAN code can be used to tabulate $\tau_k^{std}(\lambda, X)$ for all components. 
+For example, file {\it Pachon\_MODTRAN.10.7sc}  (from directory calib\_doc/level2/code)
+lists transmission functions (i.e. $e^{-\tau_k^{std}(\lambda, X=1)}$) for Rayleigh scattering  and 
+molecular absorption by H$_2$O, O$_2$, and O$_3$ (columns 9, 3, 4 and 5). Analogous 
+files for other values of airmass (up to $X=2.5$) can be found in the same directory.
+
+To allow for a general variation of the aerosol scattering (e.g. due to varying particle 
+size distribution), it can be modeled as 
+\begin{equation}
+      \tau_{aerosol}(\lambda, X, \alpha) = 0.1 \, X \, \left({550 \, {\rm nm} \over \lambda} \right)^\alpha
+\end{equation}
+with $\alpha=1.7$ for the standard atmosphere and a plausible range $0.5 < \alpha < 2.5$. 
+
+Thus, for given airmass $X$ and wavelength, the atmospheric extinction is fully determined
+by six free parameters, $\alpha$ and $t_k$ ($k=1..5$), which measure deviations from the
+standard atmospheric extinction curve. 
+
+
+
+\subsection{Statement of the Problem} 
+
+Assume that both $S^{sys}_b(\lambda)$ and $S^{atm,std}(\lambda)$ are known (which
+implies that $\phi_b^{std}(\lambda)$ is also known). Choose the values of the six free 
+atmospheric parameters ($\alpha$ and $t_k$) and generate $\Delta m_b^{obs}$
+(using $t_k=1$ for all components and $\alpha=1.7$ generates standard magnitudes). 
+
+Given $\Delta m_b^{obs}$ for a large number of sources with non-flat SEDs
+and their known standard colors ($u-g$, $g-r$, $r-i$, $i-z$, $z-y$), how well can we
+constrain $\phi_b^{obs}(\lambda)$, and in turn $S^{atm,obs}(\lambda)$ and the corresponding 
+six free atmospheric parameters?  As the performance metric, we will eventually use the 
+root-mean-square scatter between estimated and true $\Delta m_b^{obs}$ evaluated for Type Ia SNe. 
+
+
+
+\section{Analysis} 
+
+Assume that airmass $X=2.0$ and that $\alpha=0.5, 2.5$, and each $t_k=0.5, 2.0$.
+We are comparing these $2^6 = 64$ modified atmospheres to the standard atmosphere
+with $X=1$, $\alpha=1.7$ and $t_k=1$. To initially simplify the problem, let's only
+consider the six cases with $\alpha=2$ and $t_k=2.0$ set one by one, and the 
+seventh case of standard atmosphere and $X=2$. 
+
+
+\subsection{Initial Analysis} 
+
+For each of the seven atmospheres: 
+
+\begin{enumerate} 
+\item Plot $\Delta \phi_b(\lambda)$ for all atmospheres (7 plots such as the
+bottom panel in fig. 6 from I07). 
+\item
+How large are $\Delta m_b^{obs}$? 
+For each band $b$ ($b=ugrizy$), plot $\Delta m_b^{obs}$ vs. (standard) $g-i$ color
+(such as fig. 32 from LSE-180). 
+% appropriate standard color ($u-g$ for $u$, $g-r$ for $g$, etc. and $z-y$ for $z$ and $y$). 
+% FOR LATER: 
+%\item
+%{\bf Does traditional calibration method work?} 
+%For a given atmosphere and a range of airmass $X$, find the best-fit
+%parameters using model 
+%$\Delta m_b^{obs} = \alpha + \beta X + \gamma C + \delta X C$
+%($\alpha, \beta, \gamma, \delta$ are free parameters and $C$ is the color 
+%corresponding to band $b$, as above). What is the root-mean-square 
+%scatter? Plot residuals vs. $X$ and vs. $C$ (perhaps color coded in a
+%single $X$ vs. $C$ diagram). 
+\end{enumerate} 
+
+Lynne's earlier analysis (see e.g. fig. 32 from LSE-180) showed that variations of the 
+two aerosol scattering parameters, and the variation of O$_3$ column density, can all 
+produce a linear dependence of $\Delta m_g^{obs}$ vs. $g-i$ color (for Kurucz models). 
+An interesting question is how much difference there is in corresponding $\Delta \phi_g(\lambda)$
+that produce identical $\Delta m_g^{obs}$ vs. $g-i$ curves. 
+
+
+
+
+
+\subsection{Constraints on $S^{atm}$} 
+
+For a given atmosphere (that is, for fixed values of $X$, $\alpha$ and $t_k$ from eq.~\ref{eq:atmModel}, 
+and assuming that $\tau_k^{std}(\lambda, X)$ are known, use $\Delta m_b^{obs}$ and known standard 
+colors to constrain $\alpha$ and $t_k$.  
+
+The model for $\Delta m_b^{obs}$ is 
+\begin{equation}
+  \Delta m_b^{obs}  = \int_0^\infty { \left( \phi_b^{std}(\lambda) - \phi_b^{obs}(\lambda|{\bf p}) \right) \,  {F_\nu(\lambda) \over F_b^{std}} \, d\lambda},
+\end{equation}
+where the vector of model parameters ${\bf p} = (\alpha; t_k, k=1..5)$. 
+
+Using best-fit $t_k$, compute $\Delta m_b^{best-fit}$ and compare to 
+$\Delta m_b^{obs}$, for both Kurucz models and Type Ia SNe. What is the root-mean-square 
+scatter? Plot residuals vs. color. 
+
+\end{document}
