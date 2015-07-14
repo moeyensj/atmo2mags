@@ -1050,9 +1050,7 @@ class AtmoBuilder(object):
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[i, j] = self._computeLogL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey)
-
-                print 'Completed ' + f + ' filter.'
+                        logL[i, j] = self._computeLogL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, d)
 
                 logL -= np.max(logL)
                 whr = np.where(logL == np.max(logL))
@@ -1060,6 +1058,7 @@ class AtmoBuilder(object):
                 comp2best = range2[whr[1][0]]
 
                 return comp1best, comp2best, logL
+                print 'Completed ' + f + ' filter.'
 
             comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
 
@@ -1832,9 +1831,11 @@ class AtmoBuilder(object):
         fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
         fig.suptitle(r'$\Delta$mmags for ' + self._sedLabelGen(sedtype), fontsize=TITLESIZE)
 
+        filters = np.reshape(filters, (rows,columns))
+
         for i in range(rows):
             for j in range(columns):
-                self._dmagSED(ax[i][j], filters[i+j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit)
+                self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit)
                 self._axisLimiter(ax[i][j],[-2.0,2.0])
 
         if figName != None:
