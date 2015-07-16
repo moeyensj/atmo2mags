@@ -1836,7 +1836,8 @@ class AtmoBuilder(object):
         for i in range(rows):
             for j in range(columns):
                 self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit)
-                self._axisLimiter(ax[i][j],[-2.0,2.0])
+                if dmagLimit:
+                    self._axisLimiter(ax[i][j],[-2.0,2.0])
 
         if figName != None:
             title = figName + "_dmagPlot.png"

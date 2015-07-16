@@ -19,7 +19,7 @@
 			"file": "AtmoBuilder.py",
 			"settings":
 			{
-				"buffer_size": 89680,
+				"buffer_size": 90644,
 				"line_ending": "Unix"
 			}
 		},
@@ -261,15 +261,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 89680,
+						"buffer_size": 90644,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								527,
-								527
+								80799,
+								80799
 							]
 						],
 						"settings":
@@ -279,7 +279,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 32.0,
+						"translation.y": 27678.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -465,7 +465,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 101.0,
+						"translation.y": 19.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -507,7 +507,7 @@
 		"rows":
 		[
 			0.0,
-			0.553972020762,
+			0.780258994596,
 			1.0
 		]
 	},
