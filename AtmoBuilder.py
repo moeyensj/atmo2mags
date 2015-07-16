@@ -851,7 +851,7 @@ class AtmoBuilder(object):
         total = {}
         for f in filters:
             wavelen, sb = sys[f].multiplyThroughputs(atmo.wavelen, atmo.sb)
-            total[f] = Bandpass(wavelen, sb)
+            total[f] = Bandpass(wavelen, sb, wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
             total[f].sbTophi()
         return total
     
