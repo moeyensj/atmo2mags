@@ -939,17 +939,14 @@ class AtmoBuilder(object):
 
 ### Regression Functions
 
-    def _computeLogL(self, P, X, err, f, mags_obs, mags_std, seds, sedkeylist, deltaGrey):
+    def _computeLogL(self, P, X, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey):
         """Regression Function: returns log-likelihood given P, X, error, mags_obs, mags_std, seds, sedkeylist and deltaGrey."""
-        atmo = self.buildAtmo(P,X)
-        throughputAtmo = self.combineThroughputs(atmo, filters=f)
-        mags_fit = self.mags(throughputAtmo, seds=seds, sedkeylist=sedkeylist, filters=f)
-        
-        dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
-        dmags_obs = self.dmags(mags_obs, mags_std, filters=f)
 
+        atmo_fit = self.buildAtmo(P,X)
+        throughput_fit = self.combineThroughputs(atmo_fit, filters=f)
+        mags_fit = self.mags(throughput_fit, seds=seds, sedkeylist=sedkeylist, filters=f)
+        dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
         dmags_fit[f] -= deltaGrey
-        dmags_obs[f] -= deltaGrey
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
@@ -1012,14 +1009,15 @@ class AtmoBuilder(object):
         P_fit = copy.deepcopy(atmo_obs.P)
         X_fit = copy.deepcopy(atmo_obs.X)
 
-        # Create observed throughput
-        throughput_obs = self.combineThroughputs(atmo_obs)
-        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
-
-        # Create standard atmosphere
+        # Create standard atmosphere and magnitudes
         std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std, filters=filters)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
+
+        # Create observed atmosphere and magnitudes
+        throughput_obs = self.combineThroughputs(atmo_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
+        dmags_obs = self.dmags(mags_obs, mags_std, filters=filters)
 
         logL = {}
         whr = {}
@@ -1046,7 +1044,7 @@ class AtmoBuilder(object):
                     for j in range(len(range2)):
                         P_fit[pNum1] = range1[i]
                         P_fit[pNum2] = range2[j]
-                        logL[i, j] = self._computeLogL(P_fit, X_fit, err, f, mags_obs, mags_std, seds, sedkeylist, d)
+                        logL[i, j] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                 logL -= np.max(logL)
                 whr = np.where(logL == np.max(logL))
