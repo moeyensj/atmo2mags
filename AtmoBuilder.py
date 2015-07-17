@@ -948,12 +948,8 @@ class AtmoBuilder(object):
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
         dmags_obs = self.dmags(mags_obs, mags_std, filters=f)
 
-        if deltaGrey >= 0.0:
-            dmags_fit[f] = dmags_fit[f] - deltaGrey
-            dmags_obs[f] = dmags_obs[f] - deltaGrey
-        else: # (deltaGrey < 0.0)
-            dmags_fit[f] = dmags_fit[f] - np.mean(dmags_fit[f])
-            dmags_obs[f] = dmags_obs[f] - np.mean(dmags_obs[f])
+        dmags_fit[f] -= deltaGrey
+        dmags_obs[f] -= deltaGrey
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
