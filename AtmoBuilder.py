@@ -1130,7 +1130,7 @@ class AtmoBuilder(object):
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
         if generateFig == True:
-            self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, bins=bins, figName=figName, deltaGrey=deltaGrey,
+            self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, bins=bins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
                                 includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
         ###if returnData == True:
@@ -1140,7 +1140,7 @@ class AtmoBuilder(object):
 
 ### Plotting Functions
 
-    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
+    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
         useLogL=False, includeColorBar=False, plotBoth=False, normalize=True, deltaGrey=0.0, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
@@ -1150,12 +1150,13 @@ class AtmoBuilder(object):
 
         Parameters:
         ----------------------
+        comp2_best: (dictionary), filter-keyed dictionary of best fit values
         parameter: (dtype) [default (if optional)], information
 
         comp1: (string), name of component to regress
         comp1_best: (dictionary), filter-keyed dictionary of best fit values
         comp2: (string), name of component to regress
-        comp2_best: (dictionary), filter-keyed dictionary of best fit values
+        dgbest: (dictionary), filter-keyed dictionary of best fit deltaGrey values
         logL: (dictionary), filter-keyed dictionary of logL arrays
         atmo_obs: (atmo object), observed atmosphere
         bins: (int) [50], number of bins for regression
@@ -1179,6 +1180,7 @@ class AtmoBuilder(object):
 
         comp1_range, pNum1 = self._componentCheck(comp1, bins)
         comp2_range, pNum2 = self._componentCheck(comp2, bins)
+        dgrange, dgnum = self._componentCheck('deltaGrey',bins)
             
         seds, sedkeylist = self._sedFinder(regressionSed)
         
@@ -1234,14 +1236,14 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if useLogL:
-                self._logL(fig, ax[i][1], f, logL, 'imshow', comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, 
-                    comp2_range, comp2_best, normalize=normalize, includeColorBar=includeColorBar)
+                self._logL(fig, ax[i][1], f, logL[f], 'imshow', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
+                    comp2_best[f], deltaGrey, dgbest[f], bins, normalize=normalize, includeColorBar=includeColorBar)
             elif plotBoth:
-                self._logL(fig, ax[i][1], f, logL, 'both', comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, 
-                    comp2_range, comp2_best, normalize=normalize, includeColorBar=includeColorBar)
+                self._logL(fig, ax[i][1], f, logL[f], 'both', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
+                    comp2_best[f], deltaGrey, dgbest[f], bins, normalize=normalize, includeColorBar=includeColorBar)
             else:
-                self._logL(fig, ax[i][1], f, logL, 'contour', comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, 
-                    comp2_range, comp2_best, normalize=normalize, includeColorBar=includeColorBar)
+                self._logL(fig, ax[i][1], f, logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
+                    comp2_best[f], deltaGrey, dgrange[f], bins, normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
             if plotDifference == False:
@@ -1881,13 +1883,22 @@ class AtmoBuilder(object):
 
         return
 
-    def _logL(self, fig, ax, f, logL, plotType, comp1, comp1_obs, comp1_range, comp1_best, comp2, comp2_obs, comp2_range, comp2_best, normalize=True, includeColorBar=False):
+    def _logL(self, fig, ax, f, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, bins,
+        normalize=True, includeColorBar=False):
         """Plots desired logL plot type given figure and axis object along with appropriate data."""
+        comp1_range, pNum1 = self._componentCheck(comp1,bins)
+        comp2_range, pNum2 = self._componentCheck(comp2,bins)
+        dgrange, dgnum = self._componentCheck('deltaGrey', bins)
+
+        if deltaGrey != 0.0:
+            logL = logL[:][:][np.where(dgrange == dgbest)[0][0]]
+        else:
+            logL = logL[:][:][0]
 
         if normalize: 
-            logL = logL[f] / np.median(-logL[f])
+            logL = logL / np.median(-logL)
         else:
-            logL = logL[f]
+            logL = logL
 
         if plotType == 'contour':
             contour = ax.contour(comp1_range, comp2_range, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
@@ -1900,7 +1911,6 @@ class AtmoBuilder(object):
             if includeColorBar:
                 fig.colorbar(im, ax=ax, format='%.0e')
 
-
         elif plotType == 'both':
             contour = ax.contour(comp1_range, comp2_range, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
             ax.scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
@@ -1910,16 +1920,20 @@ class AtmoBuilder(object):
                 fig.colorbar(im, ax=ax, format='%.0e')
 
         # Plot dashed lines at best fit parameters
-        ax.axvline(comp1_best[f], color='black', linestyle='--', label='Fit')
-        ax.axhline(comp2_best[f], color='black', linestyle='--')
+        ax.axvline(comp1_best, color='black', linestyle='--', label='Fit')
+        ax.axhline(comp2_best, color='black', linestyle='--')
 
         # Set y-axis, x-axis limits
         ax.set_xlim(min(comp1_range), max(comp1_range))
         ax.set_ylim(min(comp2_range), max(comp2_range))
 
         # Label axes
-        str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best[f], comp1_obs)
-        str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best[f], comp2_obs)
+        if deltaGrey != 0.0:
+            str1 = r'%s (fit: %.2f, truth: %.2f, $\delta$G: %.2f)' % (comp1, comp1_best, comp1_obs, dgbest)
+            str2 = r'%s (fit: %.2f, truth: %.2f, $\delta$G: %.2f)' % (comp2, comp2_best, comp2_obs, dgbest)
+        else:
+            str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best, comp1_obs)
+            str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best, comp2_obs)
         ax.set_xlabel(str1, fontsize=LABELSIZE)
         ax.set_ylabel(str2, fontsize=LABELSIZE)
 
