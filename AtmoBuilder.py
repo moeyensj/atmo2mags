@@ -1005,6 +1005,20 @@ class AtmoBuilder(object):
             print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(atmo_obs.P[pNum1])
             print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(atmo_obs.P[pNum2])
             print ''
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp1, range1[0], max(range1), bins)
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp2, range2[0], max(range2), bins)
+            print ''
+
+            total = bins*bins
+
+            if deltaGrey != 0.0:
+                print 'Non-zero deltaGrey detected.'
+                print 'Fitting for deltaGrey between -50 and 50 mmags.'
+                print ''
+                total = total*bins
+
+            print 'Regressing %s parameter combinations per filter...' % (total)
+            print ''
         
         P_fit = copy.deepcopy(atmo_obs.P)
         X_fit = copy.deepcopy(atmo_obs.X)
@@ -1033,7 +1047,7 @@ class AtmoBuilder(object):
 
             pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
-            print 'Calculating best parameters for ' + f + ' filter...'
+            print 'Calculating best fit parameters for ' + f + ' filter...'
 
             @pickle_results(os.path.join(PICKLEDIRECTORY, pickleString_temp))
             def run_regression(comp1, comp2, f):
@@ -1074,9 +1088,10 @@ class AtmoBuilder(object):
                     dgbest = deltaGrey
 
                 return comp1best, comp2best, dgbest, logL
-                print 'Completed ' + f + ' filter.'
 
             comp1best[f], comp2best[f], dgbest[f], logL[f]   = run_regression(comp1, comp2, f)
+            
+            print 'Completed ' + f + ' filter.'
 
             if saveLogL:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
