@@ -1083,11 +1083,16 @@ class AtmoBuilder(object):
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
                 print 'Saved LogL for ' + f + ' filter.'
 
-        if verbose:
+        if verbose and deltaGrey == 0.0:
             print ''
-            print 'Best fit parameters (Filter, ' + comp1 + ', ' + comp2 + '):'
+            print r'Best fit parameters (Filter, %s, %s):' % (comp1, comp2)
             for f in filters:
                 print '%s %.2f %.2f' % (f, comp1best[f], comp2best[f])
+        elif verbose and deltaGrey != 0.0:
+            print ''
+            print r'Best fit parameters (Filter, %s, %s, deltaGrey):' % (comp1, comp2)
+            for f in filters:
+                print '%s %.2f %.2f %.2f' % (f, comp1best[f], comp2best[f], dgbest[f])
 
         if generateDphi == True:
 
