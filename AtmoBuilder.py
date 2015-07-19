@@ -1023,6 +1023,7 @@ class AtmoBuilder(object):
         whr = {}
         comp1best = {}
         comp2best = {}
+        dgbest = {}
 
         figName = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
 
@@ -1042,22 +1043,27 @@ class AtmoBuilder(object):
                 comp1best = []
                 comp2best = []
 
-                logL = np.empty((bins, bins))
-                for i in range(len(range1)):
-                    for j in range(len(range2)):
-                        P_fit[pNum1] = range1[i]
-                        P_fit[pNum2] = range2[j]
-                        logL[i, j] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                if deltaGrey != 0.0:
+                    logL = np.ndarray([bins,bins,bins])
+                    dgrange = np.linspace(-50,50,bins)
 
-                logL -= np.max(logL)
-                whr = np.where(logL == np.max(logL))
-                comp1best = range1[whr[0][0]]
-                comp2best = range2[whr[1][0]]
+                    for d,dg in enumerate(dgrange):
+                        for i in range(len(range1)):
+                            for j in range(len(range2)):
+                                P_fit[pNum1] = range1[i]
+                                P_fit[pNum2] = range2[j]
+                                logL[i][j][d] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
 
-                return comp1best, comp2best, logL
+                    logL -= np.amax(logL)
+                    whr = np.where(logL == np.amax(logL))
+                    comp1best = range1[whr[0][0]]
+                    comp2best = range2[whr[1][0]]
+                    dgbest = dgrange[whr[2][0]]
+
+                return comp1best, comp2best, logL, dgbest
                 print 'Completed ' + f + ' filter.'
 
-            comp1best[f], comp2best[f], logL[f]  = run_regression(comp1, comp2, f)
+            comp1best[f], comp2best[f], logL[f], dgbest[f]  = run_regression(comp1, comp2, f)
 
             if saveLogL:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
