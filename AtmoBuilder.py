@@ -1012,8 +1012,11 @@ class AtmoBuilder(object):
             total = bins*bins
 
             if deltaGrey != 0.0:
+
+                dgrange, dgnum = self._componentCheck('deltaGrey',bins)
+
                 print 'Non-zero deltaGrey detected.'
-                print 'Fitting for deltaGrey between -50 and 50 mmags.'
+                print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), bins)
                 print ''
                 total = total*bins
 
@@ -1059,7 +1062,6 @@ class AtmoBuilder(object):
 
                 if deltaGrey != 0.0:
                     logL = np.ndarray([bins,bins,bins])
-                    dgrange = np.linspace(-50,50,bins)
 
                     for d,dg in enumerate(dgrange):
                         for i in range(len(range1)):
@@ -2014,6 +2016,8 @@ class AtmoBuilder(object):
             return np.linspace(0.2,5.0,bins), 4
         elif comp == 'Alpha':
             return np.linspace(0.2,5.0,bins), 5
+        elif comp == 'deltaGrey':
+            return np.linspace(-50.0,50.0,bins), 6
         else:
             raise ValueError(comp + ' is not a valid component')
 
