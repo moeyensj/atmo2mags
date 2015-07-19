@@ -1059,11 +1059,24 @@ class AtmoBuilder(object):
                     comp1best = range1[whr[0][0]]
                     comp2best = range2[whr[1][0]]
                     dgbest = dgrange[whr[2][0]]
+                else:
+                    logL = np.ndarray([bins,bins,1])
+                    for i in range(len(range1)):
+                        for j in range(len(range2)):
+                            P_fit[pNum1] = range1[i]
+                            P_fit[pNum2] = range2[j]
+                            logL[i][j][1] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
-                return comp1best, comp2best, logL, dgbest
+                    logL -= np.amax(logL)
+                    whr = np.where(logL == np.amax(logL))
+                    comp1best = range1[whr[0][0]]
+                    comp2best = range2[whr[1][0]]
+                    dgbest = deltaGrey
+
+                return comp1best, comp2best, dgbest, logL
                 print 'Completed ' + f + ' filter.'
 
-            comp1best[f], comp2best[f], logL[f], dgbest[f]  = run_regression(comp1, comp2, f)
+            comp1best[f], comp2best[f], dgbest[f], logL[f]   = run_regression(comp1, comp2, f)
 
             if saveLogL:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
@@ -1094,10 +1107,10 @@ class AtmoBuilder(object):
                                 comp1_range=range1, comp2_range=range2, bins=bins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
                                 includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
-        if returnData == True:
-            return range1, range2, comp1best, comp2best, logL
-        else:
-            return
+        ###if returnData == True:
+        return comp1best, comp2best, dgbest, logL
+        ##else:
+           # return
 
 ### Plotting Functions
 
