@@ -1095,10 +1095,15 @@ class AtmoBuilder(object):
 
             print 'Completed ' + f + ' filter.'
 
-            if saveLogL:
+            if saveLogL and deltaGrey != 0.0:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
-                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][np.where(dgrange == dgbest[f])[0][0]])
+                print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
+            elif saveLogL and deltaGrey == 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][0])
                 print 'Saved LogL for ' + f + ' filter.'
+
 
         if verbose and deltaGrey == 0.0:
             print ''
