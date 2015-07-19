@@ -1090,7 +1090,7 @@ class AtmoBuilder(object):
                 return comp1best, comp2best, dgbest, logL
 
             comp1best[f], comp2best[f], dgbest[f], logL[f]   = run_regression(comp1, comp2, f)
-            
+
             print 'Completed ' + f + ' filter.'
 
             if saveLogL:
@@ -1123,8 +1123,7 @@ class AtmoBuilder(object):
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
         if generateFig == True:
-            self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, pNum1=pNum1, pNum2=pNum2,
-                                comp1_range=range1, comp2_range=range2, bins=bins, figName=figName, deltaGrey=deltaGrey,
+            self.regressionPlot(comp1, comp1best, comp2, comp2best, logL, atmo_obs, bins=bins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
                                 includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
         ###if returnData == True:
@@ -1134,8 +1133,7 @@ class AtmoBuilder(object):
 
 ### Plotting Functions
 
-    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, pNum1=None, pNum2=None,
-        comp1_range=None, comp2_range=None, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
+    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, logL, atmo_obs, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
         useLogL=False, includeColorBar=False, plotBoth=False, normalize=True, deltaGrey=0.0, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
@@ -1153,10 +1151,6 @@ class AtmoBuilder(object):
         comp2_best: (dictionary), filter-keyed dictionary of best fit values
         logL: (dictionary), filter-keyed dictionary of logL arrays
         atmo_obs: (atmo object), observed atmosphere
-        pNum1: (int) [None], will find parameter number if None from comp1 name
-        pNum2: (int) [None], will find parameter number if None from comp2 name
-        comp1_range: (list of floats) [None], will find parameter range if None
-        comp2_range: (list of floats) [None], will find parameter range if None
         bins: (int) [50], number of bins for regression
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
@@ -1176,9 +1170,8 @@ class AtmoBuilder(object):
         ----------------------
         """
 
-        if any([pNum1,pNum2,comp1_range,comp2_range]) == None:
-            comp1_range, pNum1 = self._componentCheck(comp1, bins)
-            comp2_range, pNum2 = self._componentCheck(comp2, bins)
+        comp1_range, pNum1 = self._componentCheck(comp1, bins)
+        comp2_range, pNum2 = self._componentCheck(comp2, bins)
             
         seds, sedkeylist = self._sedFinder(regressionSed)
         
