@@ -1005,8 +1005,8 @@ class AtmoBuilder(object):
             print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(atmo_obs.P[pNum1])
             print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(atmo_obs.P[pNum2])
             print ''
-            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp1, range1[0], max(range1), bins)
-            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp2, range2[0], max(range2), bins)
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp1, min(range2), max(range1), bins)
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp2, min(range2), max(range2), bins)
             print ''
 
             total = bins*bins
