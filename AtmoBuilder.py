@@ -1028,8 +1028,8 @@ class AtmoBuilder(object):
 
         for f in filters:
 
-            dmags_obs -= deltaGrey
-            
+            dmags_obs[f] -= deltaGrey
+
             pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best parameters for ' + f + ' filter...'
