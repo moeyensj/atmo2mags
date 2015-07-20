@@ -1236,13 +1236,13 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if useLogL:
-                self._logL(fig, ax[i][1], f, logL[f], 'imshow', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
+                self._logL(fig, ax[i][1], logL[f], 'imshow', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
                     comp2_best[f], deltaGrey, dgbest[f], bins, normalize=normalize, includeColorBar=includeColorBar)
             elif plotBoth:
-                self._logL(fig, ax[i][1], f, logL[f], 'both', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
+                self._logL(fig, ax[i][1], logL[f], 'both', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
                     comp2_best[f], deltaGrey, dgbest[f], bins, normalize=normalize, includeColorBar=includeColorBar)
             else:
-                self._logL(fig, ax[i][1], f, logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
+                self._logL(fig, ax[i][1], logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
                     comp2_best[f], deltaGrey, dgrange[f], bins, normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
@@ -1883,7 +1883,7 @@ class AtmoBuilder(object):
 
         return
 
-    def _logL(self, fig, ax, f, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, bins,
+    def _logL(self, fig, ax, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, bins,
         normalize=True, includeColorBar=False):
         """Plots desired logL plot type given figure and axis object along with appropriate data."""
         comp1_range, pNum1 = self._componentCheck(comp1,bins)
