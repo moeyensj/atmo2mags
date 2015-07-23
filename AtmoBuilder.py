@@ -1245,13 +1245,16 @@ class AtmoBuilder(object):
             # Plot contours and true values
             if useLogL:
                 self._logL(fig, ax[i][1], logL[f], 'imshow', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgbest[f], componentBins, normalize=normalize, includeColorBar=includeColorBar)
+                    comp2_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
+                    normalize=normalize, includeColorBar=includeColorBar)
             elif plotBoth:
                 self._logL(fig, ax[i][1], logL[f], 'both', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgbest[f], componentBins, normalize=normalize, includeColorBar=includeColorBar)
+                    comp2_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
+                    normalize=normalize, includeColorBar=includeColorBar)
             else:
                 self._logL(fig, ax[i][1], logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgrange[f], componentBins, normalize=normalize, includeColorBar=includeColorBar)
+                    comp2_best[f], deltaGrey, dgrange[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
+                    normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
             if plotDifference == False:
@@ -1890,12 +1893,12 @@ class AtmoBuilder(object):
 
         return
 
-    def _logL(self, fig, ax, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, bins,
-        normalize=True, includeColorBar=False):
+    def _logL(self, fig, ax, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, componentBins=50,
+        deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False):
         """Plots desired logL plot type given figure and axis object along with appropriate data."""
-        comp1_range, pNum1 = self._componentCheck(comp1,bins)
-        comp2_range, pNum2 = self._componentCheck(comp2,bins)
-        dgrange, dgnum = self._componentCheck('deltaGrey', bins)
+        comp1_range, pNum1 = self._componentCheck(comp1,componentBins)
+        comp2_range, pNum2 = self._componentCheck(comp2,componentBins)
+        dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
 
         if deltaGrey != 0.0:
             logL = logL[:][:][np.where(dgrange == dgbest)[0][0]]
