@@ -950,6 +950,10 @@ class AtmoBuilder(object):
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
 
+    def _computeChiSquared(self, f, dmags_fit, dmags_obs):
+        """Returns array of chi squared values"""
+        return np.sum((dmags_fit[f] - dmags_obs[f])**2 / dmags_obs[f])
+
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='mss', 
         comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, plotLogL=False, plotBoth=True,
         normalize=True, includeColorBar=False, pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
