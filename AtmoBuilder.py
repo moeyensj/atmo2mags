@@ -954,8 +954,8 @@ class AtmoBuilder(object):
         """Returns array of chi squared values"""
         return np.sum((dmags_fit[f] - dmags_obs[f])**2 / dmags_obs[f])
 
-    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, bins=50, deltaGrey=0.0, regressionSed='mss', 
-        comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, plotLogL=False, plotBoth=True,
+    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0],
+        regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, plotLogL=False, plotBoth=True,
         normalize=True, includeColorBar=False, pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
@@ -969,9 +969,11 @@ class AtmoBuilder(object):
         comp2: (string), name of component to regress
         atmo_obs: (atmo object), observed atmosphere
         err: (float) [0.0005], percent error
-        bins: (int) [50], number of bins for regression
+        componentBins: (int) [50], number of bins for regression
         deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
             if greater than zero will subtract as mmag value from delta magnitudes during regression)
+        deltaGreyBins: (int) [50], number of bins for regression over deltaGrey space
+        deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
         generateFig: (boolean) [True], generate a regression plot
@@ -994,8 +996,8 @@ class AtmoBuilder(object):
         self._sedTypeCheck(regressionSed)
 
         # Find range over which to vary parameter and the parameter number for comp1, comp2
-        range1, pNum1 = self._componentCheck(comp1,bins)
-        range2, pNum2 = self._componentCheck(comp2,bins)
+        range1, pNum1 = self._componentCheck(comp1,componentBins)
+        range2, pNum2 = self._componentCheck(comp2,componentBins)
 
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self._sedFinder(regressionSed)
@@ -1009,20 +1011,20 @@ class AtmoBuilder(object):
             print 'Observed atmosphere parameter for ' + comp1 + ': ' + str(atmo_obs.P[pNum1])
             print 'Observed atmosphere parameter for ' + comp2 + ': ' + str(atmo_obs.P[pNum2])
             print ''
-            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp1, min(range2), max(range1), bins)
-            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp2, min(range2), max(range2), bins)
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp1, min(range2), max(range1), componentBins)
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp2, min(range2), max(range2), componentBins)
             print ''
 
-            total = bins*bins
+            total = componentBins*componentBins
 
             if deltaGrey != 0.0:
 
-                dgrange, dgnum = self._componentCheck('deltaGrey',bins)
+                dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
 
                 print 'Non-zero deltaGrey detected.'
-                print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), bins)
+                print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), deltaGreyBins)
                 print ''
-                total = total*bins
+                total = total*deltaGreyBins
 
             print 'Regressing %s parameter combinations per filter...' % (total)
             print ''
@@ -1046,13 +1048,13 @@ class AtmoBuilder(object):
         comp2best = {}
         dgbest = {}
 
-        figName = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString)
+        figName = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString)
 
         for f in filters:
 
             dmags_obs[f] -= deltaGrey
 
-            pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
+            pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best fit parameters for ' + f + ' filter...'
 
@@ -1065,7 +1067,7 @@ class AtmoBuilder(object):
                 comp2best = []
 
                 if deltaGrey != 0.0:
-                    logL = np.ndarray([bins,bins,bins])
+                    logL = np.ndarray([componentBins,componentBins,deltaGreyBins])
 
                     for d,dg in enumerate(dgrange):
                         for i in range(len(range1)):
@@ -1080,7 +1082,7 @@ class AtmoBuilder(object):
                     comp2best = range2[whr[1][0]]
                     dgbest = dgrange[whr[2][0]]
                 else:
-                    logL = np.ndarray([bins,bins,1])
+                    logL = np.ndarray([componentBins,componentBins,1])
                     for i in range(len(range1)):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
@@ -1100,14 +1102,13 @@ class AtmoBuilder(object):
             print 'Completed ' + f + ' filter.'
 
             if saveLogL and deltaGrey != 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString, f=f)
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][np.where(dgrange == dgbest[f])[0][0]])
                 print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
             elif saveLogL and deltaGrey == 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, bins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString, f=f)
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][0])
                 print 'Saved LogL for ' + f + ' filter.'
-
 
         if verbose and deltaGrey == 0.0:
             print ''
@@ -1134,7 +1135,7 @@ class AtmoBuilder(object):
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
         if generateFig == True:
-            self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, bins=bins, figName=figName, deltaGrey=deltaGrey,
+            self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, bins=componentBins, figName=figName, deltaGrey=deltaGrey,
                                 regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
                                 includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
         ###if returnData == True:
@@ -1281,7 +1282,6 @@ class AtmoBuilder(object):
         else:
             ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
             ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
-
             
         ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), 
             fontsize=LABELSIZE, title='Comparison SEDs')
@@ -2039,8 +2039,6 @@ class AtmoBuilder(object):
             return np.linspace(0.2,5.0,bins), 4
         elif comp == 'Alpha':
             return np.linspace(0.2,5.0,bins), 5
-        elif comp == 'deltaGrey':
-            return np.linspace(-50.0,50.0,bins), 6
         else:
             raise ValueError(comp + ' is not a valid component')
 
