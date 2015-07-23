@@ -1135,9 +1135,9 @@ class AtmoBuilder(object):
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
         if generateFig == True:
-            self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, bins=componentBins, figName=figName, deltaGrey=deltaGrey,
-                                regressionSed=regressionSed, comparisonSeds=comparisonSeds, useLogL=useLogL, dmagLimit=dmagLimit,
-                                includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
+            self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
+                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
+                useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
         ###if returnData == True:
         return comp1best, comp2best, dgbest, logL
         ##else:
@@ -1145,8 +1145,9 @@ class AtmoBuilder(object):
 
 ### Plotting Functions
 
-    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, bins=50, regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, 
-        useLogL=False, includeColorBar=False, plotBoth=False, normalize=True, deltaGrey=0.0, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
+    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=50,
+        deltaGreyRange=[-50.0,50.0], regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, useLogL=False, includeColorBar=False, 
+        plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1164,7 +1165,11 @@ class AtmoBuilder(object):
         dgbest: (dictionary), filter-keyed dictionary of best fit deltaGrey values
         logL: (dictionary), filter-keyed dictionary of logL arrays
         atmo_obs: (atmo object), observed atmosphere
-        bins: (int) [50], number of bins for regression
+        componentBins: (int) [50], number of bins for regression
+        deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
+            if greater than zero will subtract as mmag value from delta magnitudes during regression)
+        deltaGreyBins: (int) [50], number of bins for regression over deltaGrey space
+        deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
         plotDifference: (boolean) [True], will plot difference between fit and truth for 
@@ -1173,8 +1178,6 @@ class AtmoBuilder(object):
         includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
         plotBoth: (boolean) [False], plot both logLs and contours
         normalize: (boolean) [True], normalize logL by median when plotting
-        deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
-            if greater than zero will subtract as mmag value from delta magnitudes during regression)
         dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
             are met. 
         filters: (list of strings) [FILTERLIST], list of filters
@@ -1183,9 +1186,9 @@ class AtmoBuilder(object):
         ----------------------
         """
 
-        comp1_range, pNum1 = self._componentCheck(comp1, bins)
-        comp2_range, pNum2 = self._componentCheck(comp2, bins)
-        dgrange, dgnum = self._componentCheck('deltaGrey',bins)
+        comp1_range, pNum1 = self._componentCheck(comp1, componentBins)
+        comp2_range, pNum2 = self._componentCheck(comp2, componentBins)
+        dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
             
         seds, sedkeylist = self._sedFinder(regressionSed)
         
@@ -1242,13 +1245,13 @@ class AtmoBuilder(object):
             # Plot contours and true values
             if useLogL:
                 self._logL(fig, ax[i][1], logL[f], 'imshow', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgbest[f], bins, normalize=normalize, includeColorBar=includeColorBar)
+                    comp2_best[f], deltaGrey, dgbest[f], componentBins, normalize=normalize, includeColorBar=includeColorBar)
             elif plotBoth:
                 self._logL(fig, ax[i][1], logL[f], 'both', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgbest[f], bins, normalize=normalize, includeColorBar=includeColorBar)
+                    comp2_best[f], deltaGrey, dgbest[f], componentBins, normalize=normalize, includeColorBar=includeColorBar)
             else:
                 self._logL(fig, ax[i][1], logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgrange[f], bins, normalize=normalize, includeColorBar=includeColorBar)
+                    comp2_best[f], deltaGrey, dgrange[f], componentBins, normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
             if plotDifference == False:
