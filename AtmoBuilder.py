@@ -948,7 +948,7 @@ class AtmoBuilder(object):
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f)
         dmags_fit[f] -= deltaGrey
     
-        return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2)
+        return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2), dmags_fit
 
     def _computeChiSquared(self, f, dmags_fit, dmags_obs):
         """Returns array of chi squared values"""
