@@ -44,7 +44,7 @@ class Atmo(object):
         transDict['Aerosol'] = self._aerosol(self.wavelen, airmass, parameters[5], aerosolNormCoeff, aerosolNormWavelen)**parameters[4]
         totalTrans = transDict['H2O']*transDict['O2']*transDict['O3']*transDict['Rayleigh']*transDict['Aerosol']
 
-        atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans,wavelen_min=WAVELENMIN,wavelen_max=WAVELENMAX,wavelen_step=WAVELENSTEP)
+        atmo = Bandpass(wavelen=self.wavelen,sb=totalTrans)
 
         self.sb = atmo.sb
         self.sbDict = transDict
