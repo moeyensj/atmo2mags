@@ -1047,6 +1047,7 @@ class AtmoBuilder(object):
         comp1best = {}
         comp2best = {}
         dgbest = {}
+        dmags_fit_best = {}
 
         figName = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString)
 
@@ -1068,36 +1069,40 @@ class AtmoBuilder(object):
 
                 if deltaGrey != 0.0:
                     logL = np.ndarray([componentBins,componentBins,deltaGreyBins])
+                    dmags_fit = np.ndarray([componentBins,componentBins,deltaGreyBins])
 
                     for d,dg in enumerate(dgrange):
                         for i in range(len(range1)):
                             for j in range(len(range2)):
                                 P_fit[pNum1] = range1[i]
                                 P_fit[pNum2] = range2[j]
-                                logL[i][j][d] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                                logL[i][j][d], dmags_fit[i][j][d] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
                     comp2best = range2[whr[1][0]]
                     dgbest = dgrange[whr[2][0]]
+                    dmags_best = dmags_fit[whr[0][0]][whr[1][0]][whr[2][0]]
                 else:
                     logL = np.ndarray([componentBins,componentBins,1])
+                    dmags_fit = np.ndarray([componentBins,componentBins,1])
                     for i in range(len(range1)):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
                             P_fit[pNum2] = range2[j]
-                            logL[i][j][0] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            logL[i][j][0], dmags_fit[i][j][0] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
                     comp2best = range2[whr[1][0]]
                     dgbest = deltaGrey
+                    dmags_best = dmags_fit[whr[0][0]][whr[1][0]][0]
 
                 return comp1best, comp2best, dgbest, logL
 
-            comp1best[f], comp2best[f], dgbest[f], logL[f]   = run_regression(comp1, comp2, f)
+            comp1best[f], comp2best[f], dgbest[f], logL[f] = run_regression(comp1, comp2, f)
 
             print 'Completed ' + f + ' filter.'
 
