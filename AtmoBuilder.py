@@ -950,13 +950,13 @@ class AtmoBuilder(object):
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2), dmags_fit[f]
 
-    def _computeChiSquared(self, f, dmags_fit, dmags_obs):
+    def _computeChiSquared(self, dmags_fit, dmags_obs):
         """Returns array of chi squared values"""
-        return np.sum((dmags_fit[f] - dmags_obs[f])**2 / dmags_obs[f])
+        return np.sum((dmags_fit - dmags_obs)**2 / dmags_obs)
 
-    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0],
-        regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, plotLogL=False, plotBoth=True,
-        normalize=True, includeColorBar=False, pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
+    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
+        computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, 
+        plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -1048,6 +1048,8 @@ class AtmoBuilder(object):
         comp2best = {}
         dgbest = {}
         dmagsbest = {}
+        chisquared = {}
+        chisquaredbest = {}
 
         figName = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString)
 
@@ -1068,8 +1070,51 @@ class AtmoBuilder(object):
                 comp2best = []
                 dgbest = []
                 dmagsbest = []
+                chisquared = []
+                chisquaredbest = []
 
-                if deltaGrey != 0.0:
+                if deltaGrey != 0.0 and computeChiSquared:
+                    logL = np.ndarray([componentBins,componentBins,deltaGreyBins])
+                    dmags_fit = np.ndarray([componentBins,componentBins,deltaGreyBins,len(seds)])
+                    chisquared = np.ndarray([componentBins,componentBins,deltaGreyBins])
+
+                    for d,dg in enumerate(dgrange):
+                        for i in range(len(range1)):
+                            for j in range(len(range2)):
+                                P_fit[pNum1] = range1[i]
+                                P_fit[pNum2] = range2[j]
+                                logL[i][j][d], dmags_fit[i][j][d][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                                chisquared[i][j][d] = self._computeChiSquared(dmags_fit[i][j][d], dmags_obs[f])
+
+                    logL -= np.amax(logL)
+                    whr = np.where(logL == np.amax(logL))
+                    comp1best = range1[whr[0][0]]
+                    comp2best = range2[whr[1][0]]
+                    dgbest = dgrange[whr[2][0]]
+                    dmagsbest = dmags_fit[whr[0][0]][whr[1][0]][whr[2][0]]
+                    chisquaredbest = chisquared[whr[0][0]][whr[1][0]][whr[2][0]]
+
+                elif deltaGrey == 0 and computeChiSquared:
+                    logL = np.ndarray([componentBins,componentBins,1])
+                    dmags_fit = np.ndarray([componentBins,componentBins,1,len(seds)])
+                    chisquared = np.ndarray([componentBins,componentBins,1])
+
+                    for i in range(len(range1)):
+                        for j in range(len(range2)):
+                            P_fit[pNum1] = range1[i]
+                            P_fit[pNum2] = range2[j]
+                            logL[i][j][0], dmags_fit[i][j][0][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            chisquared[i][j][0] = self._computeChiSquared(dmags_fit[i][j][0], dmags_obs[f])
+
+                    logL -= np.amax(logL)
+                    whr = np.where(logL == np.amax(logL))
+                    comp1best = range1[whr[0][0]]
+                    comp2best = range2[whr[1][0]]
+                    dgbest = deltaGrey
+                    dmagsbest = dmags_fit[whr[0][0]][whr[1][0]][0]
+                    chisquaredbest = chisquared[whr[0][0]][whr[1][0]][0]
+
+                elif deltaGrey != 0.0 and computeChiSquared == False:
                     logL = np.ndarray([componentBins,componentBins,deltaGreyBins])
                     dmags_fit = np.ndarray([componentBins,componentBins,deltaGreyBins,len(seds)])
 
@@ -1103,9 +1148,9 @@ class AtmoBuilder(object):
                     dgbest = deltaGrey
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]][0]
 
-                return comp1best, comp2best, dgbest, logL, dmagsbest
+                return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
 
-            comp1best[f], comp2best[f], dgbest[f], logL[f], dmagsbest[f] = run_regression(comp1, comp2, f)
+            comp1best[f], comp2best[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp1, comp2, f)
 
             print 'Completed ' + f + ' filter.'
 
@@ -1147,7 +1192,7 @@ class AtmoBuilder(object):
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
         ###if returnData == True:
-        return comp1best, comp2best, dgbest, logL, dmagsbest
+        return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
         ##else:
            # return
 
