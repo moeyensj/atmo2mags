@@ -1191,10 +1191,8 @@ class AtmoBuilder(object):
             self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
-        ###if returnData == True:
+            
         return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
-        ##else:
-           # return
 
 ### Plotting Functions
 
