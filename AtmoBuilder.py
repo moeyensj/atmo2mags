@@ -4,6 +4,7 @@ import os
 import copy
 import matplotlib.pyplot as plt
 import matplotlib.patches as mp
+import scipy.stats as stats
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 
@@ -952,7 +953,9 @@ class AtmoBuilder(object):
 
     def _computeChiSquared(self, dmags_fit, dmags_obs):
         """Returns array of chi squared values"""
-        return np.sum((dmags_fit - dmags_obs)**2 / dmags_obs)
+        #return np.sum((dmags_fit - dmags_obs)**2 / dmags_obs)
+        a,b = stats.chisquare(dmags_fit, f_exp=dmags_obs)
+        return a
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, 
@@ -1191,7 +1194,7 @@ class AtmoBuilder(object):
             self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
-            
+
         return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
 
 ### Plotting Functions
