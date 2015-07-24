@@ -1089,7 +1089,7 @@ class AtmoBuilder(object):
 
                 else:
                     logL = np.ndarray([componentBins,componentBins,1])
-                    dmags_fit = np.ndarray([componentBins,componentBins,1,1])
+                    dmags_fit = np.ndarray([componentBins,componentBins,1,len(seds)])
                     for i in range(len(range1)):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
