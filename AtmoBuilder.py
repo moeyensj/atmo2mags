@@ -4,7 +4,6 @@ import os
 import copy
 import matplotlib.pyplot as plt
 import matplotlib.patches as mp
-import scipy.stats as stats
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 
@@ -951,11 +950,9 @@ class AtmoBuilder(object):
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2), dmags_fit[f]
 
-    def _computeChiSquared(self, dmags_fit, dmags_obs):
+    def _computeChiSquared(self, dmags_fit, dmags_obs, err):
         """Returns array of chi squared values"""
-        #return np.sum((dmags_fit - dmags_obs)**2 / dmags_obs)
-        a,b = stats.chisquare(dmags_fit, f_exp=dmags_obs)
-        return a
+        return np.sum(((dmags_fit - dmags_obs) / err)**2)
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, 
@@ -1087,7 +1084,7 @@ class AtmoBuilder(object):
                                 P_fit[pNum1] = range1[i]
                                 P_fit[pNum2] = range2[j]
                                 logL[i][j][d], dmags_fit[i][j][d][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
-                                chisquared[i][j][d] = self._computeChiSquared(dmags_fit[i][j][d], dmags_obs[f])
+                                chisquared[i][j][d] = self._computeChiSquared(dmags_fit[i][j][d], dmags_obs[f], err)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1098,16 +1095,16 @@ class AtmoBuilder(object):
                     chisquaredbest = chisquared[whr[0][0]][whr[1][0]][whr[2][0]]
 
                 elif deltaGrey == 0 and computeChiSquared:
-                    logL = np.ndarray([componentBins,componentBins,1])
-                    dmags_fit = np.ndarray([componentBins,componentBins,1,len(seds)])
-                    chisquared = np.ndarray([componentBins,componentBins,1])
+                    logL = np.ndarray([componentBins,componentBins])
+                    dmags_fit = np.ndarray([componentBins,componentBins,len(seds)])
+                    chisquared = np.ndarray([componentBins,componentBins])
 
                     for i in range(len(range1)):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
                             P_fit[pNum2] = range2[j]
-                            logL[i][j][0], dmags_fit[i][j][0][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
-                            chisquared[i][j][0] = self._computeChiSquared(dmags_fit[i][j][0], dmags_obs[f])
+                            logL[i][j], dmags_fit[i][j][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            chisquared[i][j] = self._computeChiSquared(dmags_fit[i][j], dmags_obs[f], err)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1115,7 +1112,7 @@ class AtmoBuilder(object):
                     comp2best = range2[whr[1][0]]
                     dgbest = deltaGrey
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]][0]
-                    chisquaredbest = chisquared[whr[0][0]][whr[1][0]][0]
+                    chisquaredbest = chisquared[whr[0][0]][whr[1][0]]
 
                 elif deltaGrey != 0.0 and computeChiSquared == False:
                     logL = np.ndarray([componentBins,componentBins,deltaGreyBins])
@@ -1136,13 +1133,13 @@ class AtmoBuilder(object):
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]][whr[2][0]]
 
                 else:
-                    logL = np.ndarray([componentBins,componentBins,1])
-                    dmags_fit = np.ndarray([componentBins,componentBins,1,len(seds)])
+                    logL = np.ndarray([componentBins,componentBins])
+                    dmags_fit = np.ndarray([componentBins,componentBins,len(seds)])
                     for i in range(len(range1)):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
                             P_fit[pNum2] = range2[j]
-                            logL[i][j][0], dmags_fit[i][j][0][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            logL[i][j], dmags_fit[i][j][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1210,12 +1207,12 @@ class AtmoBuilder(object):
 
         Parameters:
         ----------------------
-        comp2_best: (dictionary), filter-keyed dictionary of best fit values
         parameter: (dtype) [default (if optional)], information
 
         comp1: (string), name of component to regress
         comp1_best: (dictionary), filter-keyed dictionary of best fit values
         comp2: (string), name of component to regress
+        comp2_best: (dictionary), filter-keyed dictionary of best fit values
         dgbest: (dictionary), filter-keyed dictionary of best fit deltaGrey values
         logL: (dictionary), filter-keyed dictionary of logL arrays
         atmo_obs: (atmo object), observed atmosphere
@@ -1946,7 +1943,7 @@ class AtmoBuilder(object):
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
-
+            
     def _logL(self, fig, ax, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, componentBins=50,
         deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False):
         """Plots desired logL plot type given figure and axis object along with appropriate data."""
@@ -1954,10 +1951,12 @@ class AtmoBuilder(object):
         comp2_range, pNum2 = self._componentCheck(comp2,componentBins)
         dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
 
+        
         if deltaGrey != 0.0:
             logL = logL[:][:][np.where(dgrange == dgbest)[0][0]]
         else:
-            logL = logL[:][:][0]
+            logL = logL
+        
 
         if normalize: 
             logL = logL / np.median(-logL)
@@ -2002,7 +2001,6 @@ class AtmoBuilder(object):
         ax.set_ylabel(str2, fontsize=LABELSIZE)
 
         return
-
 
 ### Secondary Functions
     
