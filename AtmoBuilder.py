@@ -1085,8 +1085,8 @@ class AtmoBuilder(object):
                             for j in range(len(range2)):
                                 P_fit[pNum1] = range1[i]
                                 P_fit[pNum2] = range2[j]
-                                logL[i][j][d], dmags_fit[i][j][d][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
-                                chisquared[i][j][d] = self._computeChiSquared(dmags_fit[i][j][d], dmags_obs[f], err)
+                                logL[i,j,d], dmags_fit[i,j,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                                chisquared[i,j,d] = self._computeChiSquared(dmags_fit[i,j,d], dmags_obs[f], err)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1105,8 +1105,8 @@ class AtmoBuilder(object):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
                             P_fit[pNum2] = range2[j]
-                            logL[i][j], dmags_fit[i][j][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
-                            chisquared[i][j] = self._computeChiSquared(dmags_fit[i][j], dmags_obs[f], err)
+                            logL[i,j], dmags_fit[i,j,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            chisquared[i,j] = self._computeChiSquared(dmags_fit[i,j], dmags_obs[f], err)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1125,7 +1125,7 @@ class AtmoBuilder(object):
                             for j in range(len(range2)):
                                 P_fit[pNum1] = range1[i]
                                 P_fit[pNum2] = range2[j]
-                                logL[i][j][d], dmags_fit[i][j][d][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                                logL[i,j,d], dmags_fit[i,j,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1141,7 +1141,7 @@ class AtmoBuilder(object):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
                             P_fit[pNum2] = range2[j]
-                            logL[i][j], dmags_fit[i][j][:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            logL[i,j], dmags_fit[i,j,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
