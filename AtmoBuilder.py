@@ -27,6 +27,7 @@ SIMSSEDLIBRARY = 'SIMS_SED_LIBRARY_DIR'
 PICKLEDIRECTORY = 'pickles/'
 PLOTDIRECTORY = 'plots/'
 LOGLDIRECTORY = 'logls/'
+CHISQUAREDDIRECTORY = 'chisquared/'
 
 SEDTYPES = ['mss','qsos','gals','sns','wds','mlts']
 FILTERLIST = ['u','g','r','i','z','y4']
@@ -956,7 +957,8 @@ class AtmoBuilder(object):
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, 
-        plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
+        saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, pickleString='', 
+        filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -1159,13 +1161,24 @@ class AtmoBuilder(object):
             if saveLogL and deltaGrey != 0.0:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
-                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][np.where(dgrange == dgbest[f])[0][0]])
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:,:,np.where(dgrange == dgbest[f])[0][0]])
                 print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
             elif saveLogL and deltaGrey == 0.0:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
-                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:])
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:,:])
                 print 'Saved LogL for ' + f + ' filter.'
+
+            if saveChiSquared and deltaGrey != 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:,np.where(dgrange == dgbest[f])[0][0]])
+                print 'Saved Chi-Squared at best fit deltaGrey for ' + f + ' filter.'
+            elif saveChiSquared and deltaGrey == 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:])
+                print 'Saved Chi-Squared for ' + f + ' filter.'
 
         if verbose and deltaGrey == 0.0:
             print ''
