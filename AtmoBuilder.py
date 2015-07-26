@@ -1051,13 +1051,15 @@ class AtmoBuilder(object):
         chisquared = {}
         chisquaredbest = {}
 
-        figName = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString)
+        figName = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, 
+            deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString)
 
         for f in filters:
 
             dmags_obs[f] -= deltaGrey
 
-            pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString, pickle=True, f=f)
+            pickleString_temp = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, 
+                deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best fit parameters for ' + f + ' filter...'
 
@@ -1155,12 +1157,14 @@ class AtmoBuilder(object):
             print 'Completed ' + f + ' filter.'
 
             if saveLogL and deltaGrey != 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString, f=f)
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][np.where(dgrange == dgbest[f])[0][0]])
                 print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
             elif saveLogL and deltaGrey == 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, add=pickleString, f=f)
-                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:][0])
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:][:])
                 print 'Saved LogL for ' + f + ' filter.'
 
         if verbose and deltaGrey == 0.0:
@@ -1304,7 +1308,7 @@ class AtmoBuilder(object):
                     normalize=normalize, includeColorBar=includeColorBar)
             else:
                 self._logL(fig, ax[i][1], logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
-                    comp2_best[f], deltaGrey, dgrange[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
+                    comp2_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
                     normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
@@ -1953,15 +1957,16 @@ class AtmoBuilder(object):
 
         
         if deltaGrey != 0.0:
+            print logL.shape
             logL = logL[:][:][np.where(dgrange == dgbest)[0][0]]
         else:
             logL = logL
-        
 
         if normalize: 
             logL = logL / np.median(-logL)
         else:
             logL = logL
+
 
         if plotType == 'contour':
             contour = ax.contour(comp1_range, comp2_range, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
@@ -2055,7 +2060,7 @@ class AtmoBuilder(object):
             figName = None
         return figName
 
-    def _regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, add='', 
+    def _regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange, add='', 
         pickle=False, f=None):
         """Generates a string for pickle files. """
         X_obs = 'X' + str(int(atmo.X*10))
@@ -2063,8 +2068,10 @@ class AtmoBuilder(object):
         comps = comp1 + '_' + comp2
         X_std = 'XSTD' + str(int(STDAIRMASS*10))
         DG = 'DG' + str(int(deltaGrey*10.0))
+        DGR = 'DGR' + str(int(deltaGreyRange[0])) + str(int(deltaGreyRange[1]))
         ERR = 'E' + str(int(err*1000))  
         REG = ''
+        dgbins = str(deltaGreyBins) + 'dgb'
         bins = str(bins) + 'b'
         ext = ''
 
@@ -2081,7 +2088,7 @@ class AtmoBuilder(object):
         else:
             ext = add
 
-        return '%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, ERR, REG, bins, ext)
+        return '%s_%s_%s_%s_%s_%s_%s_%s_%s_%s%s' % (X_obs, P_obs, comps, X_std, DG, DGR, ERR, REG, dgbins, bins, ext)
 
     def _componentCheck(self, comp, bins):
         """Returns a range of values of length bins for a given component."""
