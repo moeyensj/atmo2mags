@@ -1158,8 +1158,6 @@ class AtmoBuilder(object):
 
             comp1best[f], comp2best[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp1, comp2, f)
 
-            print 'Completed ' + f + ' filter.'
-
             if saveLogL and deltaGrey != 0.0:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
@@ -1181,6 +1179,9 @@ class AtmoBuilder(object):
                     add=pickleString, f=f)
                 np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:])
                 print 'Saved Chi-Squared for ' + f + ' filter.'
+
+            print 'Completed ' + f + ' filter.'
+            print ''
 
         if verbose and deltaGrey == 0.0:
             print ''
@@ -1215,7 +1216,10 @@ class AtmoBuilder(object):
             self.chiSquaredPlot(comp1, comp1best, comp2, comp2best, dgbest, deltaGrey, chisquared, componentBins=componentBins, deltaGreyBins=deltaGreyBins, 
                 deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
 
-        return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+        if returnData:
+            return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+        else:
+            return
 
 ### Plotting Functions
 
