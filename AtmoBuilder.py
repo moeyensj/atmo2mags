@@ -1211,6 +1211,10 @@ class AtmoBuilder(object):
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
 
+        if plotChiSquared:
+            self.chiSquaredPlot(comp1, comp1best, comp2, comp2best, dgbest, deltaGrey, chisquared, componentBins=componentBins, deltaGreyBins=deltaGreyBins, 
+                deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
+
         return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
 
 ### Plotting Functions
@@ -1962,6 +1966,44 @@ class AtmoBuilder(object):
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
+
+    def chiSquaredPlot(self, comp1, comp1best, comp2, comp2best, dgbest, deltaGrey, chisquared, componentBins=50, deltaGreyBins=50, deltaGreyRange=[-50,50],
+        filters=FILTERLIST, figName=None):
+        dgrange = np.linspace(deltaGreyRange[0],deltaGreyRange[1],deltaGreyBins)
+        range1, pnum1 = self._componentCheck(comp1,componentBins)
+        range2, pnum2 = self._componentCheck(comp2,componentBins)
+
+        rows, columns = self._subplotFinder(filters)
+
+        fig,ax = plt.subplots(rows, columns)
+        fig.set_size_inches(10,len(filters)*2.5)
+        fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
+        fig.suptitle(r'Chi-Squared for $\delta$Grey Fitting', fontsize=TITLESIZE)
+
+        comp1bestloc = {}
+        comp2bestloc = {}
+
+        for f in filters:
+            comp1bestloc[f] = np.where(comp1best[f] == range1)[0][0]
+            comp2bestloc[f] = np.where(comp2best[f] == range2)[0][0]
+
+        filters = np.reshape(filters, (rows,columns))
+
+        for i in range(rows):
+            for j in range(columns):
+                f = filters[i][j]
+                ax[i][j].plot(dgrange, chisquared[f][comp1bestloc[f]][comp2bestloc[f]], label='chi squared')
+                ax[i][j].set_xlabel(r'$\delta$Grey (mmags)')
+                ax[i][j].axvline(dgbest[f],color='black',ls='--',label='dG best')
+                ax[i][j].legend()
+                ax[i][j].set_ylabel('chi squared: ' + f)
+
+        if figName != None:
+            title = figName + "_chiPlot.png"
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
+
+        return
+            
             
     def _logL(self, fig, ax, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, componentBins=50,
         deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False):
