@@ -1957,8 +1957,7 @@ class AtmoBuilder(object):
 
         
         if deltaGrey != 0.0:
-            print logL.shape
-            logL = logL[:][:][np.where(dgrange == dgbest)[0][0]]
+            logL = logL[:,:,(np.where(dgrange == dgbest))[0][0]]
         else:
             logL = logL
 
