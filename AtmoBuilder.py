@@ -956,7 +956,7 @@ class AtmoBuilder(object):
         return np.sum(((dmags_fit - dmags_obs) / err)**2)
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
-        computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, generateFig=True, generateDphi=True, saveLogL=True, useLogL=False, 
+        computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
         saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, pickleString='', 
         filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
         """
@@ -978,10 +978,12 @@ class AtmoBuilder(object):
         deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
-        generateFig: (boolean) [True], generate a regression plot
-        generateDphi: (boolean) [True], generate a dphi and ddphi plot
+        plotDmags: (boolean) [True], generate a regression plot
+        plotDphi: (boolean) [True], generate a dphi and ddphi plot
         saveLogL: (boolean) [True], save logL as txt file
-        useLogL: (boolean) [False], use LogL to replace contour plots
+        useLogL: (boolean) [False], use logL to replace contour plots
+        saveChiSquared: (boolean) [True], save chi-squared as txt file
+        plotChiSquared: (boolean) [True], generate a plot of chi-squared
         plotLogL: (boolean) [False], plot individual logLs and contours seperately
         plotBoth: (boolean) [False], plot both logLs and contours
         normalize: (boolean) [True], normalize logL by median when plotting
@@ -1191,7 +1193,7 @@ class AtmoBuilder(object):
             for f in filters:
                 print '%s %.2f %.2f %.2f' % (f, comp1best[f], comp2best[f], dgbest[f])
 
-        if generateDphi == True:
+        if plotDphi:
 
             throughput_fit = {}
 
@@ -1204,7 +1206,7 @@ class AtmoBuilder(object):
             self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
-        if generateFig == True:
+        if plotDmags:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
