@@ -955,7 +955,7 @@ class AtmoBuilder(object):
         """Returns array of chi squared values"""
         return np.sum(((dmags_fit - dmags_obs) / err)**2)
 
-    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=0.005, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
+    def computeAtmoFit(self, comp1, comp2, atmo_obs, err=5.0, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
         saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, pickleString='', 
         filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
@@ -970,7 +970,7 @@ class AtmoBuilder(object):
         comp1: (string), name of component to regress
         comp2: (string), name of component to regress
         atmo_obs: (atmo object), observed atmosphere
-        err: (float) [0.0005], percent error
+        err: (float) [5.00], err in millimagnitudes
         componentBins: (int) [50], number of bins for regression
         deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
             if greater than zero will subtract as mmag value from delta magnitudes during regression)
@@ -2129,7 +2129,7 @@ class AtmoBuilder(object):
         X_std = 'XSTD' + str(int(STDAIRMASS*10))
         DG = 'DG' + str(int(deltaGrey*10.0))
         DGR = 'DGR' + str(int(deltaGreyRange[0])) + str(int(deltaGreyRange[1]))
-        ERR = 'E' + str(int(err*1000))  
+        ERR = 'E' + str(int(err))  
         REG = ''
         dgbins = str(deltaGreyBins) + 'dgb'
         bins = str(bins) + 'b'
