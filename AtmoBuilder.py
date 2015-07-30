@@ -1996,12 +1996,14 @@ class AtmoBuilder(object):
         for i in range(rows):
             for j in range(columns):
                 f = filters[i][j]
-                ax[i][j].plot(dgrange, chisquared[f][comp1bestloc[f]][comp2bestloc[f]], label='chi squared')
-                ax[i][j].set_xlabel(r'$\delta$Grey (mmags)',size=LABELSIZE)
-                ax[i][j].axvline(dgbest[f],color='black',ls='--',label='dG best')
-                ax[i][j].legend()
-                ax[i][j].set_ylabel(r'$\chi^{2}$: ' + f)
-
+                ax[i][j].plot(dgrange, chisquared[f][comp1bestloc[f], comp2bestloc[f]], color='black', label=r'$\chi^{2}$')
+                ax[i][j].set_ylabel(r'$\chi^{2}$: ' + f, fontsize=LABELSIZE)
+                ax[i][j].set_xlabel(r'$\delta$Grey (mmags)', fontsize=LABELSIZE)
+                ax[i][j].set_xlim(deltaGreyRange[0],deltaGreyRange[1])
+                ax[i][j].axvline(dgbest[f], color='black', ls='--', label=r'$\delta$G fit: %.2f' % (dgbest[f]))
+                ax[i][j].axvline(deltaGrey, color='blue', ls='--', label=r'$\delta$G truth: %.2f' % (deltaGrey))
+                ax[i][j].legend(loc='best')
+                
         if figName != None:
             title = figName + "_chiPlot.png"
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
