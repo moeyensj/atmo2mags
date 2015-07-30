@@ -1997,10 +1997,10 @@ class AtmoBuilder(object):
             for j in range(columns):
                 f = filters[i][j]
                 ax[i][j].plot(dgrange, chisquared[f][comp1bestloc[f]][comp2bestloc[f]], label='chi squared')
-                ax[i][j].set_xlabel(r'$\delta$Grey (mmags)')
+                ax[i][j].set_xlabel(r'$\delta$Grey (mmags)',size=LABELSIZE)
                 ax[i][j].axvline(dgbest[f],color='black',ls='--',label='dG best')
                 ax[i][j].legend()
-                ax[i][j].set_ylabel('chi squared: ' + f)
+                ax[i][j].set_ylabel(r'$\chi^{2}$: ' + f)
 
         if figName != None:
             title = figName + "_chiPlot.png"
