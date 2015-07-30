@@ -54,4 +54,4 @@ class Atmo(object):
     def _aerosol(self, wavelength, airmass, alpha, aerosolNormCoeff, aerosolNormWavelen):
         """Standard aerosol transmission function, returns array of transmission values over a range of
             wavelengths."""
-        return np.e**(-aerosolNormCoeff * airmass * (aerosolNormWavelen / wavelength) * alpha)
+        return np.e**(-aerosolNormCoeff * airmass * (aerosolNormWavelen / wavelength) ** alpha)
