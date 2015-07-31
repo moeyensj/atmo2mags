@@ -1223,7 +1223,7 @@ class AtmoBuilder(object):
 
 ### Plotting Functions
 
-    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=50,
+    def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=51,
         deltaGreyRange=[-50.0,50.0], regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, useLogL=False, includeColorBar=False, 
         plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """
@@ -1246,7 +1246,7 @@ class AtmoBuilder(object):
         componentBins: (int) [50], number of bins for regression
         deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
             if greater than zero will subtract as mmag value from delta magnitudes during regression)
-        deltaGreyBins: (int) [50], number of bins for regression over deltaGrey space
+        deltaGreyBins: (int) [51], number of bins for regression over deltaGrey space
         deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
