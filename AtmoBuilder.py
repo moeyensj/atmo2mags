@@ -1316,8 +1316,8 @@ class AtmoBuilder(object):
             fit = self.buildAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
-            self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed)
-            self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, truth=True)
+            self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey=deltaGrey)
+            self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey=deltaGrey, truth=True)
 
             # Plot parameter space regression plots
             # Plot contours and true values
@@ -1376,7 +1376,7 @@ class AtmoBuilder(object):
 
         return
 
-    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, truth=False, comparisonSed=False, dmagLimit=True):
+    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, deltaGrey=0.0, truth=False, comparisonSed=False, dmagLimit=True):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
         # Check if valid sedtype, check if sed data read:
         self._sedTypeCheck(sedtype)
@@ -1399,11 +1399,13 @@ class AtmoBuilder(object):
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std)
+            dmags = self.dmags(mags, mags_std) 
+            dmags[f] = dmags[f] - deltaGrey
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
+                dmags2[f] = dmags2[f] - deltaGrey
 
             metallicity = np.array(self.msMet)
             logg = np.array(self.msLogg)
@@ -1439,10 +1441,12 @@ class AtmoBuilder(object):
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+            dmags[f] = dmags[f] - deltaGrey
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
+                dmags2[f] = dmags2[f] - deltaGrey
 
             redshift = self.qsoRedshifts
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -1474,10 +1478,12 @@ class AtmoBuilder(object):
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+            dmags[f] = dmags[f] - deltaGrey
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
+                dmags2[f] = dmags2[f] - deltaGrey
 
             gallist = self.galList
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
@@ -1511,10 +1517,12 @@ class AtmoBuilder(object):
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+            dmags[f] = dmags[f] - deltaGrey
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
+                dmags2[f] = dmags2[f] - deltaGrey
 
             mltlist = self.mltList
             mlist = self.mList
@@ -1574,10 +1582,12 @@ class AtmoBuilder(object):
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+            dmags[f] = dmags[f] - deltaGrey
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
+                dmags2[f] = dmags2[f] - deltaGrey
 
             wdslist = self.wdList
             hlist = self.wdListH
@@ -1624,10 +1634,12 @@ class AtmoBuilder(object):
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std)
+            dmags[f] = dmags[f] - deltaGrey
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
                 dmags2 = self.dmags(mags2, mags_std)
+                dmags2[f] = dmags2[f] - deltaGrey
  
             snlist = self.snList
             redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
