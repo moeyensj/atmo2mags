@@ -1316,7 +1316,7 @@ class AtmoBuilder(object):
             fit = self.buildAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
-            self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey=deltaGrey)
+            self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey=dgbest[f])
             self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey=deltaGrey, truth=True)
 
             # Plot parameter space regression plots
