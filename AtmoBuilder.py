@@ -1224,7 +1224,7 @@ class AtmoBuilder(object):
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=51,
-        deltaGreyRange=[-50.0,50.0], regressionSed='kurucz', comparisonSeds=SEDTYPES, plotDifference=True, useLogL=False, includeColorBar=False, 
+        deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifference=True, useLogL=False, includeColorBar=False, 
         plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
@@ -1303,7 +1303,7 @@ class AtmoBuilder(object):
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
-        P_fit = copy.deepcopy(atmo_obs.P)
+        P_fit = copy.deepcopy(atmo_obs.P) 
         X_fit = copy.deepcopy(atmo_obs.X)
 
         # For each filter plot dmags and regression contours
