@@ -173,7 +173,7 @@ class AtmoBuilder(object):
         dictionaries and a standard filter-keyed bandpass dictionary.
 
     dmagPlot: 
-        Given two filter-keyed bandpass dictionaries and a valid SED type, will plot dmags. 
+        Given two filter-keyed bandpss dictionaries and a valid SED type, will plot dmags. 
     """
     def __init__(self):
         # List of strings containing component names
@@ -1225,7 +1225,7 @@ class AtmoBuilder(object):
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=51,
         deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifference=True, useLogL=False, includeColorBar=False, 
-        plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None,):
+        plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1337,16 +1337,13 @@ class AtmoBuilder(object):
             # Plot dmags for other SEDS:
             if plotDifference == False:
                 for s in comparisonSeds:
-                    if s != regressionSed:
-                        self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, dmagLimit=False)
-
-                for s in comparisonSeds:
-                    if s != regressionSed:
-                        self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, dmagLimit=False, truth=True)
+                    #if s != regressionSed:
+                    self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, dmagLimit=False)
+                    self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, dmagLimit=False, truth=True)
             else:
                 for s in comparisonSeds:
-                    if s != regressionSed:
-                        self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs)
+                    #if s != regressionSed:
+                    self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs)
 
             if dmagLimit:
                 self._axisLimiter(ax[i][0], [-2.0,2.0])
