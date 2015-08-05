@@ -1339,8 +1339,8 @@ class AtmoBuilder(object):
             if plotDifference == False:
                 for s in comparisonSeds:
                     #if s != regressionSed:
-                    self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, dmagLimit=False)
-                    self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, comparisonSed=True, dmagLimit=False, truth=True)
+                    self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, deltaGrey=dgbest[f], comparisonSed=True, dmagLimit=False)
+                    self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, deltaGrey=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
                     col3Title = r'Comparison SED $\Delta$mmags'
             else:
                 for s in comparisonSeds:
