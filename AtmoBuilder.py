@@ -957,8 +957,9 @@ class AtmoBuilder(object):
 
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=5.0, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
-        saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, plotDifference=True,
-        pickleString='', filters=FILTERLIST, dmagLimit=True, returnData=False, verbose=True):
+        saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
+        plotDifferenceRegression=False, plotDifferenceComparison=True, pickleString='', filters=FILTERLIST, dmagLimit=True, 
+        returnData=False, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -988,7 +989,8 @@ class AtmoBuilder(object):
         plotBoth: (boolean) [False], plot both logLs and contours
         normalize: (boolean) [True], normalize logL by median when plotting
         includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
-        plotDifference: (boolean) [True], plot ddmmags in third column instead of dmmags
+        plotDifferenceRegression: (boolean) [False], plot ddmmags for regression SEDs
+        plotDifferenceComparison: (boolean) [True], plot ddmmags for comparison SEDs
         pickleString: (string) [''], add custom string to plot titles
         filters: (list of strings) [FILTERLIST], list of filters
         dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
@@ -1211,8 +1213,8 @@ class AtmoBuilder(object):
         if plotDmags:
             self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
-                plotDifference=plotDifference, useLogL=useLogL, dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, 
-                plotBoth=plotBoth, filters=filters, verbose=verbose)
+                plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
+                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
 
         if plotChiSquared:
             self.chiSquaredPlot(comp1, comp1best, comp2, comp2best, dgbest, deltaGrey, chisquared, componentBins=componentBins, deltaGreyBins=deltaGreyBins, 
@@ -1226,8 +1228,8 @@ class AtmoBuilder(object):
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=51,
-        deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifference=True, useLogL=False, includeColorBar=False, 
-        plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
+        deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
+        useLogL=False, includeColorBar=False, plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1252,7 +1254,8 @@ class AtmoBuilder(object):
         deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
         regressionSed: (string) ['mss'], SED type to run regress over
         comparisonSeds: (list of strings) [SEDTYPES], 
-        plotDifference: (boolean) [True], plot ddmmags in third column instead of dmmags
+        plotDifferenceRegression: (boolean) [False], plot ddmmags for regression SEDs
+        plotDifferenceComparison: (boolean) [True], plot ddmmags for comparison SEDs
         useLogL: (boolean) [False], use LogL to replace contour plots
         includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
         plotBoth: (boolean) [False], plot both logLs and contours
@@ -1317,8 +1320,15 @@ class AtmoBuilder(object):
             fit = self.buildAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
-            self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f])
-            self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True)
+            label = self._sedLabelGen(regressionSed)
+
+            if plotDifferenceRegression:
+                col1Title = r'%s $\Delta\Delta$mmags (Fit - Truth)' % (label)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
+            else:
+                col1Title = r'%s $\Delta$mmags' % (label)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f])
+                self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True)
 
             # Plot parameter space regression plots
             # Plot contours and true values
@@ -1336,7 +1346,7 @@ class AtmoBuilder(object):
                     normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
-            if plotDifference == False:
+            if plotDifferenceComparison == False:
                 for s in comparisonSeds:
                     #if s != regressionSed:
                     self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
@@ -1353,8 +1363,6 @@ class AtmoBuilder(object):
                 self._axisLimiter(ax[i][0], [-2.0,2.0])
                 self._axisLimiter(ax[i][2], [-2.0,2.0])
 
-        label = self._sedLabelGen(regressionSed)
-        col1Title = r'%s $\Delta$mmags' % (label)
         col2Title = 'Log-Likelihood'
         ax[0][0].set_title(col1Title, y=1.20, fontsize=LABELSIZE)
         ax[0][2].set_title(col3Title, y=1.20, fontsize=LABELSIZE)
@@ -1390,8 +1398,7 @@ class AtmoBuilder(object):
         # Add grid
         ax.grid(b=True)
 
-        if comparisonSed == True:
-            label = self._sedLabelGen(sedtype)
+        label = self._sedLabelGen(sedtype)
 
         seds, sedkeylist = self._sedFinder(sedtype)
 
