@@ -1005,6 +1005,7 @@ class AtmoBuilder(object):
         # Find range over which to vary parameter and the parameter number for comp1, comp2
         range1, pNum1 = self._componentCheck(comp1,componentBins)
         range2, pNum2 = self._componentCheck(comp2,componentBins)
+        dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
 
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self._sedFinder(regressionSed)
@@ -1025,9 +1026,6 @@ class AtmoBuilder(object):
             total = componentBins*componentBins
 
             if deltaGrey != 0.0:
-
-                dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
-
                 print 'Non-zero deltaGrey detected.'
                 print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), deltaGreyBins)
                 print ''
