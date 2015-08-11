@@ -1219,7 +1219,7 @@ class AtmoBuilder(object):
                 deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
 
         if returnData:
-            return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+            return comp1best, comp2best, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs
         else:
             return
 
