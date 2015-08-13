@@ -1935,7 +1935,7 @@ class AtmoBuilder(object):
 
         return
 
-    def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, dmagLimit=True, figName=None):
+    def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, deltaGrey=0.0, dmagLimit=True, figName=None):
         """
         Given two filter-keyed bandpass dictionaries and a valid SED type, will plot dmags. 
 
@@ -1964,7 +1964,7 @@ class AtmoBuilder(object):
 
         for i in range(rows):
             for j in range(columns):
-                self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit)
+                self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit, deltaGrey1=deltaGrey)
                 if dmagLimit:
                     self._axisLimiter(ax[i][j],[-2.0,2.0])
 
