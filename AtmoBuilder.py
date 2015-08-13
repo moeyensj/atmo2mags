@@ -1207,7 +1207,7 @@ class AtmoBuilder(object):
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
         if plotDmags:
-            self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
+            comparison_dmags_fit, comparison_dmags_obs = self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
                 dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
@@ -1217,7 +1217,7 @@ class AtmoBuilder(object):
                 deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
 
         if returnData:
-            return comp1best, comp2best, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs
+            return comp1best, comp2best, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs, comparison_dmags_fit, comparison_dmags_obs
         else:
             return
 
@@ -1306,6 +1306,9 @@ class AtmoBuilder(object):
         P_fit = copy.deepcopy(atmo_obs.P) 
         X_fit = copy.deepcopy(atmo_obs.X)
 
+        comparison_dmags_fit = {}
+        comparison_dmags_obs = {}
+
         # For each filter plot dmags and regression contours
         for i,f in enumerate(filters):
             # Set component parameters to best fit parameters
@@ -1342,22 +1345,28 @@ class AtmoBuilder(object):
                     normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
+            comparison_dmags_fit_f = {}
+            comparison_dmags_obs_f = {}
+
             if plotDifferenceComparison == False:
                 for s in comparisonSeds:
                     #if s != regressionSed:
-                    self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
-                    self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
+                    comparison_dmags_fit_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
+                    comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
                     col3Title = r'Comparison SED $\Delta$mmags'
             else:
                 for s in comparisonSeds:
                     #if s != regressionSed:
-                    self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs, 
+                    comparison_dmags_fit_f[s], comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs, 
                         deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
                     col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
 
             if dmagLimit:
                 self._axisLimiter(ax[i][0], [-2.0,2.0])
                 self._axisLimiter(ax[i][2], [-2.0,2.0])
+
+            comparison_dmags_obs[f] = comparison_dmags_obs_f
+            comparison_dmags_fit[f] = comparison_dmags_fit_f
 
         col2Title = 'Log-Likelihood'
         ax[0][0].set_title(col1Title, y=1.20, fontsize=LABELSIZE)
@@ -1378,7 +1387,7 @@ class AtmoBuilder(object):
             title = figName+"_regressionPlot.png"
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
-        return
+        return comparison_dmags_fit, comparison_dmags_obs
 
     def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, deltaGrey1=0.0, deltaGrey2=0.0, truth=False, comparisonSed=False, dmagLimit=True):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
@@ -1397,6 +1406,9 @@ class AtmoBuilder(object):
         label = self._sedLabelGen(sedtype)
 
         seds, sedkeylist = self._sedFinder(sedtype)
+
+        dmags = []
+        dmags2 = []
 
         if sedtype == 'mss':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
@@ -1659,8 +1671,11 @@ class AtmoBuilder(object):
                             ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label='Fit')
                         else:
                             ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
-
-        return
+        
+        if bpDict2 != None:
+            return dmags, dmags2
+        else:
+            return dmags
 
     def transPlot(self, atmo1, atmo2=None, includeStdAtmo=False, includeComponents=False, figName=None):
         """
@@ -1892,7 +1907,7 @@ class AtmoBuilder(object):
             title = figName + "_dphiPlot.png"
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         
-        return
+        return 
 
     def ddphiPlot(self, bpDict1, bpDict2, bpDict_std, filters=FILTERLIST, wavelenRange=[WAVELENMIN,WAVELENMAX], regression=False, figName=None):
         """
@@ -1964,7 +1979,7 @@ class AtmoBuilder(object):
 
         for i in range(rows):
             for j in range(columns):
-                self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit, deltaGrey1=deltaGrey)
+                dmags = self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit, deltaGrey1=deltaGrey)
                 if dmagLimit:
                     self._axisLimiter(ax[i][j],[-2.0,2.0])
 
