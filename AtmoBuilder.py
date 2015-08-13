@@ -2274,20 +2274,16 @@ class AtmoBuilder(object):
         """Sets appropriate axis limits given an axis and threshold limits."""
         min_y, max_y = ax.get_ylim()
 
-        if max_y < limits[0]:
-            max_y = limits[0]
-        elif min_y > limits[1]:
-            min_y = limits[1]
-        elif min_y < limits[0] and max_y < limits[1]:
-            ax.axhline(limits[0], color='black', linestyle='--')
-        elif min_y > limits[0] and max_y > limits[1]:
+        if max_y > limits[1] and min_y > limits[0]:
             ax.axhline(limits[1], color='black', linestyle='--')
-        elif min_y < limits[0] and max_y > limits[1]:
-            ax.axhline(limits[0], color='black', linestyle='--')
-            ax.axhline(limits[1], color='black', linestyle='--')
-        else:
-            min_y = limits[0]
+        elif max_y < limits[1] and min_y > limits[0]:
             max_y = limits[1]
+            min_y = limits[0]
+        elif max_y < limits[1] and min_y < limits[0]:
+            ax.axhline(limits[0], color='black', linestyle='--')
+        elif max_y > limits[1] and min_y < limits[0]:
+            ax.axhline(limits[0], color='black', linestyle='--')
+            ax.axhline(limits[1], color='black', linestyle='--')
 
         ax.set_ylim(min_y,max_y)
         return
