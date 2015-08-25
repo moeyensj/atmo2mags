@@ -1267,7 +1267,7 @@ class AtmoBuilder(object):
         # Insure valid parameters, airmass and sedtypes are given
         self._sedTypeCheck(regressionSed)
 
-        # Find range over which to vary parameter and the parameter number for comp1, comp2
+        # Find range over which to vary parameter and the parameter number for comp, deltaGrey
         range1, pNum1 = self._componentCheck(comp,componentBins)
         dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
 
@@ -1416,17 +1416,13 @@ class AtmoBuilder(object):
             self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
 
-        """
+        
         if plotDmags:
-            comparison_dmags_fit, comparison_dmags_obs = self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
+            comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, compbest, deltaGrey, dgbest, logL, atmo_obs, componentBins=componentBins,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
                 dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
-
-        if plotChiSquared:
-            self.chiSquaredPlot(comp1, comp1best, comp2, comp2best, dgbest, deltaGrey, chisquared, componentBins=componentBins, deltaGreyBins=deltaGreyBins, 
-                deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
-        """
+        
 
         if returnData:
             return compbest, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs #, comparison_dmags_fit, comparison_dmags_obs
@@ -1554,6 +1550,150 @@ class AtmoBuilder(object):
             else:
                 self._logL(fig, ax[i][1], logL[f], 'contour', comp1, comp1_obs, comp1_best[f], comp2, comp2_obs, 
                     comp2_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
+                    normalize=normalize, includeColorBar=includeColorBar)
+
+            # Plot dmags for other SEDS:
+            comparison_dmags_fit_f = {}
+            comparison_dmags_obs_f = {}
+
+            if plotDifferenceComparison == False:
+                for s in comparisonSeds:
+                    #if s != regressionSed:
+                    comparison_dmags_fit_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
+                    comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
+                    col3Title = r'Comparison SED $\Delta$mmags'
+            else:
+                for s in comparisonSeds:
+                    #if s != regressionSed:
+                    comparison_dmags_fit_f[s], comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs, 
+                        deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
+                    col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
+
+            if dmagLimit:
+                self._axisLimiter(ax[i][0], [-2.0,2.0])
+                self._axisLimiter(ax[i][2], [-2.0,2.0])
+
+            comparison_dmags_obs[f] = comparison_dmags_obs_f
+            comparison_dmags_fit[f] = comparison_dmags_fit_f
+
+        col2Title = 'Log-Likelihood'
+        ax[0][0].set_title(col1Title, y=1.20, fontsize=LABELSIZE)
+        ax[0][2].set_title(col3Title, y=1.20, fontsize=LABELSIZE)
+
+        ax[0][0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
+        if includeColorBar:
+            ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.27), ncol=2, fontsize=LABELSIZE)
+            ax[0][1].set_title(col2Title, y=1.33, fontsize=LABELSIZE)
+        else:
+            ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
+            ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
+            
+        ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), 
+            fontsize=LABELSIZE, title='Comparison SEDs')
+            
+        if figName != None:
+            title = figName+"_regressionPlot.png"
+            plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
+
+        return comparison_dmags_fit, comparison_dmags_obs
+
+    def regressionPlotDeltaGrey(self, comp, comp_best, deltaGrey, dgbest, logL, atmo_obs, componentBins=50, deltaGreyBins=51,
+        deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
+        useLogL=False, includeColorBar=False, plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
+        """
+        Plots regression data with each filter in its own row of subplots. Requires the 
+        SED data for the specified regression and comparison SEDs to be read in.
+
+        Recommendation: Use computeAtmoFit to call this function, will save a lot of work! 
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        comp: (string), name of component to regress
+        comp_best: (dictionary), filter-keyed dictionary of best fit values
+        deltaGrey: (float) [0.0], adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
+            if greater than zero will subtract as mmag value from delta magnitudes during regression)
+        dgbest: (dictionary), filter-keyed dictionary of best fit deltaGrey values
+        logL: (dictionary), filter-keyed dictionary of logL arrays
+        atmo_obs: (atmo object), observed atmosphere
+        componentBins: (int) [50], number of bins for regression
+        deltaGreyBins: (int) [51], number of bins for regression over deltaGrey space
+        deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
+        regressionSed: (string) ['mss'], SED type to run regress over
+        comparisonSeds: (list of strings) [SEDTYPES], 
+        plotDifferenceRegression: (boolean) [False], plot ddmmags for regression SEDs
+        plotDifferenceComparison: (boolean) [True], plot ddmmags for comparison SEDs
+        useLogL: (boolean) [False], use LogL to replace contour plots
+        includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
+        plotBoth: (boolean) [False], plot both logLs and contours
+        normalize: (boolean) [True], normalize logL by median when plotting
+        dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
+            are met. 
+        filters: (list of strings) [FILTERLIST], list of filters
+        verbose: (boolean) [True], print out verbose statements
+        figName: (string) [None], if passed a string will save figure with string as title
+        ----------------------
+        """
+
+        comp_range, pNum1 = self._componentCheck(comp, componentBins)
+        dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
+            
+        seds, sedkeylist = self._sedFinder(regressionSed)
+        
+        fig, ax = plt.subplots(len(filters),3)
+
+        if useLogL:
+            title = r'$\Delta$mmags, Log-Likelihood, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
+            fig.suptitle(title, fontsize=TITLESIZE)
+        else:
+            title = r'$\Delta$mmags, Regression Contours, $\Delta\Delta$mmags for each LSST filter ($\delta$Grey: %s)' % (deltaGrey)
+            fig.suptitle(title, fontsize=TITLESIZE)
+
+        fig.set_size_inches(15,len(filters)*5)
+        fig.subplots_adjust(top=0.93, wspace=0.20, hspace=0.20, bottom=0.09, left=0.10, right=0.96)
+
+        # Save observed parameters
+        comp_obs = atmo_obs.P[pNum1]
+    
+        # Create observed throughput
+        throughput_obs = self.combineThroughputs(atmo_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
+
+        # Create standard atmosphere
+        std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
+        throughput_std = self.combineThroughputs(std)
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
+
+        P_fit = copy.deepcopy(atmo_obs.P) 
+        X_fit = copy.deepcopy(atmo_obs.X)
+
+        comparison_dmags_fit = {}
+        comparison_dmags_obs = {}
+
+        # For each filter plot dmags and regression contours
+        for i,f in enumerate(filters):
+            # Set component parameters to best fit parameters
+            P_fit[pNum1] = comp_best[f]
+
+            # Create atmosphere at best fit parameters
+            fit = self.buildAtmo(P_fit,X_fit)
+            throughput_fit = self.combineThroughputs(fit)
+
+            label = self._sedLabelGen(regressionSed)
+
+            if plotDifferenceRegression:
+                col1Title = r'%s $\Delta\Delta$mmags (Fit - Truth)' % (label)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
+            else:
+                col1Title = r'%s $\Delta$mmags' % (label)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f])
+                self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True)
+
+            # Plot parameter space regression plots
+            # Plot contours and true values
+            if plotBoth:
+                self._logLDeltaGrey(fig, ax[i][1], logL[f], 'both', comp, comp_obs, comp_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
                     normalize=normalize, includeColorBar=includeColorBar)
 
             # Plot dmags for other SEDS:
@@ -2294,6 +2434,42 @@ class AtmoBuilder(object):
         else:
             str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp1, comp1_best, comp1_obs)
             str2 = r'%s (fit: %.2f, truth: %.2f)' % (comp2, comp2_best, comp2_obs)
+        ax.set_xlabel(str1, fontsize=LABELSIZE)
+        ax.set_ylabel(str2, fontsize=LABELSIZE)
+
+        return
+
+    def _logLDeltaGrey(self, fig, ax, logL, plotType, comp, comp_obs, comp_best, deltaGrey, dgbest, componentBins=50,
+        deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False):
+        """Plots desired logL plot type given figure and axis object along with appropriate data."""
+        comp_range, pNum1 = self._componentCheck(comp,componentBins)
+        dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
+
+        if normalize: 
+            logL = logL / np.median(-logL)
+        else:
+            logL = logL
+
+        if plotType == 'both':
+            contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
+            ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+            ax.clabel(contour, fontsize=9, inline=1)
+            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower',aspect='auto',extent=(0,5,deltaGreyRange[0],deltaGreyRange[1]))
+            if includeColorBar:
+                fig.colorbar(im, ax=ax, format='%.0e')
+
+        # Plot dashed lines at best fit parameters
+        ax.axvline(comp_best, color='black', linestyle='--', label='Fit')
+        ax.axhline(dgbest, color='black', linestyle='--')
+
+        # Set y-axis, x-axis limits
+        ax.set_xlim(min(comp_range), max(comp_range))
+        ax.set_ylim(min(dgrange), max(dgrange))
+
+        # Label axes
+        if deltaGrey != 0.0:
+            str1 = r'%s (fit: %.2f, truth: %.2f)' % (comp, comp_best, comp_obs)
+            str2 = r'%s (fit: %.2f, truth: %.2f)' % ('deltaGrey', dgbest, deltaGrey)
         ax.set_xlabel(str1, fontsize=LABELSIZE)
         ax.set_ylabel(str2, fontsize=LABELSIZE)
 
