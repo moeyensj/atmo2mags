@@ -1221,6 +1221,218 @@ class AtmoBuilder(object):
         else:
             return
 
+    def computeDeltaGreyFit(self, comp, deltaGrey, atmo_obs, err=5.0, componentBins=50, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
+        computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
+        saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
+        plotDifferenceRegression=False, plotDifferenceComparison=True, pickleString='', filters=FILTERLIST, dmagLimit=True, 
+        returnData=False, verbose=True):
+        """
+        Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
+        SED data for the specified regression and comparison SEDs to be read in. 
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        comp: (string), name of component to regress
+        deltaGrey: (float), adds extinction factor due to clouds (if less than 0 will subract mean dmags, 
+            if greater than zero will subtract as mmag value from delta magnitudes during regression)
+        atmo_obs: (atmo object), observed atmosphere
+        err: (float) [5.00], err in millimagnitudes
+        componentBins: (int) [50], number of bins for regression
+        deltaGreyBins: (int) [50], number of bins for regression over deltaGrey space
+        deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
+        regressionSed: (string) ['mss'], SED type to run regress over
+        comparisonSeds: (list of strings) [SEDTYPES], 
+        plotDmags: (boolean) [True], generate a regression plot
+        plotDphi: (boolean) [True], generate a dphi and ddphi plot
+        saveLogL: (boolean) [True], save logL as txt file
+        useLogL: (boolean) [False], use logL to replace contour plots
+        saveChiSquared: (boolean) [True], save chi-squared as txt file
+        plotChiSquared: (boolean) [True], generate a plot of chi-squared
+        plotLogL: (boolean) [False], plot individual logLs and contours seperately
+        plotBoth: (boolean) [False], plot both logLs and contours
+        normalize: (boolean) [True], normalize logL by median when plotting
+        includeColorBar: (boolean) [False], include logL color bar (requires useLogL to be True)
+        plotDifferenceRegression: (boolean) [False], plot ddmmags for regression SEDs
+        plotDifferenceComparison: (boolean) [True], plot ddmmags for comparison SEDs
+        pickleString: (string) [''], add custom string to plot titles
+        filters: (list of strings) [FILTERLIST], list of filters
+        dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
+            are met. 
+        returnData: (boolean) [False], return data elements
+        verbose: (boolean) [True], print out verbose statements
+        ----------------------
+        """
+        # Insure valid parameters, airmass and sedtypes are given
+        self._sedTypeCheck(regressionSed)
+
+        # Find range over which to vary parameter and the parameter number for comp1, comp2
+        range1, pNum1 = self._componentCheck(comp,componentBins)
+        dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
+
+        # Find seds and sedkeylist for sedtype
+        seds, sedkeylist = self._sedFinder(regressionSed)
+
+        if verbose:
+            print 'Computing nonlinear regression for ' + comp + '.'
+            print 'Observed atmosphere parameters: ' + str(atmo_obs.P)
+            print 'Observed atmosphere airmass:    ' + str(atmo_obs.X)
+            print 'Standard atmosphere parameters: ' + str(STDPARAMETERS)
+            print 'Standard atmosphere airmass:    ' + str(STDAIRMASS)
+            print 'Observed atmosphere parameter for ' + comp + ': ' + str(atmo_obs.P[pNum1])
+            print ''
+            print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp, min(range1), max(range1), componentBins)
+            print ''
+            print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), deltaGreyBins)
+            print ''
+            total = componentBins*deltaGreyBins
+
+            print 'Regressing %s parameter combinations per filter...' % (total)
+            print ''
+        
+        P_fit = copy.deepcopy(atmo_obs.P)
+        X_fit = copy.deepcopy(atmo_obs.X)
+
+        # Create standard atmosphere and magnitudes
+        std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
+        throughput_std = self.combineThroughputs(std, filters=filters)
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
+
+        # Create observed atmosphere and magnitudes
+        throughput_obs = self.combineThroughputs(atmo_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
+        dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=deltaGrey)
+
+        logL = {}
+        whr = {}
+        compbest = {}
+        dgbest = {}
+        dmagsbest = {}
+        chisquared = {}
+        chisquaredbest = {}
+
+        figName = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, 
+            deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString)
+
+        for f in filters:
+
+            pickleString_temp = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, 
+                deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString, pickle=True, f=f)
+                    
+            print 'Calculating best fit parameters for ' + f + ' filter...'
+
+            @pickle_results(os.path.join(PICKLEDIRECTORY, pickleString_temp))
+            def run_regression(comp, comp2, f):
+                
+                logL = []
+                whr = []
+                compbest = []
+                dgbest = []
+                dmagsbest = []
+                chisquared = []
+                chisquaredbest = []
+
+                if computeChiSquared:
+                    logL = np.ndarray([componentBins,deltaGreyBins])
+                    dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(seds)])
+                    chisquared = np.ndarray([componentBins,deltaGreyBins])
+
+                    for d,dg in enumerate(dgrange):
+                        for i in range(len(range1)):
+                                P_fit[pNum1] = range1[i]
+                                logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                                chisquared[i,d] = self._computeChiSquared(dmags_fit[i,d], dmags_obs[f], err)
+
+                    logL -= np.amax(logL)
+                    whr = np.where(logL == np.amax(logL))
+                    compbest = range1[whr[0][0]]
+                    dgbest = dgrange[whr[1][0]]
+                    dmagsbest = dmags_fit[whr[0][0]][whr[1][0]]
+                    chisquaredbest = chisquared[whr[0][0]][whr[1][0]]
+
+                else:
+                    logL = np.ndarray([componentBins,deltaGreyBins])
+                    dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(seds)])
+            
+                    for i in range(len(range1)):
+                        for j in range(len(range2)):
+                            P_fit[pNum1] = range1[i]
+                            logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+
+                    logL -= np.amax(logL)
+                    whr = np.where(logL == np.amax(logL))
+                    compbest = range1[whr[0][0]]
+                    dgbest = dgrange[whr[1][0]]
+                    dmagsbest = dmags_fit[whr[0][0]][whr[1][0]]
+
+                return compbest, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+
+            compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
+
+            """
+            if saveLogL and deltaGrey != 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:,:,np.where(dgrange == dgbest[f])[0][0]])
+                print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
+            elif saveLogL and deltaGrey == 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:,:])
+                print 'Saved LogL for ' + f + ' filter.'
+
+            if saveChiSquared and deltaGrey != 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:,np.where(dgrange == dgbest[f])[0][0]])
+                print 'Saved Chi-Squared at best fit deltaGrey for ' + f + ' filter.'
+            elif saveChiSquared and deltaGrey == 0.0:
+                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                    add=pickleString, f=f)
+                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:])
+                print 'Saved Chi-Squared for ' + f + ' filter.'
+
+            """
+
+            print 'Completed ' + f + ' filter.'
+            print ''
+
+        if verbose:
+            print ''
+            print r'Best fit parameters (Filter, %s, %s):' % (comp, 'dG')
+            for f in filters:
+                print '%s %.2f %.2f' % (f, compbest[f], dgbest[f])
+    
+        if plotDphi:
+
+            throughput_fit = {}
+
+            for f in filters:
+                P_fit[pNum1] = compbest[f]
+                atmo_fit = self.buildAtmo(P_fit,X_fit)
+                throughput_fit[f] = self.combineThroughputs(atmo_fit,filters=f)[f]
+
+            self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
+            self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
+
+        """
+        if plotDmags:
+            comparison_dmags_fit, comparison_dmags_obs = self.regressionPlot(comp1, comp1best, comp2, comp2best, dgbest, logL, atmo_obs, componentBins=componentBins, deltaGrey=deltaGrey,
+                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
+                plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
+                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
+
+        if plotChiSquared:
+            self.chiSquaredPlot(comp1, comp1best, comp2, comp2best, dgbest, deltaGrey, chisquared, componentBins=componentBins, deltaGreyBins=deltaGreyBins, 
+                deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
+        """
+
+        if returnData:
+            return compbest, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs #, comparison_dmags_fit, comparison_dmags_obs
+        else:
+            return
+
 ### Plotting Functions
 
     def regressionPlot(self, comp1, comp1_best, comp2, comp2_best, dgbest, logL, atmo_obs, componentBins=50, deltaGrey=0.0, deltaGreyBins=51,
