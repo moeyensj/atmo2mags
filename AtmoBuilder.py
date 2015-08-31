@@ -2437,9 +2437,9 @@ class AtmoBuilder(object):
         else:
             logL = logL
 
-        #contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
+        contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
         ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-        #ax.clabel(contour, fontsize=9, inline=1)
+        ax.clabel(contour, fontsize=9, inline=1)
         im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower',aspect='auto', extent=(0.2,5,deltaGreyRange[0],deltaGreyRange[1]))
         if includeColorBar:
             fig.colorbar(im, ax=ax, format='%.0e')
