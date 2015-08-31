@@ -1370,30 +1370,18 @@ class AtmoBuilder(object):
 
             compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
 
-            """
-            if saveLogL and deltaGrey != 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+            
+            if saveLogL:
+                name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
-                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:,:,np.where(dgrange == dgbest[f])[0][0]])
+                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
                 print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
-            elif saveLogL and deltaGrey == 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
-                    add=pickleString, f=f)
-                np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f][:,:])
-                print 'Saved LogL for ' + f + ' filter.'
 
-            if saveChiSquared and deltaGrey != 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+            if saveChiSquared:
+                name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
-                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:,np.where(dgrange == dgbest[f])[0][0]])
+                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f])
                 print 'Saved Chi-Squared at best fit deltaGrey for ' + f + ' filter.'
-            elif saveChiSquared and deltaGrey == 0.0:
-                name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
-                    add=pickleString, f=f)
-                np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f][:,:])
-                print 'Saved Chi-Squared for ' + f + ' filter.'
-
-            """
 
             print 'Completed ' + f + ' filter.'
             print ''
@@ -1599,7 +1587,7 @@ class AtmoBuilder(object):
 
     def regressionPlotDeltaGrey(self, comp, comp_best, deltaGrey, dgbest, logL, atmo_obs, componentBins=50, deltaGreyBins=51,
         deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
-        useLogL=False, includeColorBar=False, plotBoth=False, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
+        useLogL=False, includeColorBar=False, plotBoth=True, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1693,8 +1681,7 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if plotBoth:
-                self._logLDeltaGrey(fig, ax[i][1], logL[f], 'both', comp, comp_obs, comp_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange,
-                    normalize=normalize, includeColorBar=includeColorBar)
+                self._logLDeltaGrey(fig, ax[i][1], logL[f], 'both', comp, comp_obs, comp_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange)
 
             # Plot dmags for other SEDS:
             comparison_dmags_fit_f = {}
@@ -2415,7 +2402,7 @@ class AtmoBuilder(object):
             contour = ax.contour(comp1_range, comp2_range, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
             ax.scatter(comp1_obs, comp2_obs, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
             ax.clabel(contour, fontsize=9, inline=1)
-            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, extent=(0.0,5.0,0.0,5.0), origin='lower')
+            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, extent=(0.2,5.0,0.2,5.0), origin='lower')
             if includeColorBar:
                 fig.colorbar(im, ax=ax, format='%.0e')
 
@@ -2450,13 +2437,12 @@ class AtmoBuilder(object):
         else:
             logL = logL
 
-        if plotType == 'both':
-            contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
-            ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-            ax.clabel(contour, fontsize=9, inline=1)
-            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower',aspect='auto',extent=(0,5,deltaGreyRange[0],deltaGreyRange[1]))
-            if includeColorBar:
-                fig.colorbar(im, ax=ax, format='%.0e')
+        #contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
+        ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+        #ax.clabel(contour, fontsize=9, inline=1)
+        im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower',aspect='auto', extent=(0.2,5,deltaGreyRange[0],deltaGreyRange[1]))
+        if includeColorBar:
+            fig.colorbar(im, ax=ax, format='%.0e')
 
         # Plot dashed lines at best fit parameters
         ax.axvline(comp_best, color='black', linestyle='--', label='Fit')
