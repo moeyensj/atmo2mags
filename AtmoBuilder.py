@@ -2437,12 +2437,24 @@ class AtmoBuilder(object):
         else:
             logL = logL
 
-        contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
-        ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
-        ax.clabel(contour, fontsize=9, inline=1)
-        im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower',aspect='auto', extent=(0.2,5,deltaGreyRange[0],deltaGreyRange[1]))
-        if includeColorBar:
-            fig.colorbar(im, ax=ax, format='%.0e')
+        if plotType == 'contour':
+            contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
+            ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+            ax.clabel(contour, fontsize=9, inline=1)
+
+        elif plotType == 'imshow':
+            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower', aspect='auto', extent=(0.2,5,deltaGreyRange[0],deltaGreyRange[1]))
+            ax.scatter(comp_obs, dgrange, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+            if includeColorBar:
+                fig.colorbar(im, ax=ax, format='%.0e')
+
+        elif plotType == 'both':
+            contour = ax.contour(comp_range, dgrange, convert_to_stdev(logL.T), levels=(0.683, 0.955, 0.997), colors='k')
+            ax.scatter(comp_obs, deltaGrey, marker='o', s=25, facecolors='none', edgecolors='b', label='Truth')
+            ax.clabel(contour, fontsize=9, inline=1)
+            im = ax.imshow(logL.T, interpolation='nearest', cmap=plt.cm.bone, origin='lower', aspect='auto', extent=(0.2,5,deltaGreyRange[0],deltaGreyRange[1]))
+            if includeColorBar:
+                fig.colorbar(im, ax=ax, format='%.0e')
 
         # Plot dashed lines at best fit parameters
         ax.axvline(comp_best, color='black', linestyle='--', label='Fit')
