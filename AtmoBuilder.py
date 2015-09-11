@@ -955,6 +955,10 @@ class AtmoBuilder(object):
         """Returns array of chi squared values"""
         return np.sum(((dmags_fit - dmags_obs) / err)**2)
 
+    def _computeMinimization(self, dmags_fit, dmags_obs):
+        """Computes sum of the square of the difference"""
+        return np.sum((dmags_fit - dmags_obs)**2)
+
     def computeAtmoFit(self, comp1, comp2, atmo_obs, err=5.0, componentBins=50, deltaGrey=0.0, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
         saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
@@ -1225,7 +1229,7 @@ class AtmoBuilder(object):
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
         saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
         plotDifferenceRegression=False, plotDifferenceComparison=True, pickleString='', filters=FILTERLIST, dmagLimit=True, 
-        returnData=False, verbose=True):
+        returnData=False, override=False, overrideValue=None, overrideDeltaGrey=None, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -1302,7 +1306,12 @@ class AtmoBuilder(object):
         # Create observed atmosphere and magnitudes
         throughput_obs = self.combineThroughputs(atmo_obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
-        dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=deltaGrey)
+        if overrideDeltaGrey != None:
+            print '' 
+            print 'Override deltaGrey detected for observed atmosphere...'
+            dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=overrideDeltaGrey)
+        else:
+            dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=deltaGrey)
 
         logL = {}
         whr = {}
@@ -1314,6 +1323,29 @@ class AtmoBuilder(object):
 
         figName = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, 
             deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString)
+
+        if override:
+            override_logL = {}
+            override_minimization = {}
+            override_dmags_fit = {}
+            override_compbest = {}
+            override_dgbest = {}
+
+            print ''
+            print 'Override triggered...'
+            if overrideValue == None:
+                answer = str(input('Would you like to override best-fit component values? (Yes/No)'))
+                if answer == 'Yes':
+                    overrideValue = int(input('New best-fit component value for ' + comp + '? '))
+                    print 'Will minimize deltaGrey at best-fit component value once initial calculations complete.'
+                    print ''
+                else:
+                    print 'Override status disabled, returning to normal state...'
+                    override = False
+            else:
+                print 'Override value detected, proceeding with deltaGrey best-fit minimization at new component best-fit value...'
+                print ''
+
 
         for f in filters:
 
@@ -1333,6 +1365,13 @@ class AtmoBuilder(object):
                 chisquared = []
                 chisquaredbest = []
 
+                if override:
+                    override_logL = []
+                    override_minimization = []
+                    override_dmags_fit = []
+                    override_compbest = []
+                    override_dgbest = []
+
                 if computeChiSquared:
                     logL = np.ndarray([componentBins,deltaGreyBins])
                     dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(seds)])
@@ -1340,9 +1379,9 @@ class AtmoBuilder(object):
 
                     for d,dg in enumerate(dgrange):
                         for i in range(len(range1)):
-                                P_fit[pNum1] = range1[i]
-                                logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
-                                chisquared[i,d] = self._computeChiSquared(dmags_fit[i,d], dmags_obs[f], err)
+                            P_fit[pNum1] = range1[i]
+                            logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                            chisquared[i,d] = self._computeChiSquared(dmags_fit[i,d], dmags_obs[f], err)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1351,6 +1390,20 @@ class AtmoBuilder(object):
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]]
                     chisquaredbest = chisquared[whr[0][0]][whr[1][0]]
 
+                    if override:
+                        override_logL = np.ndarray([deltaGreyBins])
+                        override_minimization = np.ndarray([deltaGreyBins])
+                        override_dmags_fit = np.ndarray([deltaGreyBins, len(seds)])
+                        
+                        P_fit[pNum1] = overrideValue
+                        for d,dg in enumerate(dgrange):
+                            override_logL[d], override_dmags_fit[d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                            override_minimization[d] = self._computeMinimization(override_dmags_fit[d], dmags_obs[f])
+                        
+                        whr = np.where(override_minimization == np.min(override_minimization))
+                        override_compbest = overrideValue
+                        override_dgbest = dgrange[whr[0][0]]
+                
                 else:
                     logL = np.ndarray([componentBins,deltaGreyBins])
                     dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(seds)])
@@ -1366,11 +1419,17 @@ class AtmoBuilder(object):
                     dgbest = dgrange[whr[1][0]]
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]]
 
-                return compbest, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+                if override:
+                    return compbest, dgbest, dmagsbest, logL, chisquared, chisquaredbest, override_minimization, override_dgbest, override_compbest
 
-            compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
+                else:
+                    return compbest, dgbest, dmagsbest, logL, chisquared, chisquaredbest
 
-            
+            if override:
+                compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f], override_minimization[f], override_dgbest[f], override_compbest[f] = run_regression(comp, 'dG', f)
+            else: 
+                compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
+
             if saveLogL:
                 name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
@@ -1410,7 +1469,12 @@ class AtmoBuilder(object):
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
                 dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
-        
+
+        if override:
+            comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, override_compbest, deltaGrey, override_dgbest, logL, atmo_obs, componentBins=componentBins,
+                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName+'_Override', regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
+                plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
+                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
 
         if returnData:
             return compbest, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs #, comparison_dmags_fit, comparison_dmags_obs
