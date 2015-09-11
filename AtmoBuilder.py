@@ -1787,8 +1787,12 @@ class AtmoBuilder(object):
             ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.27), ncol=2, fontsize=LABELSIZE)
             ax[0][1].set_title(col2Title, y=1.33, fontsize=LABELSIZE)
         else:
-            ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
-            ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
+            if override:
+                ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=3, fontsize=LABELSIZE)
+                ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
+            else:
+                ax[0][1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15), ncol=2, fontsize=LABELSIZE)
+                ax[0][1].set_title(col2Title, y=1.20, fontsize=LABELSIZE)
             
         ax[i][2].legend(loc='upper center', bbox_to_anchor=(-0.70,-0.2), ncol=len(comparisonSeds), 
             fontsize=LABELSIZE, title='Comparison SEDs')
@@ -2529,7 +2533,7 @@ class AtmoBuilder(object):
 
         # Plot dashed lines at best fit parameters
         if override:
-            ax.axvline(comp_best, color='red', linestyle='-', label='Override')
+            ax.axvline(comp_best, color='red', linestyle='--', label='Override')
             ax.axhline(dgbest, color='red', linestyle='-', label='Minimized')
         else:
             ax.axvline(comp_best, color='black', linestyle='--', label='Fit')
