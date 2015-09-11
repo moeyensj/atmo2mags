@@ -1450,6 +1450,12 @@ class AtmoBuilder(object):
             print r'Best fit parameters (Filter, %s, %s):' % (comp, 'dG')
             for f in filters:
                 print '%s %.2f %.2f' % (f, compbest[f], dgbest[f])
+
+            if override:
+                print ''
+                print r'Override best fit parameters (Filter, %s, %s):' % (comp, 'dG')
+                for f in filters:
+                    print '%s %.2f %.2f' % (f, override_compbest[f], override_dgbest[f])
     
         if plotDphi:
 
@@ -1474,7 +1480,7 @@ class AtmoBuilder(object):
             comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, override_compbest, deltaGrey, override_dgbest, logL, atmo_obs, componentBins=componentBins,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName+'_Override', regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
-                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
+                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose, override=override)
 
         if returnData:
             return compbest, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs #, comparison_dmags_fit, comparison_dmags_obs
@@ -1651,7 +1657,7 @@ class AtmoBuilder(object):
 
     def regressionPlotDeltaGrey(self, comp, comp_best, deltaGrey, dgbest, logL, atmo_obs, componentBins=50, deltaGreyBins=51,
         deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
-        useLogL=False, includeColorBar=False, plotBoth=True, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, figName=None):
+        useLogL=False, includeColorBar=False, plotBoth=True, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, override=False, figName=None):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1745,7 +1751,8 @@ class AtmoBuilder(object):
             # Plot parameter space regression plots
             # Plot contours and true values
             if plotBoth:
-                self._logLDeltaGrey(fig, ax[i][1], logL[f], 'both', comp, comp_obs, comp_best[f], deltaGrey, dgbest[f], componentBins=componentBins, deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange)
+                self._logLDeltaGrey(fig, ax[i][1], logL[f], 'both', comp, comp_obs, comp_best[f], deltaGrey, dgbest[f], componentBins=componentBins, 
+                    deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, override=override)
 
             # Plot dmags for other SEDS:
             comparison_dmags_fit_f = {}
@@ -2491,7 +2498,7 @@ class AtmoBuilder(object):
         return
 
     def _logLDeltaGrey(self, fig, ax, logL, plotType, comp, comp_obs, comp_best, deltaGrey, dgbest, componentBins=50,
-        deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False):
+        deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False, override=False):
         """Plots desired logL plot type given figure and axis object along with appropriate data."""
         comp_range, pNum1 = self._componentCheck(comp,componentBins)
         dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
@@ -2521,8 +2528,12 @@ class AtmoBuilder(object):
                 fig.colorbar(im, ax=ax, format='%.0e')
 
         # Plot dashed lines at best fit parameters
-        ax.axvline(comp_best, color='black', linestyle='--', label='Fit')
-        ax.axhline(dgbest, color='black', linestyle='--')
+        if override:
+            ax.axvline(comp_best, color='red', linestyle='-', label='Override')
+            ax.axhline(dgbest, color='red', linestyle='-', label='Minimized')
+        else:
+            ax.axvline(comp_best, color='black', linestyle='--', label='Fit')
+            ax.axhline(dgbest, color='black', linestyle='--')
 
         # Set y-axis, x-axis limits
         ax.set_xlim(min(comp_range), max(comp_range))
