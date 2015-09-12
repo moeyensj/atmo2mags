@@ -2404,7 +2404,7 @@ class AtmoBuilder(object):
                     self._axisLimiter(ax[i][j],[-2.0,2.0])
 
         if figName != None:
-            title = figName + "_dmagPlot.png"
+            title = figName + '_' + sedtype + '_dmagPlot.png'
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
