@@ -2135,7 +2135,10 @@ class AtmoBuilder(object):
         ax.legend(loc='lower right', shadow=False)
         
         if figName != None:
-            title = figName + "_transPlot.png"
+            if includeComponents:
+                title = figName + "_compTransPlot.png"
+            else:
+                title = figName + "_transPlot.png"
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
         return
 
