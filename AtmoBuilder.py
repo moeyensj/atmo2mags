@@ -1467,7 +1467,7 @@ class AtmoBuilder(object):
                 P_fit[pNum1] = compbest[f]
                 atmo_fit = self.buildAtmo(P_fit,X_fit)
                 throughput_fit[f] = self.combineThroughputs(atmo_fit, filters=f)[f]
-                print throughput_fit[f]
+                print max(throughput_fit[f].phi), min(throughput_fit[f].phi), np.median(throughput_fit[f].phi)
 
             self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
@@ -2370,7 +2370,7 @@ class AtmoBuilder(object):
 
         return
 
-    def dmagPlot(self, bpDict1, bpDict_std, sedtype, filters=FILTERLIST, deltaGrey=0.0, dmagLimit=True, figName=None):
+    def dmagPlot(self, bpDict1, bpDict_std, sedtype, bpDict2=None, filters=FILTERLIST, deltaGrey=0.0, dmagLimit=True, figName=None):
         """
         Given two filter-keyed bandpass dictionaries and a valid SED type, will plot dmags. 
 
@@ -2399,7 +2399,7 @@ class AtmoBuilder(object):
 
         for i in range(rows):
             for j in range(columns):
-                dmags = self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, truth=True, dmagLimit=dmagLimit, deltaGrey1=deltaGrey)
+                dmags = self._dmagSED(ax[i][j], filters[i][j], bpDict1, bpDict_std, sedtype, bpDict2=bpDict2, truth=True, dmagLimit=dmagLimit, deltaGrey1=deltaGrey)
                 if dmagLimit:
                     self._axisLimiter(ax[i][j],[-2.0,2.0])
 
@@ -2644,17 +2644,23 @@ class AtmoBuilder(object):
     def _componentCheck(self, comp, bins):
         """Returns a range of values of length bins for a given component."""
         if comp == 'H2O':
-            return np.linspace(0.5,2.0,bins), 0
+            #return np.linspace(0.5,2.0,bins), 0
+            return np.linspace(0.2,5.0,bins), 0
         elif comp == 'O2':
-            return np.linspace(0.8,1.2,bins), 1
+            #return np.linspace(0.8,1.2,bins), 1
+            return np.linspace(0.2,5.0,bins), 1
         elif comp == 'O3':
-            return np.linspace(0.8,1.2,bins), 2
+            #return np.linspace(0.8,1.2,bins), 2
+            return np.linspace(0.2,5.0,bins), 2
         elif comp == 'Rayleigh':
-            return np.linspace(0.8,1.2,bins), 3
+            #return np.linspace(0.8,1.2,bins), 3
+            return np.linspace(0.2,5.0,bins), 3
         elif comp == 'Aerosol':
-            return np.linspace(0.5,2.0,bins), 4
+            #return np.linspace(0.5,2.0,bins), 4
+            return np.linspace(0.2,5.0,bins), 5
         elif comp == 'Alpha':
-            return np.linspace(0.5,2.5,bins), 5
+            #return np.linspace(0.5,2.5,bins), 5
+            return np.linspace(0.2,5.0,bins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
 
