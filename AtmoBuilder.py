@@ -2782,7 +2782,7 @@ class AtmoBuilder(object):
         return
 
     def _redLeakFix(self, bpDict):
-        """Zeros throughputs beyond reasonable wavelength ranges."""
+        """Zeros throughputs beyond reasonable wavelength ranges for u and g filters."""
         bpDict['u'].phi[bpDict['u'].wavelen > 450.0] = 0.0
         bpDict['g'].phi[bpDict['g'].wavelen > 575.0] = 0.0
 
