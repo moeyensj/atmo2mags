@@ -2648,23 +2648,23 @@ class AtmoBuilder(object):
     def _componentCheck(self, comp, bins):
         """Returns a range of values of length bins for a given component."""
         if comp == 'H2O':
-            #return np.linspace(0.5,2.0,bins), 0
-            return np.linspace(0.2,5.0,bins), 0
+            return np.linspace(0.5,2.0,bins), 0
+            #return np.linspace(0.2,5.0,bins), 0
         elif comp == 'O2':
-            #return np.linspace(0.8,1.2,bins), 1
-            return np.linspace(0.2,5.0,bins), 1
+            return np.linspace(0.8,1.2,bins), 1
+            #return np.linspace(0.2,5.0,bins), 1
         elif comp == 'O3':
-            #return np.linspace(0.8,1.2,bins), 2
-            return np.linspace(0.2,5.0,bins), 2
+            return np.linspace(0.8,1.2,bins), 2
+            #return np.linspace(0.2,5.0,bins), 2
         elif comp == 'Rayleigh':
-            #return np.linspace(0.8,1.2,bins), 3
-            return np.linspace(0.2,5.0,bins), 3
+            return np.linspace(0.8,1.2,bins), 3
+            #return np.linspace(0.2,5.0,bins), 3
         elif comp == 'Aerosol':
-            #return np.linspace(0.5,2.0,bins), 4
-            return np.linspace(0.2,5.0,bins), 5
+            return np.linspace(0.5,2.0,bins), 4
+            #return np.linspace(0.2,5.0,bins), 5
         elif comp == 'Alpha':
-            #return np.linspace(0.5,2.5,bins), 5
-            return np.linspace(0.2,5.0,bins), 5
+            return np.linspace(0.5,2.5,bins), 5
+            #return np.linspace(0.2,5.0,bins), 5
         else:
             raise ValueError(comp + ' is not a valid component')
 
