@@ -1458,16 +1458,12 @@ class AtmoBuilder(object):
                     print '%s %.2f %.2f' % (f, override_compbest[f], override_dgbest[f])
     
         if plotDphi:
-
-            P_fit = copy.deepcopy(atmo_obs.P) 
-            X_fit = copy.deepcopy(atmo_obs.X)
             throughput_fit = {}
 
             for f in filters:
                 P_fit[pNum1] = compbest[f]
                 atmo_fit = self.buildAtmo(P_fit,X_fit)
                 throughput_fit[f] = self.combineThroughputs(atmo_fit, filters=f)[f]
-                print max(throughput_fit[f].phi), min(throughput_fit[f].phi), np.median(throughput_fit[f].phi)
 
             self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
