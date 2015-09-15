@@ -857,7 +857,10 @@ class AtmoBuilder(object):
             total[f].sbTophi()
 
         if correctRedLeak:
-            total = self._redLeakFix(total)
+            if 'u' in filters:
+                total = self._redLeakFix(total, filters='u')
+            if 'g' in filters:
+                total = self._redLeakFix(total, filters='g')
 
         return total
     
@@ -2781,9 +2784,11 @@ class AtmoBuilder(object):
         ax.set_ylim(min_y,max_y)
         return
 
-    def _redLeakFix(self, bpDict):
+    def _redLeakFix(self, bpDict, filters=['u','g']):
         """Zeros throughputs beyond reasonable wavelength ranges for u and g filters."""
-        bpDict['u'].phi[bpDict['u'].wavelen > 450.0] = 0.0
-        bpDict['g'].phi[bpDict['g'].wavelen > 575.0] = 0.0
+        if 'u' in filters:
+            bpDict['u'].phi[bpDict['u'].wavelen > 450.0] = 0.0
+        if 'g' in filters:
+            bpDict['g'].phi[bpDict['g'].wavelen > 575.0] = 0.0
 
         return bpDict
