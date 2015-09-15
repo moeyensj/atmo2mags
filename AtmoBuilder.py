@@ -825,7 +825,7 @@ class AtmoBuilder(object):
         
         return Atmo(P, X, self.transDict, self.wavelen, aerosolNormCoeff, aerosolNormWavelen)
     
-    def combineThroughputs(self, atmo, sys=None, filters=FILTERLIST):
+    def combineThroughputs(self, atmo, sys=None, filters=FILTERLIST, correctRedLeak=True):
         """
         Combines atmospheric transmission profile with system responsiveness data, returns filter-keyed 
         dictionary. (S^{atm}*S^{sys})
@@ -838,6 +838,7 @@ class AtmoBuilder(object):
         sys: (dictionary) [None], filter-keyed bandpass dictionary of system responsiveness (if none
             will set to self.sys)
         filters: (list of strings) [FILTERLIST], list of filters
+        correctRedLeak: (boolean) [True], will zero throughput beyond reasonable wavelength range for u, g
         ----------------------
 
         * Taken from plot_dmags and modified to suit specific needs. *
@@ -854,6 +855,10 @@ class AtmoBuilder(object):
             wavelen, sb = sys[f].multiplyThroughputs(atmo.wavelen, atmo.sb)
             total[f] = Bandpass(wavelen, sb, wavelen_min=WAVELENMIN, wavelen_max=WAVELENMAX, wavelen_step=WAVELENSTEP)
             total[f].sbTophi()
+
+        if correctRedLeak:
+            total = self._redLeakFix(total)
+
         return total
     
     def mags(self, bpDict, seds=None, sedkeylist=None, filters=FILTERLIST, verbose=False):
@@ -2775,3 +2780,10 @@ class AtmoBuilder(object):
 
         ax.set_ylim(min_y,max_y)
         return
+
+    def _redLeakFix(self, bpDict):
+        """Zeros throughputs beyond reasonable wavelength ranges."""
+        bpDict['u'].phi[bpDict['u'].wavelen > 450.0] = 0.0
+        bpDict['g'].phi[bpDict['g'].wavelen > 575.0] = 0.0
+
+        return bpDict
