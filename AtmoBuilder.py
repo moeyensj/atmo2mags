@@ -1295,12 +1295,12 @@ class AtmoBuilder(object):
             print 'Observed atmosphere parameter for ' + comp + ': ' + str(atmo_obs.P[pNum1])
             print ''
             print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp, min(range1), max(range1), componentBins)
-            print ''
             print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), deltaGreyBins)
             print ''
             total = componentBins*deltaGreyBins
 
             print 'Regressing %s parameter combinations per filter...' % (total)
+            print 'Magnitude Error: %s mmags' % (err)
             print ''
         
         P_fit = copy.deepcopy(atmo_obs.P)
@@ -1315,8 +1315,8 @@ class AtmoBuilder(object):
         throughput_obs = self.combineThroughputs(atmo_obs)
         mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
         if overrideDeltaGrey != None:
-            print '' 
             print 'Override deltaGrey detected for observed atmosphere...'
+            print ''
             dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=overrideDeltaGrey)
         else:
             dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=deltaGrey)
@@ -1339,7 +1339,6 @@ class AtmoBuilder(object):
             override_compbest = {}
             override_dgbest = {}
 
-            print ''
             print 'Override triggered...'
             if overrideValue == None:
                 answer = str(input('Would you like to override best-fit component values? (Yes/No)'))
@@ -1454,16 +1453,16 @@ class AtmoBuilder(object):
             print ''
 
         if verbose:
-            print ''
             print r'Best fit parameters (Filter, %s, %s):' % (comp, 'dG')
             for f in filters:
                 print '%s %.2f %.2f' % (f, compbest[f], dgbest[f])
+            print ''
 
             if override:
-                print ''
                 print r'Override best fit parameters (Filter, %s, %s):' % (comp, 'dG')
                 for f in filters:
                     print '%s %.2f %.2f' % (f, override_compbest[f], override_dgbest[f])
+                print ''
     
         if plotDphi:
             throughput_fit = {}
