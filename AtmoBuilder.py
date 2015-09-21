@@ -947,14 +947,54 @@ class AtmoBuilder(object):
         gi = mags_std['g'] - mags_std['i']
         return gi
 
+    def giCut(self, mags, colorRange, mags_std=None, filters=FILTERLIST, assist=False):
+        """
+        Returns g-i color cut magnitude dictionary.
+
+        Parameters:
+        ----------------------
+        parameter: (dtype) [default (if optional)], information
+
+        mags: (dictionary), filter-keyed dictionary of magnitudes created at standard atmosphere
+        colorRange: (list), minimum and maximum g-i color values
+        mags_std: (dictionary) [None], filter-keyed dictionary of magnitudes created at standard atmosphere
+        ----------------------       
+        """
+
+        if mags_std != None:
+            gi = self.gi(mags_std)
+        else: 
+            gi = self.gi(mags)
+
+        condition = (gi >= colorRange[0]) & (gi <= colorRange[1])
+
+        magsCut = {}
+
+        for f in filters:
+            magsCut[f] = mags[f][condition]
+        
+        if assist:
+            return condition
+        else:
+            return magsCut
+
+    def metCut(self, metallicity, colorCut):
+        metcut = metallicity[colorCut]
+        return metcut
+
+    def loggCut(self, logg, colorCut):
+        loggcut = logg[colorCut]
+        return loggcut
+
 ### Regression Functions
 
-    def _computeLogL(self, P, X, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey):
+    def _computeLogL(self, P, X, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey, colorRange):
         """Regression Function: returns log-likelihood given P, X, error, mags_obs, mags_std, seds, sedkeylist and deltaGrey."""
 
         atmo_fit = self.buildAtmo(P,X)
         throughput_fit = self.combineThroughputs(atmo_fit, filters=f)
         mags_fit = self.mags(throughput_fit, seds=seds, sedkeylist=sedkeylist, filters=f)
+        mags_fit = self.giCut(mags_fit, colorRange, mags_std=mags_std)
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f, deltaGrey=deltaGrey)
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2), dmags_fit[f]
@@ -1237,7 +1277,7 @@ class AtmoBuilder(object):
         computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
         saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
         plotDifferenceRegression=False, plotDifferenceComparison=True, pickleString='', filters=FILTERLIST, dmagLimit=True, 
-        returnData=False, override=False, overrideValue=None, overrideDeltaGrey=None, verbose=True):
+        returnData=False, override=False, overrideValue=None, overrideDeltaGrey=None, colorRange=[-1.0,5.0], verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -1285,6 +1325,21 @@ class AtmoBuilder(object):
 
         # Find seds and sedkeylist for sedtype
         seds, sedkeylist = self._sedFinder(regressionSed)
+        
+        # Copy observed atmosphere parameter array and airmass
+        P_fit = copy.deepcopy(atmo_obs.P)
+        X_fit = copy.deepcopy(atmo_obs.X)
+
+        # Create standard atmosphere and magnitudes
+        std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
+        throughput_std = self.combineThroughputs(std, filters=filters)
+        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
+        mags_std = self.giCut(mags_std, colorRange)
+
+        # Create observed atmosphere and magnitudes
+        throughput_obs = self.combineThroughputs(atmo_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
+        mags_obs = self.giCut(mags_obs, colorRange, mags_std=mags_std)
 
         if verbose:
             print 'Computing nonlinear regression for ' + comp + '.'
@@ -1297,23 +1352,21 @@ class AtmoBuilder(object):
             print 'Fitting for %s between %.2f and %.2f in %s bins.' % (comp, min(range1), max(range1), componentBins)
             print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), deltaGreyBins)
             print ''
+
+            
+            if colorRange == [-1.0,5.0]:
+                print 'Regression SEDs: %s %s SEDs.' % (len(mag_obs['u']), self._sedLabelGen(regressionSed))
+                print ''
+            else:
+                print 'Regression SEDs: %s %s SEDs between %.2f and %.2f g-i color.' % (len(mags_obs['u']), self._sedLabelGen(regressionSed), colorRange[0], colorRange[1])
+                print ''
+
             total = componentBins*deltaGreyBins
 
             print 'Regressing %s parameter combinations per filter...' % (total)
             print 'Magnitude Error: %s mmags' % (err)
             print ''
-        
-        P_fit = copy.deepcopy(atmo_obs.P)
-        X_fit = copy.deepcopy(atmo_obs.X)
 
-        # Create standard atmosphere and magnitudes
-        std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
-        throughput_std = self.combineThroughputs(std, filters=filters)
-        mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
-
-        # Create observed atmosphere and magnitudes
-        throughput_obs = self.combineThroughputs(atmo_obs)
-        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
         if overrideDeltaGrey != None:
             print 'Override deltaGrey detected for observed atmosphere...'
             print ''
@@ -1353,7 +1406,6 @@ class AtmoBuilder(object):
                 print 'Override value detected, proceeding with deltaGrey best-fit minimization at new component best-fit value...'
                 print ''
 
-
         for f in filters:
 
             pickleString_temp = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, 
@@ -1381,13 +1433,13 @@ class AtmoBuilder(object):
 
                 if computeChiSquared:
                     logL = np.ndarray([componentBins,deltaGreyBins])
-                    dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(seds)])
+                    dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(mags_std[f])])
                     chisquared = np.ndarray([componentBins,deltaGreyBins])
 
                     for d,dg in enumerate(dgrange):
                         for i in range(len(range1)):
                             P_fit[pNum1] = range1[i]
-                            logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                            logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg, colorRange)
                             chisquared[i,d] = self._computeChiSquared(dmags_fit[i,d], dmags_obs[f], err)
 
                     logL -= np.amax(logL)
@@ -1400,11 +1452,11 @@ class AtmoBuilder(object):
                     if override:
                         override_logL = np.ndarray([deltaGreyBins])
                         override_minimization = np.ndarray([deltaGreyBins])
-                        override_dmags_fit = np.ndarray([deltaGreyBins, len(seds)])
+                        override_dmags_fit = np.ndarray([deltaGreyBins, len(mags_std[f])])
                         
                         P_fit[pNum1] = overrideValue
                         for d,dg in enumerate(dgrange):
-                            override_logL[d], override_dmags_fit[d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
+                            override_logL[d], override_dmags_fit[d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg, colorRange)
                             override_minimization[d] = self._computeMinimization(override_dmags_fit[d], dmags_obs[f])
                         
                         whr = np.where(override_minimization == np.min(override_minimization))
@@ -1413,12 +1465,12 @@ class AtmoBuilder(object):
                 
                 else:
                     logL = np.ndarray([componentBins,deltaGreyBins])
-                    dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(seds)])
+                    dmags_fit = np.ndarray([componentBins,deltaGreyBins,len(mags_std[f])])
             
                     for i in range(len(range1)):
                         for j in range(len(range2)):
                             P_fit[pNum1] = range1[i]
-                            logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
+                            logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey, colorRange)
 
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
@@ -1474,19 +1526,18 @@ class AtmoBuilder(object):
 
             self.dphiPlot(throughput_obs, throughput_std, bpDict2=throughput_fit, filters=filters, regression=True, figName=figName)
             self.ddphiPlot(throughput_obs, throughput_fit, throughput_std, filters=filters, regression=True, figName=figName)
-
         
         if plotDmags:
             comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, compbest, deltaGrey, dgbest, logL, atmo_obs, componentBins=componentBins,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
-                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose)
+                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, colorRange=colorRange, verbose=verbose)
 
         if override:
             comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, override_compbest, deltaGrey, override_dgbest, logL, atmo_obs, componentBins=componentBins,
                 deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName+'_Override', regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
-                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, verbose=verbose, override=override)
+                dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, colorRange=colorRange, verbose=verbose, override=override)
 
         if returnData:
             return compbest, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs #, comparison_dmags_fit, comparison_dmags_obs
@@ -1663,7 +1714,8 @@ class AtmoBuilder(object):
 
     def regressionPlotDeltaGrey(self, comp, comp_best, deltaGrey, dgbest, logL, atmo_obs, componentBins=50, deltaGreyBins=51,
         deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
-        useLogL=False, includeColorBar=False, plotBoth=True, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, override=False, figName=None):
+        useLogL=False, includeColorBar=False, plotBoth=True, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, 
+        override=False, colorRange=[-1.0,5.0], figName=None):
         """
         Plots regression data with each filter in its own row of subplots. Requires the 
         SED data for the specified regression and comparison SEDs to be read in.
@@ -1719,15 +1771,17 @@ class AtmoBuilder(object):
 
         # Save observed parameters
         comp_obs = atmo_obs.P[pNum1]
-    
-        # Create observed throughput
-        throughput_obs = self.combineThroughputs(atmo_obs)
-        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
 
         # Create standard atmosphere
         std = self.buildAtmo(STDPARAMETERS,STDAIRMASS)
         throughput_std = self.combineThroughputs(std)
         mags_std = self.mags(throughput_std, seds=seds, sedkeylist=sedkeylist, filters=filters)
+        mags_std = self.giCut(mags_std, colorRange)
+    
+        # Create observed throughput
+        throughput_obs = self.combineThroughputs(atmo_obs)
+        mags_obs = self.mags(throughput_obs, seds=seds, sedkeylist=sedkeylist, filters=filters)
+        mags_obs = self.giCut(mags_obs, colorRange, mags_std=mags_std)
 
         P_fit = copy.deepcopy(atmo_obs.P) 
         X_fit = copy.deepcopy(atmo_obs.X)
@@ -1748,11 +1802,11 @@ class AtmoBuilder(object):
 
             if plotDifferenceRegression:
                 col1Title = r'%s $\Delta\Delta$mmags (Fit - Truth)' % (label)
-                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey, colorRange=colorRange)
             else:
                 col1Title = r'%s $\Delta$mmags' % (label)
-                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f])
-                self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f], colorRange=colorRange)
+                self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
 
             # Plot parameter space regression plots
             # Plot contours and true values
@@ -1809,7 +1863,7 @@ class AtmoBuilder(object):
 
         return comparison_dmags_fit, comparison_dmags_obs
 
-    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, deltaGrey1=0.0, deltaGrey2=0.0, truth=False, comparisonSed=False, dmagLimit=True):
+    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, deltaGrey1=0.0, deltaGrey2=0.0, truth=False, comparisonSed=False, dmagLimit=True, colorRange=[-1.0,5.0]):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
         # Check if valid sedtype, check if sed data read:
         self._sedTypeCheck(sedtype)
@@ -1833,15 +1887,21 @@ class AtmoBuilder(object):
         if sedtype == 'mss':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+
+            metallicity = np.array(self.metCut(self.msMet, self.giCut(mags, colorRange, mags_std=mags_std, assist=True)))
+            logg = np.array(self.loggCut(self.msLogg, self.giCut(mags, colorRange, mags_std=mags_std, assist=True)))
+            mags = self.giCut(mags, colorRange, mags_std=mags_std)
+            mags_std = self.giCut(mags_std, colorRange)
+
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1) 
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
                 dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
 
-            metallicity = np.array(self.msMet)
-            logg = np.array(self.msLogg)
+       
             metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
             metbinsize = abs(metallicity.min() - metallicity.max())/6.0
             metbins = np.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
@@ -1872,11 +1932,14 @@ class AtmoBuilder(object):
         elif sedtype == 'qsos':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+            mags = self.giCut(mags, colorRange, mags_std=mags_std)
+            mags_std = self.giCut(mags_std, colorRange)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
                 dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
 
             redshift = self.qsoRedshifts
@@ -1907,11 +1970,14 @@ class AtmoBuilder(object):
         elif sedtype == 'gals':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+            mags = self.giCut(mags, colorRange, mags_std=mags_std)
+            mags_std = self.giCut(mags_std, colorRange)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
                 dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
 
             gallist = self.galList
@@ -1944,11 +2010,14 @@ class AtmoBuilder(object):
         elif sedtype == 'mlts':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+            mags = self.giCut(mags, colorRange, mags_std=mags_std)
+            mags_std = self.giCut(mags_std, colorRange)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
                 dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
 
             mltlist = self.mltList
@@ -2007,11 +2076,14 @@ class AtmoBuilder(object):
         elif sedtype == 'wds':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+            mags = self.giCut(mags, colorRange, mags_std=mags_std)
+            mags_std = self.giCut(mags_std, colorRange)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
                 dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
 
             wdslist = self.wdList
@@ -2057,11 +2129,14 @@ class AtmoBuilder(object):
         elif sedtype == 'sns':
             mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
             mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+            mags = self.giCut(mags, colorRange, mags_std=mags_std)
+            mags_std = self.giCut(mags_std, colorRange)
             gi = self.gi(mags_std)
             dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
             if bpDict2 != None:
                 mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
                 dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
  
             snlist = self.snList
@@ -2450,8 +2525,7 @@ class AtmoBuilder(object):
             plt.savefig(os.path.join(PLOTDIRECTORY, title), format='png')
 
         return
-            
-            
+
     def _logL(self, fig, ax, logL, plotType, comp1, comp1_obs, comp1_best, comp2, comp2_obs, comp2_best, deltaGrey, dgbest, componentBins=50,
         deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], normalize=True, includeColorBar=False):
         """Plots desired logL plot type given figure and axis object along with appropriate data."""
