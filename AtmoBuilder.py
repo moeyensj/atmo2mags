@@ -1361,7 +1361,7 @@ class AtmoBuilder(object):
 
             
             if colorRange == [-1.0,5.0]:
-                print 'Regression SEDs: %s %s SEDs.' % (len(mag_obs['u']), self._sedLabelGen(regressionSed))
+                print 'Regression SEDs: %s %s SEDs.' % (len(mags_obs['u']), self._sedLabelGen(regressionSed))
                 print ''
             else:
                 print 'Regression SEDs: %s %s SEDs between %.2f and %.2f g-i color.' % (len(mags_obs['u']), self._sedLabelGen(regressionSed), colorRange[0], colorRange[1])
