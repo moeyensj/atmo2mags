@@ -2744,7 +2744,7 @@ class AtmoBuilder(object):
             return np.linspace(0.2,5.0,bins), 3
         elif comp == 'Aerosol':
             #return np.linspace(0.5,2.0,bins), 4
-            return np.linspace(0.2,5.0,bins), 5
+            return np.linspace(0.2,5.0,bins), 4
         elif comp == 'Alpha':
             #return np.linspace(0.5,2.5,bins), 5
             return np.linspace(0.2,5.0,bins), 5
