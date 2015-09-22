@@ -1381,6 +1381,7 @@ class AtmoBuilder(object):
             dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=deltaGrey)
 
         logL = {}
+        logLbest = {}
         whr = {}
         compbest = {}
         dgbest = {}
@@ -1423,6 +1424,7 @@ class AtmoBuilder(object):
             def run_regression(comp, comp2, f):
                 
                 logL = []
+                logLbest = []
                 whr = []
                 compbest = []
                 dgbest = []
@@ -1448,6 +1450,7 @@ class AtmoBuilder(object):
                             logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg, colorRange)
                             chisquared[i,d] = self._computeChiSquared(dmags_fit[i,d], dmags_obs[f], err)
 
+                    logLbest = np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     compbest = range1[whr[0][0]]
@@ -1478,6 +1481,7 @@ class AtmoBuilder(object):
                             P_fit[pNum1] = range1[i]
                             logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey, colorRange)
 
+                    logLbest = np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     compbest = range1[whr[0][0]]
@@ -1485,15 +1489,15 @@ class AtmoBuilder(object):
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]]
 
                 if override:
-                    return compbest, dgbest, dmagsbest, logL, chisquared, chisquaredbest, override_minimization, override_dgbest, override_compbest
+                    return compbest, dgbest, dmagsbest, logL, logLbest, chisquared, chisquaredbest, override_minimization, override_dgbest, override_compbest
 
                 else:
-                    return compbest, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+                    return compbest, dgbest, dmagsbest, logL, logLbest, chisquared, chisquaredbest
 
             if override:
-                compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f], override_minimization[f], override_dgbest[f], override_compbest[f] = run_regression(comp, 'dG', f)
+                compbest[f], dgbest[f], dmagsbest[f], logL[f], logLbest[f], chisquared[f], chisquaredbest[f], override_minimization[f], override_dgbest[f], override_compbest[f] = run_regression(comp, 'dG', f)
             else: 
-                compbest[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
+                compbest[f], dgbest[f], dmagsbest[f], logL[f], logLbest[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
 
             if saveLogL:
                 name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
