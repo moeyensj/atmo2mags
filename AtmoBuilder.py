@@ -1148,7 +1148,7 @@ class AtmoBuilder(object):
                                 logL[i,j,d], dmags_fit[i,j,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
                                 chisquared[i,j,d] = self._computeChiSquared(dmags_fit[i,j,d], dmags_obs[f], err)
 
-                    logLbest = np.amax(logL)
+                    logLbest = -np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1169,7 +1169,7 @@ class AtmoBuilder(object):
                             logL[i,j], dmags_fit[i,j,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
                             chisquared[i,j] = self._computeChiSquared(dmags_fit[i,j], dmags_obs[f], err)
 
-                    logLbest = np.amax(logL)
+                    logLbest = -np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1189,7 +1189,7 @@ class AtmoBuilder(object):
                                 P_fit[pNum2] = range2[j]
                                 logL[i,j,d], dmags_fit[i,j,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
 
-                    logLbest = np.amax(logL)
+                    logLbest = -np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1206,7 +1206,7 @@ class AtmoBuilder(object):
                             P_fit[pNum2] = range2[j]
                             logL[i,j], dmags_fit[i,j,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
-                    logLbest = np.amax(logL)
+                    logLbest = -np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1453,7 +1453,7 @@ class AtmoBuilder(object):
                             logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg, colorRange)
                             chisquared[i,d] = self._computeChiSquared(dmags_fit[i,d], dmags_obs[f], err)
 
-                    logLbest = np.amax(logL)
+                    logLbest = -np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     compbest = range1[whr[0][0]]
@@ -1484,7 +1484,7 @@ class AtmoBuilder(object):
                             P_fit[pNum1] = range1[i]
                             logL[i,d], dmags_fit[i,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey, colorRange)
 
-                    logLbest = np.amax(logL)
+                    logLbest = -np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     compbest = range1[whr[0][0]]
@@ -1518,9 +1518,9 @@ class AtmoBuilder(object):
             print ''
 
         if verbose:
-            print r'Best fit parameters (Filter, %s, %s):' % (comp, 'dG')
+            print r'Best fit parameters (Filter, %s, %s, %s, %s):' % (comp, 'dG', 'logL', 'Chi-Squared')
             for f in filters:
-                print '%s %.2f %.2f' % (f, compbest[f], dgbest[f])
+                print '%s %.2f %.2f %s %s' % (f, compbest[f], dgbest[f], logLbest[f], chisquaredbest[f])
             print ''
 
             if override:
