@@ -1100,6 +1100,7 @@ class AtmoBuilder(object):
         dmags_obs = self.dmags(mags_obs, mags_std, filters=filters, deltaGrey=deltaGrey)
 
         logL = {}
+        logLbest = {}
         whr = {}
         comp1best = {}
         comp2best = {}
@@ -1122,6 +1123,7 @@ class AtmoBuilder(object):
             def run_regression(comp1, comp2, f):
                 
                 logL = []
+                logLbest = []
                 whr = []
                 comp1best = []
                 comp2best = []
@@ -1143,6 +1145,7 @@ class AtmoBuilder(object):
                                 logL[i,j,d], dmags_fit[i,j,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
                                 chisquared[i,j,d] = self._computeChiSquared(dmags_fit[i,j,d], dmags_obs[f], err)
 
+                    logLbest = np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1163,6 +1166,7 @@ class AtmoBuilder(object):
                             logL[i,j], dmags_fit[i,j,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
                             chisquared[i,j] = self._computeChiSquared(dmags_fit[i,j], dmags_obs[f], err)
 
+                    logLbest = np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1182,6 +1186,7 @@ class AtmoBuilder(object):
                                 P_fit[pNum2] = range2[j]
                                 logL[i,j,d], dmags_fit[i,j,d,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, dg)
 
+                    logLbest = np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1198,6 +1203,7 @@ class AtmoBuilder(object):
                             P_fit[pNum2] = range2[j]
                             logL[i,j], dmags_fit[i,j,:] = self._computeLogL(P_fit, X_fit, err, f, dmags_obs, mags_std, seds, sedkeylist, deltaGrey)
 
+                    logLbest = np.amax(logL)
                     logL -= np.amax(logL)
                     whr = np.where(logL == np.amax(logL))
                     comp1best = range1[whr[0][0]]
@@ -1205,9 +1211,9 @@ class AtmoBuilder(object):
                     dgbest = deltaGrey
                     dmagsbest = dmags_fit[whr[0][0]][whr[1][0]][0]
 
-                return comp1best, comp2best, dgbest, dmagsbest, logL, chisquared, chisquaredbest
+                return comp1best, comp2best, dgbest, dmagsbest, logL, logLbest, chisquared, chisquaredbest
 
-            comp1best[f], comp2best[f], dgbest[f], dmagsbest[f], logL[f], chisquared[f], chisquaredbest[f] = run_regression(comp1, comp2, f)
+            comp1best[f], comp2best[f], dgbest[f], dmagsbest[f], logL[f], logLbest[f], chisquared[f], chisquaredbest[f] = run_regression(comp1, comp2, f)
 
             if saveLogL and deltaGrey != 0.0:
                 name = self._regressionNameGen(comp1, comp2, atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
@@ -1269,7 +1275,7 @@ class AtmoBuilder(object):
                 deltaGreyRange=deltaGreyRange, filters=filters, figName=figName)
 
         if returnData:
-            return comp1best, comp2best, dgbest, dmagsbest,logL, chisquared, chisquaredbest, dmags_obs, comparison_dmags_fit, comparison_dmags_obs
+            return comp1best, comp2best, dgbest, dmagsbest, logL, logLbest, chisquared, chisquaredbest, dmags_obs, comparison_dmags_fit, comparison_dmags_obs
         else:
             return
 
