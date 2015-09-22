@@ -961,6 +961,9 @@ class AtmoBuilder(object):
         ----------------------       
         """
 
+        if filters == 'y4':
+            filters = ['y4']
+
         if mags_std != None:
             gi = self.gi(mags_std)
         else: 
@@ -994,7 +997,7 @@ class AtmoBuilder(object):
         atmo_fit = self.buildAtmo(P,X)
         throughput_fit = self.combineThroughputs(atmo_fit, filters=f)
         mags_fit = self.mags(throughput_fit, seds=seds, sedkeylist=sedkeylist, filters=f)
-        mags_fit = self.giCut(mags_fit, colorRange, mags_std=mags_std)
+        mags_fit = self.giCut(mags_fit, colorRange, mags_std=mags_std, filters=f)
         dmags_fit = self.dmags(mags_fit, mags_std, filters=f, deltaGrey=deltaGrey)
     
         return -np.sum(0.5 * ((dmags_fit[f] - dmags_obs[f]) / err) ** 2), dmags_fit[f]
