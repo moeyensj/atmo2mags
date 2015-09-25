@@ -1283,10 +1283,10 @@ class AtmoBuilder(object):
             return
 
     def computeDeltaGreyFit(self, comp, deltaGrey, atmo_obs, err=5.0, componentBins=50, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
-        computeChiSquared=True, regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False, 
-        saveChiSquared = True, plotChiSquared = True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
+        colorRange=[-1.0,5.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False,
+        computeChiSquared=True, saveChiSquared=True, plotChiSquared=True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
         plotDifferenceRegression=False, plotDifferenceComparison=True, pickleString='', filters=FILTERLIST, dmagLimit=True, 
-        returnData=False, override=False, overrideValue=None, overrideDeltaGrey=None, colorRange=[-1.0,5.0], verbose=True):
+        returnData=False, override=False, overrideValue=None, overrideDeltaGrey=None, verbose=True):
         """
         Computes the best fit atmospheric parameters for two given components and an observed atmosphere. Requires the 
         SED data for the specified regression and comparison SEDs to be read in. 
@@ -1302,13 +1302,14 @@ class AtmoBuilder(object):
         err: (float) [5.00], err in millimagnitudes
         componentBins: (int) [50], number of bins for regression
         deltaGreyBins: (int) [50], number of bins for regression over deltaGrey space
-        deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
+        deltaGreyRange: (list of ints) [-50,50], min and max deltaGrey in mmags between which to regress
         regressionSed: (string) ['mss'], SED type to run regress over
-        comparisonSeds: (list of strings) [SEDTYPES], 
+        comparisonSeds: (list of strings) [SEDTYPES], comparison / control SEDs for third column plotting
         plotDmags: (boolean) [True], generate a regression plot
         plotDphi: (boolean) [True], generate a dphi and ddphi plot
         saveLogL: (boolean) [True], save logL as txt file
         useLogL: (boolean) [False], use logL to replace contour plots
+        computeChiSquared: (boolean) [True], compute chi-squared
         saveChiSquared: (boolean) [True], save chi-squared as txt file
         plotChiSquared: (boolean) [True], generate a plot of chi-squared
         plotLogL: (boolean) [False], plot individual logLs and contours seperately
@@ -1322,6 +1323,9 @@ class AtmoBuilder(object):
         dmagLimit: (boolean) [True], create +-2 mmags axis lines if certain axis requirements
             are met. 
         returnData: (boolean) [False], return data elements
+        override: (boolean) [False], trigger override status
+        overrideValue: (int) [None], override component best-fit value
+        overrideDeltaGrey: (int) [None], override deltaGrey best-fit value
         verbose: (boolean) [True], print out verbose statements
         ----------------------
         """
@@ -1362,7 +1366,6 @@ class AtmoBuilder(object):
             print 'Fitting for deltaGrey between %.2f and %.2f mmags in %s bins.' % (min(dgrange), max(dgrange), deltaGreyBins)
             print ''
 
-            
             if colorRange == [-1.0,5.0]:
                 print 'Regression SEDs: %s %s SEDs.' % (len(mags_obs['u']), self._sedLabelGen(regressionSed))
                 print ''
