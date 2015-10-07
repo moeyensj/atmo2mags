@@ -1822,7 +1822,7 @@ class AtmoBuilder(object):
             else:
                 col1Title = r'%s $\Delta$mmags' % (label)
                 if regressionSed == 'stars':
-                    for s in ['mss','wds','mlts']:                    
+                    for s in ['wds','mlts','mss']:                    
                         self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
                         self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 else:
