@@ -2696,7 +2696,7 @@ class AtmoBuilder(object):
             return 'MLT Dwarfs'
         elif sedtype == 'sns':
             return 'Supernovas'
-        elif sedtye == 'stars':
+        elif sedtype == 'stars':
             return 'Stars (MS,WD,MLT)'
         return
 
