@@ -2691,6 +2691,8 @@ class AtmoBuilder(object):
             return 'MLT Dwarfs'
         elif sedtype == 'sns':
             return 'Supernovas'
+        elif sedtye == 'stars':
+            return 'Stars (MS,WD,MLT)'
         return
 
     def _figNameGen(self, saveFig, figName, P1, X1, P2, X2):
