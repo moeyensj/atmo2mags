@@ -2851,6 +2851,15 @@ class AtmoBuilder(object):
             seds.update(self.wds)
             seds.update(self.mlts)
             sedkeylist = np.concatenate((self.msList, self.wdList, self.mltList), axis=0)
+        elif sedtype == 'all':
+            seds = self.mss.copy()
+            seds.update(self.wds)
+            seds.update(self.mlts)
+            seds.update(self.gals)
+            seds.update(self.sns)
+            seds.update(self.qsos)
+            sedkeylist = np.concatenate((self.msList, self.wdList, self.mltList, 
+                self.galList, self.snList, self.qsoRedshifts), axis=0)
 
         return seds, sedkeylist
 
