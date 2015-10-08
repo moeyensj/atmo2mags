@@ -1825,6 +1825,10 @@ class AtmoBuilder(object):
                     for s in ['wds','mlts','mss']:                    
                         self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
                         self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
+                elif regressionSed == 'all':
+                    for s in SEDTYPES:
+                        self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
+                        self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 else:
                     self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f], colorRange=colorRange)
                     self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
