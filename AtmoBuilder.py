@@ -29,7 +29,7 @@ PLOTDIRECTORY = 'plots/'
 LOGLDIRECTORY = 'logls/'
 CHISQUAREDDIRECTORY = 'chisquared/'
 
-SEDTYPES = ['mss','qsos','gals','sns','wds','mlts','stars']
+SEDTYPES = ['mss','qsos','gals','sns','wds','mlts','stars','all']
 FILTERLIST = ['u','g','r','i','z','y4']
 COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
 
