@@ -388,7 +388,8 @@ class AtmoBuilder(object):
 
         return
 
-    def readMSs(self, sedDirectory=SIMSSEDLIBRARY, subDirectory='starSED/kurucz/'):
+    def readMSs(self, sedDirectory=SIMSSEDLIBRARY, subDirectory='starSED/kurucz/', 
+        logg=['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50'], tempRange=[3000,50000]):
         """
         Reads Kurucz main sequence star model data from LSST software stack and sets relevant class attributes.
 
@@ -410,16 +411,14 @@ class AtmoBuilder(object):
         * Modified from plot_dmags.py *
         """
         ### Taken from plot_dmags and modified to suit specific needs.
-        # read kurucz model MS, g40 stars SEDs
+        # read kurucz model MS
         homedir = os.getenv(sedDirectory)  
         stardir = os.path.join(homedir, subDirectory)
         allfilelist = os.listdir(stardir)
         starlist = []
-        # make preliminary cut for ms, g40 stars
+        # make preliminary cut for ms
         for filename in allfilelist:
-            if filename[-11:-8] == 'g40':
-                starlist.append(filename)
-            if filename[-11:-8] == 'g20':
+            if filename[-10:-8] in logg:
                 starlist.append(filename)
         atemperature = []
         amet = []
@@ -435,7 +434,7 @@ class AtmoBuilder(object):
             temperature = float(tmp[1][:5])
             logg = float(tmp[2][1:])
             logg = logg / 10.0
-            if (temperature > 4000.0):
+            if (temperature > tempRange[0]) and (temperature < tempRange[1]):
                 amet.append(met)
                 atemperature.append(temperature)
                 alogg.append(logg)
