@@ -2698,6 +2698,8 @@ class AtmoBuilder(object):
             return 'Supernovas'
         elif sedtype == 'stars':
             return 'Stars (MS,WD,MLT)'
+        elif sedtype == 'all':
+            return 'All SEDs'
         return
 
     def _figNameGen(self, saveFig, figName, P1, X1, P2, X2):
