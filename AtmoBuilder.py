@@ -29,7 +29,7 @@ PLOTDIRECTORY = 'plots/'
 LOGLDIRECTORY = 'logls/'
 CHISQUAREDDIRECTORY = 'chisquared/'
 
-SEDTYPES = ['mss','qsos','gals','sns','wds','mlts','stars','all']
+SEDTYPES = ['mss','qsos','gals','sns','wds','mlts','stars','all','starsgals']
 FILTERLIST = ['u','g','r','i','z','y4']
 COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
 
@@ -1828,6 +1828,10 @@ class AtmoBuilder(object):
                     for s in SEDTYPES:
                         self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
                         self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
+                elif regressionSed == 'starsgals':
+                    for s in ['gals','mss']:
+                        self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
+                        self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 else:
                     self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f], colorRange=colorRange)
                     self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
@@ -2703,6 +2707,8 @@ class AtmoBuilder(object):
             return 'Stars (MS,WD,MLT)'
         elif sedtype == 'all':
             return 'All SEDs'
+        elif sedtype == 'starsgals':
+            return 'MS stars, Galaxies'
         return
 
     def _figNameGen(self, saveFig, figName, P1, X1, P2, X2):
@@ -2865,6 +2871,10 @@ class AtmoBuilder(object):
             seds.update(self.qsos)
             sedkeylist = np.concatenate((self.msList, self.wdList, self.mltList, 
                 self.galList, self.snList, self.qsoRedshifts), axis=0)
+        elif sedtype == 'starsgals':
+            seds = self.mss.copy()
+            seds.update(self.gals)
+            sedkeylist = np.concatenate((self.msList, self.galList), axis=0)
 
         return seds, sedkeylist
 
