@@ -1892,10 +1892,6 @@ class AtmoBuilder(object):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
 
         for i,s in enumerate(sedtypes):
-            # Check if valid sedtype, check if sed data read:
-            self._sedTypeCheck(s)
-            self._sedReadCheck(s)
-
             # Label axes, only label y if not comparison sed
             ax.set_xlabel("g-i", fontsize=LABELSIZE)
             if comparisonSed == False:
