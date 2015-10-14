@@ -1840,17 +1840,13 @@ class AtmoBuilder(object):
             comparison_dmags_obs_f = {}
 
             if plotDifferenceComparison == False:
-                for s in comparisonSeds:
-                    #if s != regressionSed:
-                    comparison_dmags_fit_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
-                    comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
-                    col3Title = r'Comparison SED $\Delta$mmags'
+                comparison_dmags_fit_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, comparisonSeds, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
+                comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, comparisonSeds, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
+                col3Title = r'Comparison SED $\Delta$mmags'
             else:
-                for s in comparisonSeds:
-                    #if s != regressionSed:
-                    comparison_dmags_fit_f[s], comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, s, comparisonSed=True, bpDict2=throughput_obs, 
-                        deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
-                    col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
+                comparison_dmags_fit_f[s], comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, comparisonSeds, comparisonSed=True, bpDict2=throughput_obs, 
+                    deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
+                col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
 
             if dmagLimit:
                 self._axisLimiter(ax[i][0], [-2.0,2.0])
