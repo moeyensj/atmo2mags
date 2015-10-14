@@ -1820,18 +1820,15 @@ class AtmoBuilder(object):
                 self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey, colorRange=colorRange)
             else:
                 col1Title = r'%s $\Delta$mmags' % (label)
-                if regressionSed == 'stars':
-                    for s in ['wds','mlts','mss']:                    
-                        self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
-                        self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
+                if regressionSed == 'stars':                  
+                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, ['wds','mlts','mss'], deltaGrey1=dgbest[f], colorRange=colorRange)
+                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, ['wds','mlts','mss'], deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 elif regressionSed == 'all':
-                    for s in SEDTYPES:
-                        self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
-                        self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
+                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, SEDTYPES, deltaGrey1=dgbest[f], colorRange=colorRange)
+                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, SEDTYPES, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 elif regressionSed == 'starsgals':
-                    for s in ['gals','mss']:
-                        self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, s, deltaGrey1=dgbest[f], colorRange=colorRange)
-                        self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, s, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
+                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, ['gals','mss'], deltaGrey1=dgbest[f], colorRange=colorRange)
+                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, ['gals','mss'], deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 else:
                     self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f], colorRange=colorRange)
                     self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
