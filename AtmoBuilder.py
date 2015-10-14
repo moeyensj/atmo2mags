@@ -1891,309 +1891,311 @@ class AtmoBuilder(object):
 
         return comparison_dmags_fit, comparison_dmags_obs
 
-    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtype, bpDict2=None, deltaGrey1=0.0, deltaGrey2=0.0, truth=False, comparisonSed=False, dmagLimit=True, colorRange=[-1.0,5.0]):
+    def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtypes, bpDict2=None, deltaGrey1=0.0, deltaGrey2=0.0, truth=False, comparisonSed=False, dmagLimit=True, colorRange=[-1.0,5.0]):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
-        # Check if valid sedtype, check if sed data read:
-        self._sedTypeCheck(sedtype)
-        self._sedReadCheck(sedtype)
 
-        # Label axes, only label y if not comparison sed
-        ax.set_xlabel("g-i", fontsize=LABELSIZE)
-        if comparisonSed == False:
-            ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f), fontsize=LABELSIZE)
-        
-        # Add grid
-        ax.grid(b=True)
+        for i,s in enumerate(sedtypes):
+            # Check if valid sedtype, check if sed data read:
+            self._sedTypeCheck(s)
+            self._sedReadCheck(s)
 
-        label = self._sedLabelGen(sedtype)
+            # Label axes, only label y if not comparison sed
+            ax.set_xlabel("g-i", fontsize=LABELSIZE)
+            if comparisonSed == False:
+                ax.set_ylabel(r"$\Delta$ %s (mmag)" %(f), fontsize=LABELSIZE)
+            
+            # Add grid
+            ax.grid(b=True)
 
-        seds, sedkeylist = self._sedFinder(sedtype)
+            label = self._sedLabelGen(s)
 
-        dmags = []
-        dmags2 = []
+            seds, sedkeylist = self._sedFinder(s)
 
-        if sedtype == 'mss':
-            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
-            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+            dmags = []
+            dmags2 = []
 
-            metallicity = np.array(self.metCut(self.msMet, self.giCut(mags, colorRange, mags_std=mags_std, assist=True)))
-            logg = np.array(self.loggCut(self.msLogg, self.giCut(mags, colorRange, mags_std=mags_std, assist=True)))
-            mags = self.giCut(mags, colorRange, mags_std=mags_std)
-            mags_std = self.giCut(mags_std, colorRange)
+            if s == 'mss':
+                mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+                mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
 
-            gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1) 
+                metallicity = np.array(self.metCut(self.msMet, self.giCut(mags, colorRange, mags_std=mags_std, assist=True)))
+                logg = np.array(self.loggCut(self.msLogg, self.giCut(mags, colorRange, mags_std=mags_std, assist=True)))
+                mags = self.giCut(mags, colorRange, mags_std=mags_std)
+                mags_std = self.giCut(mags_std, colorRange)
 
-            if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
-                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
-                dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
-
-       
-            metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
-            metbinsize = abs(metallicity.min() - metallicity.max())/6.0
-            metbins = np.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
-
-            for metidx in range(len(metbins)):
-                # Make cut of stars
-                condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
-                        & (logg>3.5))
-                mcolor = metcolors[metidx]
+                gi = self.gi(mags_std)
+                dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1) 
 
                 if bpDict2 != None:
-                    if metidx == len(metbins)-1:
-                        ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], mcolor+'.', label=label)
-                    else:
-                        ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], mcolor+'.')
-                else:
-                    if truth == True:
+                    mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                    mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
+                    dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
+
+           
+                metcolors = ['c', 'c', 'b', 'g', 'y', 'r', 'm']
+                metbinsize = abs(metallicity.min() - metallicity.max())/6.0
+                metbins = np.arange(metallicity.min(), metallicity.max() + metbinsize, metbinsize)
+
+                for metidx in range(len(metbins)):
+                    # Make cut of stars
+                    condition =((metallicity>=metbins[metidx]) & (metallicity<=metbins[metidx]+metbinsize) \
+                            & (logg>3.5))
+                    mcolor = metcolors[metidx]
+
+                    if bpDict2 != None:
                         if metidx == len(metbins)-1:
-                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label='Truth')
+                            ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], mcolor+'.', label=label)
                         else:
-                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
+                            ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], mcolor+'.')
                     else:
-                        if metidx == len(metbins)-1:
-                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label='Fit')
+                        if truth == True:
+                            if metidx == len(metbins)-1:
+                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label='Truth')
+                            else:
+                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
                         else:
-                            ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
+                            if metidx == len(metbins)-1:
+                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label='Fit')
+                            else:
+                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
-        elif sedtype == 'qsos':
-            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
-            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
-            mags = self.giCut(mags, colorRange, mags_std=mags_std)
-            mags_std = self.giCut(mags_std, colorRange)
-            gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
-
-            if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
-                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
-                dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
-
-            redshift = self.qsoRedshifts
-            redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
-            redbinsize = 0.5
-            redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
-            for redidx in range(len(redbins)):
-                condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
-                rcolor = redcolors[redidx]
+            elif s == 'qsos':
+                mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+                mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+                mags = self.giCut(mags, colorRange, mags_std=mags_std)
+                mags_std = self.giCut(mags_std, colorRange)
+                gi = self.gi(mags_std)
+                dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
                 if bpDict2 != None:
-                    if redidx == len(redbins)-1:
-                        ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], rcolor+'o', label=label)
-                    else:
-                        ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], rcolor+'o')
-                else:
-                    if truth == True:
+                    mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                    mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
+                    dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
+
+                redshift = self.qsoRedshifts
+                redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
+                redbinsize = 0.5
+                redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
+                for redidx in range(len(redbins)):
+                    condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
+                    rcolor = redcolors[redidx]
+
+                    if bpDict2 != None:
                         if redidx == len(redbins)-1:
-                            ax.plot(gi[condition], dmags[f][condition], rcolor+'o', label='Truth')
+                            ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], rcolor+'o', label=label)
                         else:
-                            ax.plot(gi[condition], dmags[f][condition], rcolor+'o')
+                            ax.plot(gi[condition], dmags[f][condition]-dmags2[f][condition], rcolor+'o')
                     else:
-                        if redidx == len(redbins)-1:
-                            ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray', label='Fit')
-                        else: 
-                            ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray')
-        
-        elif sedtype == 'gals':
-            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
-            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
-            mags = self.giCut(mags, colorRange, mags_std=mags_std)
-            mags_std = self.giCut(mags_std, colorRange)
-            gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
-
-            if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
-                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
-                dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
-
-            gallist = self.galList
-            redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
-            redbinsize = 0.5
-            redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
-
-            for i,g in enumerate(gallist):
-                galbase, redshift = g.split('_')
-                redshift = float(redshift)
-                redidx = int(redshift / redbinsize)
+                        if truth == True:
+                            if redidx == len(redbins)-1:
+                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', label='Truth')
+                            else:
+                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o')
+                        else:
+                            if redidx == len(redbins)-1:
+                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray', label='Fit')
+                            else: 
+                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray')
+            
+            elif s == 'gals':
+                mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+                mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+                mags = self.giCut(mags, colorRange, mags_std=mags_std)
+                mags_std = self.giCut(mags_std, colorRange)
+                gi = self.gi(mags_std)
+                dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
                 if bpDict2 != None:
-                    if i == len(gallist)-1:
-                        ax.plot(gi[i], dmags[f][i]-dmags2[f][i], redcolors[redidx]+'.', label=label)
-                    else:
-                        ax.plot(gi[i], dmags[f][i]-dmags2[f][i], redcolors[redidx]+'.')
-                else:
-                    if truth == True:
+                    mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                    mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
+                    dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
+
+                gallist = self.galList
+                redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
+                redbinsize = 0.5
+                redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
+
+                for i,g in enumerate(gallist):
+                    galbase, redshift = g.split('_')
+                    redshift = float(redshift)
+                    redidx = int(redshift / redbinsize)
+
+                    if bpDict2 != None:
                         if i == len(gallist)-1:
-                            ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', label='Truth')
+                            ax.plot(gi[i], dmags[f][i]-dmags2[f][i], redcolors[redidx]+'.', label=label)
                         else:
-                            ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
+                            ax.plot(gi[i], dmags[f][i]-dmags2[f][i], redcolors[redidx]+'.')
                     else:
-                        if i == len(gallist)-1:
-                            ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray', label='Fit')
+                        if truth == True:
+                            if i == len(gallist)-1:
+                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', label='Truth')
+                            else:
+                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
                         else:
-                            ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
+                            if i == len(gallist)-1:
+                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray', label='Fit')
+                            else:
+                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
-        elif sedtype == 'mlts':
-            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
-            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
-            mags = self.giCut(mags, colorRange, mags_std=mags_std)
-            mags_std = self.giCut(mags_std, colorRange)
-            gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
+            elif s == 'mlts':
+                mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+                mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+                mags = self.giCut(mags, colorRange, mags_std=mags_std)
+                mags_std = self.giCut(mags_std, colorRange)
+                gi = self.gi(mags_std)
+                dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
-            if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
-                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
-                dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
-
-            mltlist = self.mltList
-            mlist = self.mList
-            llist = self.lList
-            tlist = self.tList
-        
-            for j in range(len(mltlist)):
                 if bpDict2 != None:
-                    if j == len(mltlist)-1:
-                        if (mltlist[j] in mlist):
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'bx', label=label)
-                        elif (mltlist[j] in llist):
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'gx', label=label)
-                        elif (mltlist[j] in tlist):
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'mx', label=label)
-                    else:
-                        if (mltlist[j] in mlist):
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'bx')
-                        elif (mltlist[j] in llist):
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'gx')
-                        elif (mltlist[j] in tlist):
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'mx')
-                else:
-                    if truth == True:
+                    mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                    mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
+                    dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
+
+                mltlist = self.mltList
+                mlist = self.mList
+                llist = self.lList
+                tlist = self.tList
+            
+                for j in range(len(mltlist)):
+                    if bpDict2 != None:
                         if j == len(mltlist)-1:
                             if (mltlist[j] in mlist):
-                                ax.plot(gi[j], dmags[f][j], 'bx', label='Truth')
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'bx', label=label)
                             elif (mltlist[j] in llist):
-                                ax.plot(gi[j], dmags[f][j], 'gx', label='Truth')
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'gx', label=label)
                             elif (mltlist[j] in tlist):
-                                ax.plot(gi[j], dmags[f][j], 'mx', label='Truth')
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'mx', label=label)
                         else:
                             if (mltlist[j] in mlist):
-                                ax.plot(gi[j], dmags[f][j], 'bx')
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'bx')
                             elif (mltlist[j] in llist):
-                                ax.plot(gi[j], dmags[f][j], 'gx')
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'gx')
                             elif (mltlist[j] in tlist):
-                                ax.plot(gi[j], dmags[f][j], 'mx')
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'mx')
                     else:
-                        if j == len(mltlist)-1:
-                            if (mltlist[j] in mlist):
-                                ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
-                            elif (mltlist[j] in llist):
-                                ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
-                            elif (mltlist[j] in tlist):
-                                ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
+                        if truth == True:
+                            if j == len(mltlist)-1:
+                                if (mltlist[j] in mlist):
+                                    ax.plot(gi[j], dmags[f][j], 'bx', label='Truth')
+                                elif (mltlist[j] in llist):
+                                    ax.plot(gi[j], dmags[f][j], 'gx', label='Truth')
+                                elif (mltlist[j] in tlist):
+                                    ax.plot(gi[j], dmags[f][j], 'mx', label='Truth')
+                            else:
+                                if (mltlist[j] in mlist):
+                                    ax.plot(gi[j], dmags[f][j], 'bx')
+                                elif (mltlist[j] in llist):
+                                    ax.plot(gi[j], dmags[f][j], 'gx')
+                                elif (mltlist[j] in tlist):
+                                    ax.plot(gi[j], dmags[f][j], 'mx')
                         else:
-                            if (mltlist[j] in mlist):
-                                ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
-                            elif (mltlist[j] in llist):
-                                ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
-                            elif (mltlist[j] in tlist):
-                                ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
-
-        elif sedtype == 'wds':
-            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
-            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
-            mags = self.giCut(mags, colorRange, mags_std=mags_std)
-            mags_std = self.giCut(mags_std, colorRange)
-            gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
-
-            if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
-                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
-                dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
-
-            wdslist = self.wdList
-            hlist = self.wdListH
-            helist = self.wdListHe
-
-            for j in range(len(wdslist)):
-                if bpDict2 != None:
-                    if (wdslist[j] in hlist):
-                        if j == len(wdslist)-1:
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+', label=label)
-                        else:
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+')
-                    elif (wdslist[j] in helist):
-                        if j == len(wdslist)-1:
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+', label=label)
-                        else:
-                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+')
-                else:
-                    if truth == True:
-                        if (wdslist[j] in hlist):
-                            if j == len(wdslist)-1:
-                                ax.plot(gi[j], dmags[f][j], 'y+', label='Truth')
+                            if j == len(mltlist)-1:
+                                if (mltlist[j] in mlist):
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
+                                elif (mltlist[j] in llist):
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
+                                elif (mltlist[j] in tlist):
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
                             else:
-                                ax.plot(gi[j], dmags[f][j], 'y+')
-                        elif (wdslist[j] in helist):
-                            if j == len(wdslist)-1:
-                                ax.plot(gi[j], dmags[f][j], 'y+', label='Truth')
-                            else:
-                                ax.plot(gi[j], dmags[f][j], 'y+')
-                    else:
-                        if (wdslist[j] in hlist):
-                            if j == len(wdslist)-1:
-                                ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label='Fit')
-                            else:
-                                ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
-                        elif (wdslist[j] in helist):
-                            if j == len(wdslist)-1:
-                                ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label='Fit')
-                            else:
-                                ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
+                                if (mltlist[j] in mlist):
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
+                                elif (mltlist[j] in llist):
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
+                                elif (mltlist[j] in tlist):
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
 
-        elif sedtype == 'sns':
-            mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
-            mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
-            mags = self.giCut(mags, colorRange, mags_std=mags_std)
-            mags_std = self.giCut(mags_std, colorRange)
-            gi = self.gi(mags_std)
-            dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
-
-            if bpDict2 != None:
-                mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
-                mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
-                dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
- 
-            snlist = self.snList
-            redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
-            redbinsize = 0.2
-            redbins = np.arange(0.0, 1.2+redbinsize, redbinsize)
-            day_symbol = {'0':'s', '20':'s', '40':'s'}
-
-            for j,s in enumerate(snlist):
-                day, redshift = s.split('_')
-                redshift = float(redshift)
-                redidx = int(redshift / redbinsize)
+            elif s == 'wds':
+                mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+                mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+                mags = self.giCut(mags, colorRange, mags_std=mags_std)
+                mags_std = self.giCut(mags_std, colorRange)
+                gi = self.gi(mags_std)
+                dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
 
                 if bpDict2 != None:
-                    if j == len(snlist)-1:
-                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], redcolors[redidx]+day_symbol[day], label=label)
+                    mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                    mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
+                    dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
+
+                wdslist = self.wdList
+                hlist = self.wdListH
+                helist = self.wdListHe
+
+                for j in range(len(wdslist)):
+                    if bpDict2 != None:
+                        if (wdslist[j] in hlist):
+                            if j == len(wdslist)-1:
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+', label=label)
+                            else:
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+')
+                        elif (wdslist[j] in helist):
+                            if j == len(wdslist)-1:
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+', label=label)
+                            else:
+                                ax.plot(gi[j], dmags[f][j]-dmags2[f][j], 'y+')
                     else:
-                        ax.plot(gi[j], dmags[f][j]-dmags2[f][j], redcolors[redidx]+day_symbol[day])
-                else:
-                    if truth == True:
-                        if j == len(snlist)-1:
-                            ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], label='Truth')
+                        if truth == True:
+                            if (wdslist[j] in hlist):
+                                if j == len(wdslist)-1:
+                                    ax.plot(gi[j], dmags[f][j], 'y+', label='Truth')
+                                else:
+                                    ax.plot(gi[j], dmags[f][j], 'y+')
+                            elif (wdslist[j] in helist):
+                                if j == len(wdslist)-1:
+                                    ax.plot(gi[j], dmags[f][j], 'y+', label='Truth')
+                                else:
+                                    ax.plot(gi[j], dmags[f][j], 'y+')
                         else:
-                            ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
+                            if (wdslist[j] in hlist):
+                                if j == len(wdslist)-1:
+                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label='Fit')
+                                else:
+                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
+                            elif (wdslist[j] in helist):
+                                if j == len(wdslist)-1:
+                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label='Fit')
+                                else:
+                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
+
+            elif s == 'sns':
+                mags = self.mags(bpDict1, seds=seds, sedkeylist=sedkeylist)
+                mags_std = self.mags(bpDict_std, seds=seds, sedkeylist=sedkeylist)
+                mags = self.giCut(mags, colorRange, mags_std=mags_std)
+                mags_std = self.giCut(mags_std, colorRange)
+                gi = self.gi(mags_std)
+                dmags = self.dmags(mags, mags_std, deltaGrey=deltaGrey1)
+
+                if bpDict2 != None:
+                    mags2 = self.mags(bpDict2, seds=seds, sedkeylist=sedkeylist)
+                    mags2 = self.giCut(mags2, colorRange, mags_std=mags_std)
+                    dmags2 = self.dmags(mags2, mags_std, deltaGrey=deltaGrey2)
+     
+                snlist = self.snList
+                redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
+                redbinsize = 0.2
+                redbins = np.arange(0.0, 1.2+redbinsize, redbinsize)
+                day_symbol = {'0':'s', '20':'s', '40':'s'}
+
+                for j,s in enumerate(snlist):
+                    day, redshift = s.split('_')
+                    redshift = float(redshift)
+                    redidx = int(redshift / redbinsize)
+
+                    if bpDict2 != None:
+                        if j == len(snlist)-1:
+                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], redcolors[redidx]+day_symbol[day], label=label)
+                        else:
+                            ax.plot(gi[j], dmags[f][j]-dmags2[f][j], redcolors[redidx]+day_symbol[day])
                     else:
-                        if j == len(snlist)-1:
-                            ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label='Fit')
+                        if truth == True:
+                            if j == len(snlist)-1:
+                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], label='Truth')
+                            else:
+                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
                         else:
-                            ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
+                            if j == len(snlist)-1:
+                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label='Fit')
+                            else:
+                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
         
         if bpDict2 != None:
             return dmags, dmags2
