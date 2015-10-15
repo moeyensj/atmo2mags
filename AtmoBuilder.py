@@ -1892,12 +1892,15 @@ class AtmoBuilder(object):
             ax.grid(b=True)
 
             # Generate appropriate label
-            if bpDict2 != None:
-                label = self._sedLabelGen(s)
-            elif truth == True:
-                label = 'Truth'
+            if i == 0:
+                if bpDict2 != None:
+                    label = self._sedLabelGen(s)
+                elif truth == True:
+                    label = 'Truth'
+                else:
+                    label = 'Fit'
             else:
-                label = 'Fit'
+                label = None
 
             seds, sedkeylist = self._sedFinder(s)
 
