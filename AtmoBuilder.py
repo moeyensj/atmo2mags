@@ -1879,6 +1879,9 @@ class AtmoBuilder(object):
     def _dmagSED(self, ax, f, bpDict1, bpDict_std, sedtypes, bpDict2=None, deltaGrey1=0.0, deltaGrey2=0.0, truth=False, comparisonSed=False, dmagLimit=True, colorRange=[-1.0,5.0]):
         """Plots dmags for a specific filter to a given axis given appropriate filter-keyed bandpass dictionaries."""
 
+        dmags_all = {}
+        dmags2_all = {}
+
         for i,s in enumerate(sedtypes):
             # Label axes, only label y if not comparison sed
             ax.set_xlabel("g-i", fontsize=LABELSIZE)
@@ -2177,11 +2180,14 @@ class AtmoBuilder(object):
                                 ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label='Fit')
                             else:
                                 ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
+
+            dmags_all[s] = dmags
+            dmags2_all[s] = dmags2
         
         if bpDict2 != None:
-            return dmags, dmags2
+            return dmags_all, dmags2_all
         else:
-            return dmags
+            return dmags_all
 
     def transPlot(self, atmo1, atmo2=None, includeStdAtmo=False, includeComponents=False, figName=None):
         """
