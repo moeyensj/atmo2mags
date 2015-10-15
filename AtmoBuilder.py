@@ -1835,16 +1835,12 @@ class AtmoBuilder(object):
                 self._logLDeltaGrey(fig, ax[i][1], logL[f], 'both', comp, comp_obs, comp_best[f], deltaGrey, dgbest[f], componentBins=componentBins, 
                     deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, override=override)
 
-            # Plot dmags for other SEDS:
-            comparison_dmags_fit_f = {}
-            comparison_dmags_obs_f = {}
-
             if plotDifferenceComparison == False:
-                comparison_dmags_fit_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, comparisonSeds, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
-                comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, comparisonSeds, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
+                comparison_dmags_fit_f = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, comparisonSeds, deltaGrey1=dgbest[f], comparisonSed=True, dmagLimit=False)
+                comparison_dmags_obs_f = self._dmagSED(ax[i][2], f, throughput_obs, throughput_std, comparisonSeds, deltaGrey1=deltaGrey, comparisonSed=True, dmagLimit=False, truth=True)
                 col3Title = r'Comparison SED $\Delta$mmags'
             else:
-                comparison_dmags_fit_f[s], comparison_dmags_obs_f[s] = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, comparisonSeds, comparisonSed=True, bpDict2=throughput_obs, 
+                comparison_dmags_fit_f, comparison_dmags_obs_f = self._dmagSED(ax[i][2], f, throughput_fit, throughput_std, comparisonSeds, comparisonSed=True, bpDict2=throughput_obs, 
                     deltaGrey1=dgbest[f], deltaGrey2=deltaGrey)
                 col3Title = r'$\Delta\Delta$mmags (Fit - Truth)'
 
