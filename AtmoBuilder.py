@@ -1902,6 +1902,9 @@ class AtmoBuilder(object):
             else:
                 label = None
 
+            if bpDict2 != None and comparisonSed == True:
+                    label = self._sedLabelGen(s)
+
             seds, sedkeylist = self._sedFinder(s)
 
             dmags = []
