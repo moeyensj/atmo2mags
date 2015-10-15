@@ -1891,7 +1891,13 @@ class AtmoBuilder(object):
             # Add grid
             ax.grid(b=True)
 
-            label = self._sedLabelGen(s)
+            # Generate appropriate label
+            if bpDict2 != None:
+                label = self._sedLabelGen(s)
+            elif truth == True:
+                label = 'Truth'
+            else:
+                label = 'Fit'
 
             seds, sedkeylist = self._sedFinder(s)
 
@@ -1934,12 +1940,12 @@ class AtmoBuilder(object):
                     else:
                         if truth == True:
                             if metidx == len(metbins)-1:
-                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label='Truth')
+                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', label=label)
                             else:
                                 ax.plot(gi[condition], dmags[f][condition], mcolor+'.')
                         else:
                             if metidx == len(metbins)-1:
-                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label='Fit')
+                                ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray', label=label)
                             else:
                                 ax.plot(gi[condition], dmags[f][condition], mcolor+'.', color='gray')
 
@@ -1972,12 +1978,12 @@ class AtmoBuilder(object):
                     else:
                         if truth == True:
                             if redidx == len(redbins)-1:
-                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', label='Truth')
+                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', label=label)
                             else:
                                 ax.plot(gi[condition], dmags[f][condition], rcolor+'o')
                         else:
                             if redidx == len(redbins)-1:
-                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray', label='Fit')
+                                ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray', label=label)
                             else: 
                                 ax.plot(gi[condition], dmags[f][condition], rcolor+'o', color='gray')
             
@@ -2012,12 +2018,12 @@ class AtmoBuilder(object):
                     else:
                         if truth == True:
                             if i == len(gallist)-1:
-                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', label='Truth')
+                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', label=label)
                             else:
                                 ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.')
                         else:
                             if i == len(gallist)-1:
-                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray', label='Fit')
+                                ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray', label=label)
                             else:
                                 ax.plot(gi[i], dmags[f][i], redcolors[redidx]+'.', color='gray')
 
@@ -2059,11 +2065,11 @@ class AtmoBuilder(object):
                         if truth == True:
                             if j == len(mltlist)-1:
                                 if (mltlist[j] in mlist):
-                                    ax.plot(gi[j], dmags[f][j], 'bx', label='Truth')
+                                    ax.plot(gi[j], dmags[f][j], 'bx', label=label)
                                 elif (mltlist[j] in llist):
-                                    ax.plot(gi[j], dmags[f][j], 'gx', label='Truth')
+                                    ax.plot(gi[j], dmags[f][j], 'gx', label=label)
                                 elif (mltlist[j] in tlist):
-                                    ax.plot(gi[j], dmags[f][j], 'mx', label='Truth')
+                                    ax.plot(gi[j], dmags[f][j], 'mx', label=label)
                             else:
                                 if (mltlist[j] in mlist):
                                     ax.plot(gi[j], dmags[f][j], 'bx')
@@ -2074,11 +2080,11 @@ class AtmoBuilder(object):
                         else:
                             if j == len(mltlist)-1:
                                 if (mltlist[j] in mlist):
-                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label=label)
                                 elif (mltlist[j] in llist):
-                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label=label)
                                 elif (mltlist[j] in tlist):
-                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label='Fit')
+                                    ax.plot(gi[j], dmags[f][j], marker='x', color='gray', label=label)
                             else:
                                 if (mltlist[j] in mlist):
                                     ax.plot(gi[j], dmags[f][j], marker='x', color='gray')
@@ -2120,23 +2126,23 @@ class AtmoBuilder(object):
                         if truth == True:
                             if (wdslist[j] in hlist):
                                 if j == len(wdslist)-1:
-                                    ax.plot(gi[j], dmags[f][j], 'y+', label='Truth')
+                                    ax.plot(gi[j], dmags[f][j], 'y+', label=label)
                                 else:
                                     ax.plot(gi[j], dmags[f][j], 'y+')
                             elif (wdslist[j] in helist):
                                 if j == len(wdslist)-1:
-                                    ax.plot(gi[j], dmags[f][j], 'y+', label='Truth')
+                                    ax.plot(gi[j], dmags[f][j], 'y+', label=label)
                                 else:
                                     ax.plot(gi[j], dmags[f][j], 'y+')
                         else:
                             if (wdslist[j] in hlist):
                                 if j == len(wdslist)-1:
-                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label='Fit')
+                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label=label)
                                 else:
                                     ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
                             elif (wdslist[j] in helist):
                                 if j == len(wdslist)-1:
-                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label='Fit')
+                                    ax.plot(gi[j], dmags[f][j], marker='+', color='gray', label=label)
                                 else:
                                     ax.plot(gi[j], dmags[f][j], marker='+', color='gray')
 
@@ -2172,12 +2178,12 @@ class AtmoBuilder(object):
                     else:
                         if truth == True:
                             if j == len(snlist)-1:
-                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], label='Truth')
+                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], label=label)
                             else:
                                 ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day])
                         else:
                             if j == len(snlist)-1:
-                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label='Fit')
+                                ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray', label=label)
                             else:
                                 ax.plot(gi[j], dmags[f][j], redcolors[redidx]+day_symbol[day], color='gray')
 
