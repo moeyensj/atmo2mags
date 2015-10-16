@@ -2794,26 +2794,27 @@ class AtmoBuilder(object):
             raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(SEDTYPES))
         return
     
-    def _sedReadCheck(self, sedtype):
+    def _sedReadCheck(self, sedtypes):
         """Checks if sed model data has been read in."""
-        if sedtype == 'mss':
-            if self.mss == None:
-                raise ValueError('No Kurucz model data found, please run self.readMSs() or self.readAll()')
-        elif sedtype == 'qsos':
-            if self.qsos == None:
-                raise ValueError('No quasar data found, please run self.readQsos() or self.readAll()')
-        elif sedtype == 'gals':
-            if self.gals == None:
-                raise ValueError('No galaxy data found, please run self.readGals() or self.readAll()')
-        elif sedtype == 'wds':
-            if self.wds == None:
-                raise ValueError('No white dwarf data found, please run self.readWDs() or self.readAll()')
-        elif sedtype == 'mlts':
-            if self.mlts == None:
-                raise ValueError('No mlt dwarf data found, please run self.readMLTs() or self.readAll()')
-        elif sedtype == 'sns':
-            if self.sns == None:
-                raise ValueError('No supernova data found, please run self.readSNs() or self.readAll()')
+        for s in sedtypes:
+            if s == 'mss':
+                if self.mss == None:
+                    raise ValueError('No Kurucz model data found, please run self.readMSs() or self.readAll()')
+            elif s == 'qsos':
+                if self.qsos == None:
+                    raise ValueError('No quasar data found, please run self.readQsos() or self.readAll()')
+            elif s == 'gals':
+                if self.gals == None:
+                    raise ValueError('No galaxy data found, please run self.readGals() or self.readAll()')
+            elif s == 'wds':
+                if self.wds == None:
+                    raise ValueError('No white dwarf data found, please run self.readWDs() or self.readAll()')
+            elif s == 'mlts':
+                if self.mlts == None:
+                    raise ValueError('No mlt dwarf data found, please run self.readMLTs() or self.readAll()')
+            elif s == 'sns':
+                if self.sns == None:
+                    raise ValueError('No supernova data found, please run self.readSNs() or self.readAll()')
         return
 
     def _colorCheck(self, color, mags_std):
