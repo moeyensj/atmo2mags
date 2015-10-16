@@ -2788,10 +2788,11 @@ class AtmoBuilder(object):
             raise ValueError('Not a valid airmass, check self.airmasses for valid airmasses')
         return
 
-    def _sedTypeCheck(self, sedtype):
+    def _sedTypeCheck(self, sedtypes):
         """Checks if SED type is valid."""
-        if sedtype not in SEDTYPES:
-            raise ValueError(str(sedtype) + ' is not a valid SED type, valid SED types: ' + str(SEDTYPES))
+        for s in sedtypes:
+            if s not in SEDTYPES:
+                raise ValueError(str(s) + ' is not a valid SED type, valid SED types: ' + str(SEDTYPES))
         return
     
     def _sedReadCheck(self, sedtypes):
