@@ -2835,47 +2835,30 @@ class AtmoBuilder(object):
             raise ValueError('Please choose a valid color from ' + str(COLORS))
         return
 
-    def _sedFinder(self, sedtype):
-        """Returns seds and sedkeylist given an sedtype."""
-        seds = []
+    def _sedFinder(self, sedtypes):
+        """Returns seds and sedkeylist given a list of sedtypes."""
+        seds = {}
         sedkeylist = []
 
-        if sedtype == 'mss':
-            seds = self.mss
-            sedkeylist = self.msList
-        elif sedtype == 'qsos':
-            seds = self.qsos
-            sedkeylist = self.qsoRedshifts
-        elif sedtype == 'gals':
-            seds = self.gals
-            sedkeylist = self.galList
-        elif sedtype == 'wds':
-            seds = self.wds
-            sedkeylist = self.wdList
-        elif sedtype == 'mlts':
-            seds = self.mlts
-            sedkeylist = self.mltList
-        elif sedtype == 'sns':
-            seds = self.sns
-            sedkeylist = self.snList
-        elif sedtype == 'stars':
-            seds = self.mss.copy()
-            seds.update(self.wds)
-            seds.update(self.mlts)
-            sedkeylist = np.concatenate((self.msList, self.wdList, self.mltList), axis=0)
-        elif sedtype == 'all':
-            seds = self.mss.copy()
-            seds.update(self.wds)
-            seds.update(self.mlts)
-            seds.update(self.gals)
-            seds.update(self.sns)
-            seds.update(self.qsos)
-            sedkeylist = np.concatenate((self.msList, self.wdList, self.mltList, 
-                self.galList, self.snList, self.qsoRedshifts), axis=0)
-        elif sedtype == 'starsgals':
-            seds = self.mss.copy()
-            seds.update(self.gals)
-            sedkeylist = np.concatenate((self.msList, self.galList), axis=0)
+        for s in sedtypes:
+            if s == 'mss':
+                seds.update(self.mss)
+                sedkeylist += self.msList
+            elif s == 'qsos':
+                seds.update(self.qsos)
+                sedkeylist += self.qsoRedshifts
+            elif s == 'gals':
+                seds.update(self.gals)
+                sedkeylist += self.galList
+            elif s == 'wds':
+                seds.update(self.wds)
+                sedkeylist += self.wdList
+            elif s == 'mlts':
+                seds.update(self.mlts)
+                sedkeylist += self.mltList
+            elif s == 'sns':
+                seds.update(self.sns)
+                sedkeylist += self.snList
 
         return seds, sedkeylist
 
