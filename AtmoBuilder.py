@@ -2690,26 +2690,24 @@ class AtmoBuilder(object):
             label.append(labelEle)
         return ' '.join(label) + ' $X$:' + str(X)
 
-    def _sedLabelGen(self, sedtype):
+    def _sedLabelGen(self, sedtypes):
         """Generates an appropriate SED label given a valid SED type."""
-        if sedtype == 'mss':
+        if 'mss' in sedtypes:
+            if 'wds' in sedtypes:
+                if 'mlts' in sedtypes:
+                    return 'Stars (MS, WD, MLT)'
+                return 'Stars (MS, WD)'
             return 'Kurucz MS'
-        elif sedtype == 'qsos':
+        elif 'qsos' in sedtypes:
             return 'Quasars'
-        elif sedtype == 'gals':
+        elif 'gals' in sedtypes:
             return 'Galaxies'
-        elif sedtype == 'wds':
+        elif 'wds' in sedtypes:
             return 'White Dwarfs'
-        elif sedtype == 'mlts':
+        elif 'mlts'in sedtypes:
             return 'MLT Dwarfs'
-        elif sedtype == 'sns':
+        elif 'sns' in sedtypes:
             return 'Supernovas'
-        elif sedtype == 'stars':
-            return 'Stars (MS,WD,MLT)'
-        elif sedtype == 'all':
-            return 'All SEDs'
-        elif sedtype == 'starsgals':
-            return 'MS stars, Galaxies'
         return
 
     def _figNameGen(self, saveFig, figName, P1, X1, P2, X2):
