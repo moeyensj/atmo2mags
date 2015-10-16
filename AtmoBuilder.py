@@ -2721,7 +2721,7 @@ class AtmoBuilder(object):
             figName = None
         return figName
 
-    def _regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange, add='', 
+    def _regressionNameGen(self, comp1, comp2, atmo, bins, err, regressionSeds, deltaGrey, deltaGreyBins, deltaGreyRange, add='', 
         pickle=False, f=None):
         """Generates a string for pickle files. """
         X_obs = 'X' + str(int(atmo.X*10))
@@ -2737,9 +2737,14 @@ class AtmoBuilder(object):
         ext = ''
 
         if f != None:
-            REG = regressionSed + '_' + f
+            for s in regressionSeds:
+                REG += s
+
+            REG += '_' + f
         else:
-            REG = regressionSed 
+            for s in regressionSeds:
+                REG += s
+            REG += '_'
 
         if add != '':
             add = '_' + add 
