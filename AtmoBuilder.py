@@ -1282,7 +1282,7 @@ class AtmoBuilder(object):
             return
 
     def computeDeltaGreyFit(self, comp, deltaGrey, atmo_obs, err=5.0, componentBins=50, deltaGreyBins=50, deltaGreyRange=[-50.0,50.0], 
-        colorRange=[-1.0,5.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False,
+        colorRange=[-1.0,5.0], regressionSeds=['mss'], comparisonSeds=SEDTYPES, plotDmags=True, plotDphi=True, saveLogL=True, useLogL=False,
         computeChiSquared=True, saveChiSquared=True, plotChiSquared=True, plotLogL=False, plotBoth=True, normalize=True, includeColorBar=False, 
         plotDifferenceRegression=False, plotDifferenceComparison=True, pickleString='', filters=FILTERLIST, dmagLimit=True, 
         returnData=False, override=False, overrideValue=None, overrideDeltaGrey=None, verbose=True):
@@ -1302,7 +1302,7 @@ class AtmoBuilder(object):
         componentBins: (int) [50], number of bins for regression
         deltaGreyBins: (int) [50], number of bins for regression over deltaGrey space
         deltaGreyRange: (list of ints) [-50,50], min and max deltaGrey in mmags between which to regress
-        regressionSed: (string) ['mss'], SED type to run regress over
+        regressionSeds: (list of strings) ['mss'], SED types to regress with
         comparisonSeds: (list of strings) [SEDTYPES], comparison / control SEDs for third column plotting
         plotDmags: (boolean) [True], generate a regression plot
         plotDphi: (boolean) [True], generate a dphi and ddphi plot
@@ -1329,14 +1329,14 @@ class AtmoBuilder(object):
         ----------------------
         """
         # Insure valid parameters, airmass and sedtypes are given
-        self._sedTypeCheck(regressionSed)
+        self._sedTypeCheck(regressionSeds)
 
         # Find range over which to vary parameter and the parameter number for comp, deltaGrey
         range1, pNum1 = self._componentCheck(comp,componentBins)
         dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
 
         # Find seds and sedkeylist for sedtype
-        seds, sedkeylist = self._sedFinder(regressionSed)
+        seds, sedkeylist = self._sedFinder(regressionSeds)
         
         # Copy observed atmosphere parameter array and airmass
         P_fit = copy.deepcopy(atmo_obs.P)
@@ -1366,10 +1366,10 @@ class AtmoBuilder(object):
             print ''
 
             if colorRange == [-1.0,5.0]:
-                print 'Regression SEDs: %s %s SEDs.' % (len(mags_obs['u']), self._sedLabelGen(regressionSed))
+                print 'Regression SEDs: %s %s SEDs.' % (len(mags_obs['u']), self._sedLabelGen(regressionSeds))
                 print ''
             else:
-                print 'Regression SEDs: %s %s SEDs between %.2f and %.2f g-i color.' % (len(mags_obs['u']), self._sedLabelGen(regressionSed), colorRange[0], colorRange[1])
+                print 'Regression SEDs: %s %s SEDs between %.2f and %.2f g-i color.' % (len(mags_obs['u']), self._sedLabelGen(regressionSeds), colorRange[0], colorRange[1])
                 print ''
 
             total = componentBins*deltaGreyBins
@@ -1394,7 +1394,7 @@ class AtmoBuilder(object):
         chisquared = {}
         chisquaredbest = {}
 
-        figName = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, 
+        figName = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSeds, 
             deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString)
 
         if override:
@@ -1420,7 +1420,7 @@ class AtmoBuilder(object):
 
         for f in filters:
 
-            pickleString_temp = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, 
+            pickleString_temp = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSeds, 
                 deltaGrey, deltaGreyBins, deltaGreyRange, add=pickleString, pickle=True, f=f)
                     
             print 'Calculating best fit parameters for ' + f + ' filter...'
@@ -1505,13 +1505,13 @@ class AtmoBuilder(object):
                 compbest[f], dgbest[f], dmagsbest[f], logL[f], logLbest[f], chisquared[f], chisquaredbest[f] = run_regression(comp, 'dG', f)
 
             if saveLogL:
-                name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSeds, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
                 np.savetxt(os.path.join(LOGLDIRECTORY, name + '_logL.txt'), logL[f])
                 print 'Saved LogL at best fit deltaGrey for ' + f + ' filter.'
 
             if saveChiSquared:
-                name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSed, deltaGrey, deltaGreyBins, deltaGreyRange,
+                name = self._regressionNameGen(comp, 'dG', atmo_obs, componentBins, err, regressionSeds, deltaGrey, deltaGreyBins, deltaGreyRange,
                     add=pickleString, f=f)
                 np.savetxt(os.path.join(CHISQUAREDDIRECTORY, name + '_chi.txt'), chisquared[f])
                 print 'Saved Chi-Squared at best fit deltaGrey for ' + f + ' filter.'
@@ -1544,13 +1544,13 @@ class AtmoBuilder(object):
         
         if plotDmags:
             comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, compbest, deltaGrey, dgbest, logL, atmo_obs, componentBins=componentBins,
-                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
+                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName, regressionSeds=regressionSeds, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
                 dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, colorRange=colorRange, verbose=verbose)
 
         if override:
             comparison_dmags_fit, comparison_dmags_obs = self.regressionPlotDeltaGrey(comp, override_compbest, deltaGrey, override_dgbest, logL, atmo_obs, componentBins=componentBins,
-                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName+'_Override', regressionSed=regressionSed, comparisonSeds=comparisonSeds, 
+                deltaGreyBins=deltaGreyBins, deltaGreyRange=deltaGreyRange, figName=figName+'_Override', regressionSeds=regressionSeds, comparisonSeds=comparisonSeds, 
                 plotDifferenceRegression=plotDifferenceRegression, plotDifferenceComparison=plotDifferenceComparison, useLogL=useLogL, 
                 dmagLimit=dmagLimit, includeColorBar=includeColorBar, normalize=normalize, plotBoth=plotBoth, filters=filters, colorRange=colorRange, verbose=verbose, override=override)
 
@@ -1724,7 +1724,7 @@ class AtmoBuilder(object):
         return comparison_dmags_fit, comparison_dmags_obs
 
     def regressionPlotDeltaGrey(self, comp, comp_best, deltaGrey, dgbest, logL, atmo_obs, componentBins=50, deltaGreyBins=51,
-        deltaGreyRange=[-50.0,50.0], regressionSed='mss', comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
+        deltaGreyRange=[-50.0,50.0], regressionSeds=['mss'], comparisonSeds=SEDTYPES, plotDifferenceRegression=False, plotDifferenceComparison=True,
         useLogL=False, includeColorBar=False, plotBoth=True, normalize=True, dmagLimit=True, filters=FILTERLIST, verbose=True, 
         override=False, colorRange=[-1.0,5.0], figName=None):
         """
@@ -1747,7 +1747,7 @@ class AtmoBuilder(object):
         componentBins: (int) [50], number of bins for regression
         deltaGreyBins: (int) [51], number of bins for regression over deltaGrey space
         deltaGreyRange: (list of ints), min and max deltaGrey value between which to regress
-        regressionSed: (string) ['mss'], SED type to run regress over
+        regressionSeds: (list of strings) ['mss'], SED types regress with
         comparisonSeds: (list of strings) [SEDTYPES], 
         plotDifferenceRegression: (boolean) [False], plot ddmmags for regression SEDs
         plotDifferenceComparison: (boolean) [True], plot ddmmags for comparison SEDs
@@ -1766,7 +1766,7 @@ class AtmoBuilder(object):
         comp_range, pNum1 = self._componentCheck(comp, componentBins)
         dgrange = np.linspace(deltaGreyRange[0], deltaGreyRange[1], deltaGreyBins)
             
-        seds, sedkeylist = self._sedFinder(regressionSed)
+        seds, sedkeylist = self._sedFinder(regressionSeds)
         
         fig, ax = plt.subplots(len(filters),3)
 
@@ -1809,25 +1809,15 @@ class AtmoBuilder(object):
             fit = self.buildAtmo(P_fit,X_fit)
             throughput_fit = self.combineThroughputs(fit)
 
-            label = self._sedLabelGen(regressionSed)
+            label = self._sedLabelGen(regressionSeds)
 
             if plotDifferenceRegression:
                 col1Title = r'%s $\Delta\Delta$mmags (Fit - Truth)' % (label)
-                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey, colorRange=colorRange)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSeds, bpDict2=throughput_obs, deltaGrey1=dgbest[f], deltaGrey2=deltaGrey, colorRange=colorRange)
             else:
                 col1Title = r'%s $\Delta$mmags' % (label)
-                if regressionSed == 'stars':                  
-                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, ['wds','mlts','mss'], deltaGrey1=dgbest[f], colorRange=colorRange)
-                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, ['wds','mlts','mss'], deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
-                elif regressionSed == 'all':
-                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, SEDTYPES, deltaGrey1=dgbest[f], colorRange=colorRange)
-                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, SEDTYPES, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
-                elif regressionSed == 'starsgals':
-                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, ['gals','mss'], deltaGrey1=dgbest[f], colorRange=colorRange)
-                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, ['gals','mss'], deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
-                else:
-                    self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSed, deltaGrey1=dgbest[f], colorRange=colorRange)
-                    self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSed, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
+                self._dmagSED(ax[i][0], f, throughput_fit, throughput_std, regressionSeds, deltaGrey1=dgbest[f], colorRange=colorRange)
+                self._dmagSED(ax[i][0], f, throughput_obs, throughput_std, regressionSeds, deltaGrey1=deltaGrey, truth=True, colorRange=colorRange)
                 
             # Plot parameter space regression plots
             # Plot contours and true values
