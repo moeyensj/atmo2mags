@@ -2734,7 +2734,6 @@ class AtmoBuilder(object):
         else:
             for s in regressionSeds:
                 REG += s
-            REG += '_'
 
         if add != '':
             add = '_' + add 
