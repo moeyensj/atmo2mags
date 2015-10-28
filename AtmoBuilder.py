@@ -1964,7 +1964,7 @@ class AtmoBuilder(object):
 
                 redshift = self.qsoRedshifts
                 redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
-                redbinsize = 0.5
+                redbinsize = 1.5
                 redbins = np.arange(QSOSREDSHIFT[0], QSOSREDSHIFT[1]+redbinsize, redbinsize)
                 for redidx in range(len(redbins)):
                     condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
