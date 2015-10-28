@@ -38,6 +38,10 @@ FIGUREHEIGHT = 7
 TITLESIZE = 14
 LABELSIZE = 13
 
+QSOSREDSHIFT = [0.0, 7.5]
+GALSREDSHIFT = [0.0, 3.0]
+SNREDSHIFT = [0.0, 1.2]
+
 class AtmoBuilder(object):
     """
     Functions:
@@ -539,7 +543,7 @@ class AtmoBuilder(object):
 
         return 
 
-    def readGals(self, redshiftRange=[0,3.0], redshiftStep=0.5, sedDirectory=SIMSSEDLIBRARY, subDirectory='galaxySED/'):
+    def readGals(self, redshiftRange=GALSREDSHIFT, redshiftStep=0.5, sedDirectory=SIMSSEDLIBRARY, subDirectory='galaxySED/'):
         """
         Reads galaxy model data from LSST software stack and sets relevant class attributes.
 
@@ -663,7 +667,7 @@ class AtmoBuilder(object):
         
         return 
 
-    def readQsos(self, redshiftRange=[0,7.5], redshiftStep=0.1, sedDirectory='HOME', subDirectory='atmo2mags/seds/quasar/'):
+    def readQsos(self, redshiftRange=QSOSREDSHIFT, redshiftStep=0.1, sedDirectory='HOME', subDirectory='atmo2mags/seds/quasar/'):
         """
         Reads quasar model data and sets relevant class attributes.
 
@@ -704,7 +708,7 @@ class AtmoBuilder(object):
 
         return
 
-    def readSNs(self, redshiftRange=[0,1.2], redshiftStep=0.1, days=['0', '20', '40'], sedDirectory='HOME', 
+    def readSNs(self, redshiftRange=SNREDSHIFT, redshiftStep=0.1, days=['0', '20', '40'], sedDirectory='HOME', 
         subDirectory='atmo2mags/seds/sn/'):
         """
         Reads supernova model data and sets relevant class attributes.
@@ -1961,7 +1965,7 @@ class AtmoBuilder(object):
                 redshift = self.qsoRedshifts
                 redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
                 redbinsize = 0.5
-                redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
+                redbins = np.arange(QSOSREDSHIFT[0], QSOSREDSHIFT[1]+redbinsize, redbinsize)
                 for redidx in range(len(redbins)):
                     condition =((redshift>=redbins[redidx]) & (redshift<=redbins[redidx]+redbinsize))
                     rcolor = redcolors[redidx]
@@ -1999,7 +2003,7 @@ class AtmoBuilder(object):
                 gallist = self.galList
                 redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
                 redbinsize = 0.5
-                redbins = np.arange(0.0, 3.0+redbinsize, redbinsize)
+                redbins = np.arange(GALSREDSHIFT[0], GALSREDSHIFT[1]+redbinsize, redbinsize)
 
                 for i,g in enumerate(gallist):
                     galbase, redshift = g.split('_')
@@ -2158,7 +2162,7 @@ class AtmoBuilder(object):
                 snlist = self.snList
                 redcolors = ['b', 'b', 'g', 'g', 'r', 'r' ,'m', 'm']
                 redbinsize = 0.2
-                redbins = np.arange(0.0, 1.2+redbinsize, redbinsize)
+                redbins = np.arange(SNREDSHIFT[0], SNREDSHIFT[1]+redbinsize, redbinsize)
                 day_symbol = {'0':'s', '20':'s', '40':'s'}
 
                 for j,s in enumerate(snlist):
