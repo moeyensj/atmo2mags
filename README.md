@@ -7,8 +7,8 @@ Sections:
 - [The Basics: Initialize AtmoBuilder](#the-basics-initialize-atmobuilder)
 - [The Basics: Atmo Object](#the-basics-atmo-class)
 - [The Basics: SED Types](#the-basics-sed-types)
-- [The Basics: Simple Operations](#the-basics:-simple-operations)
-- [Regressions: Two Parameters](#regressions:-two-parameters)
+- [The Basics: Simple Operations](#the-basics-simple-operations)
+- [Regressions: Two Parameters](#regressions-two-parameters)
 
 ### Prerequisites and Installation
 
