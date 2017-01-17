@@ -254,7 +254,7 @@ class AtmoBuilder(object):
 
 ### Reading Functions
     
-    def readModtranFiles(self, modtranDir='modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
+    def readModtranFiles(self, modtranDir='atmo2mags/modtran/', modtranRoot='Pachon_MODTRAN', modtranSuffix='.7sc'):
         """
         Reads atmospheric absorption data into an airmass-keyed directory from MODTRAN files.
 
