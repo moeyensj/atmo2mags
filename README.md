@@ -2,13 +2,13 @@
 ## AtmoBuilder / Atmo Tutorial
 
 Sections:
-- [Prerequisites and Installation](#Prerequisites-and-Installation)
-- [Background Science and Equations](#Background-Science-and-Equations)
-- [The Basics: Initialize AtmoBuilder](#The-Basics:-Initialize-the-AtmoBuilder-class)
-- [The Basics: Atmo Object](#The-Basics:-Atmo-Class)
-- [The Basics: SED Types](#The-Basics:-SED-Types)
-- [The Basics: Simple Operations](#The-Basics:-Simple-Operations)
-- [Regressions: Two Parameters](#Regressions:-Two-Parameters)
+- [Prerequisites and Installation](#prerequisites-and-installation)
+- [Background Science and Equations](#background-science-and-equations)
+- [The Basics: Initialize AtmoBuilder](#the-basics-initialize-atmobuilder)
+- [The Basics: Atmo Object](#the-basics-atmo-class)
+- [The Basics: SED Types](#the-basics-sed-types)
+- [The Basics: Simple Operations](#the-basics:-simple-operations)
+- [Regressions: Two Parameters](#regressions:-two-parameters)
 
 ### Prerequisites and Installation
 
