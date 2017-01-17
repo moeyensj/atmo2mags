@@ -1,5 +1,5 @@
 
-## AtmoBuilder / Atmo Tutorial
+## atmo2mags README / Tutorial
 
 Sections:
 - [Prerequisites and Installation](#prerequisites-and-installation)
@@ -39,8 +39,8 @@ In the future this step may not be necessary, keep an eye out on updates to the 
 Atmospheric extinction can be modeled by 5 individual components: molecular (Rayleigh) scattering, 
 aerosol (Mie) scattering, molecular absorption by ozone (O$_3$), water vapor and combined O$_2$ trace species (see Section 5.2 in LSST document LSE-180):
 
-$S^{atm}(\lambda) = \Pi_{k=1}^5 \, {\rm e}^{- t_k \, \tau_k^{std}(\lambda, X)} 
-                           =  {\rm e}^{-\sum_{k=1}^5  t_k \, \tau_k^{std}(\lambda, X)}$
+$$S^{atm}(\lambda) = \Pi_{k=1}^5 \, {\rm e}^{- t_k \, \tau_k^{std}(\lambda, X)} 
+                           =  {\rm e}^{-\sum_{k=1}^5  t_k \, \tau_k^{std}(\lambda, X)}$$
 
 Here $X$ is airmass, $t_k$ is the ratio of the column density (or optical depth) of the $k$-th 
 component and its value for the standard atmosphere, and $\tau_k^{std}(\lambda, X)$ is the 
