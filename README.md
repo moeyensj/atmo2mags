@@ -6,4 +6,4 @@ Required Software:
   - LSST Software Stack (including prerequisites)
   - AstroML
   
-More information and details in Tutorial.ipynb.
+More information and details in tutorial.ipynb.
