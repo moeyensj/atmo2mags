@@ -848,10 +848,6 @@ class AtmoBuilder(object):
 
         * Taken from plot_dmags and modified to suit specific needs. *
         """
-
-        if filters == 'y4':
-            filters = ['y4']
-
         if sys == None:
             sys = self.sys
 
@@ -889,10 +885,6 @@ class AtmoBuilder(object):
         """
         # calculate magnitudes for all sed objects using bpDict (a single bandpass dictionary keyed on filters)
         # pass the sedkeylist so you know what order the magnitudes are arranged in
-
-        if filters == 'y4':
-            filters = ['y4']
-
         if seds == None:
             seds = self.mss
         if sedkeylist == None:
@@ -925,10 +917,6 @@ class AtmoBuilder(object):
 
         * Taken from plot_dmags and modified to suit specific needs. *
         """
-
-        if filters == 'y4':
-            filters = ['y4']
-
         dmags = {}
         for f in filters:
             # difference, in millimags
@@ -965,10 +953,6 @@ class AtmoBuilder(object):
         mags_std: (dictionary) [None], filter-keyed dictionary of magnitudes created at standard atmosphere
         ----------------------       
         """
-
-        if filters == 'y4':
-            filters = ['y4']
-
         if mags_std != None:
             gi = self.gi(mags_std)
         else: 
