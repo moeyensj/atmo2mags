@@ -157,7 +157,7 @@ ab.filterPlot()
 ```
 
 
-![png](output_18_0.png)
+![png](README/output_18_0.png)
 
 
 
@@ -166,7 +166,7 @@ ab.hardwarePlot()
 ```
 
 
-![png](output_19_0.png)
+![png](README/output_19_0.png)
 
 
 ### The Basics: Atmo Class
@@ -239,7 +239,7 @@ ab.transPlot(atmo)
 ```
 
 
-![png](output_29_0.png)
+![png](README/output_29_0.png)
 
 
 AtmoBuilder can also plot the individual components:
@@ -250,7 +250,7 @@ ab.transPlot(atmo, includeComponents=True)
 ```
 
 
-![png](output_31_0.png)
+![png](README/output_31_0.png)
 
 
 Want to compare the atmosphere to another atmosphere?
@@ -261,7 +261,7 @@ ab.transPlot(atmo, atmo2=atmo_std)
 ```
 
 
-![png](output_33_0.png)
+![png](README/output_33_0.png)
 
 
 Of course, keeping track of a standard atmosphere like the one we created can become laborious. To avoid this, internally in AtmoBuilder there are class constants which define the parameters and airmass for a standard atmosphere. For all major functionality you need not worry about keeping track of the the standard atmosphere. For example:
@@ -272,7 +272,7 @@ ab.transPlot(atmo,includeStdAtmo=True)
 ```
 
 
-![png](output_35_0.png)
+![png](README/output_35_0.png)
 
 
 ### The Basics: SED Types
@@ -354,7 +354,7 @@ ab.throughputPlot(throughput)
 ```
 
 
-![png](output_53_0.png)
+![png](README/output_53_0.png)
 
 
 Like transPlot, we can plot two throughputs or include the standard throughput:
@@ -366,11 +366,11 @@ ab.throughputPlot(throughput, includeStdAtmo=True)
 ```
 
 
-![png](output_55_0.png)
+![png](README/output_55_0.png)
 
 
 
-![png](output_55_1.png)
+![png](README/output_55_1.png)
 
 
 A characteristic function we care about is the normalized bandpass response function for a given throughput. The phi function can be retrieved from a filter-keyed bandpass dictionary as follows (example for u filter):
@@ -423,7 +423,7 @@ ab.phiPlot(throughput)
 ```
 
 
-![png](output_62_0.png)
+![png](README/output_62_0.png)
 
 
 Of course it might be handy to compare one phi function to another:
@@ -434,7 +434,7 @@ ab.phiPlot(throughput,throughput_std)
 ```
 
 
-![png](output_64_0.png)
+![png](README/output_64_0.png)
 
 
 AtmoBuilder can also plot the change in normalized bandpass response function:
@@ -445,7 +445,7 @@ ab.dphiPlot(throughput, throughput_std)
 ```
 
 
-![png](output_66_0.png)
+![png](README/output_66_0.png)
 
 
 We might want to compare one dphi to another:
@@ -457,7 +457,7 @@ ab.dphiPlot(throughput, throughput_std, throughput_temp)
 ```
 
 
-![png](output_68_0.png)
+![png](README/output_68_0.png)
 
 
 Sometimes its hard to really see the difference between two phi functions as is often the case when plotting regression data. We can use the ddphiPlot to plot the difference between to dphis in the form of a subtraction between them:
@@ -468,7 +468,7 @@ ab.ddphiPlot(throughput,throughput_temp,throughput_std)
 ```
 
 
-![png](output_70_0.png)
+![png](README/output_70_0.png)
 
 
 Using the throughput we can calculate the magnitudes of stars we read in (defaults to using Kurucz MS SEDs)
@@ -766,7 +766,7 @@ ab.dmagPlot(throughput,throughput_std,'qsos')
 ```
 
 
-![png](output_79_0.png)
+![png](README/output_79_0.png)
 
 
 Or another SED type example:
@@ -777,7 +777,7 @@ ab.dmagPlot(throughput,throughput_std,'gals')
 ```
 
 
-![png](output_81_0.png)
+![png](README/output_81_0.png)
 
 
 ### Regressions: Two Parameters
@@ -839,15 +839,15 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, pickleString='Tutorial')
 
 
 
-![png](output_86_2.png)
+![png](README/output_86_2.png)
 
 
 
-![png](output_86_3.png)
+![png](README/output_86_3.png)
 
 
 
-![png](output_86_4.png)
+![png](README/output_86_4.png)
 
 
 Sometimes the contour plots do not adequately show the log-likelihood matrix, we can directly plot the logL matrix instead of the regression contours using 'useLogL':
@@ -894,15 +894,15 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, useLogL=True, pickleString='Tutor
 
 
 
-![png](output_88_1.png)
+![png](README/output_88_1.png)
 
 
 
-![png](output_88_2.png)
+![png](README/output_88_2.png)
 
 
 
-![png](output_88_3.png)
+![png](README/output_88_3.png)
 
 
 It is also possible to plot both the contours and the log-likelihood matrix on the same plot:
@@ -949,15 +949,15 @@ ab.computeAtmoFit('Rayleigh','Aerosol',atmo, plotBoth=True, pickleString='Tutori
 
 
 
-![png](output_90_1.png)
+![png](README/output_90_1.png)
 
 
 
-![png](output_90_2.png)
+![png](README/output_90_2.png)
 
 
 
-![png](output_90_3.png)
+![png](README/output_90_3.png)
 
 
 A colorbar for the log-likelihood column might be handy and can be included using a keyword argument. Unfortunately, it does resize the middle column slightly. 
@@ -1004,15 +1004,15 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, useLogL=True, includeColorBar=Tru
 
 
 
-![png](output_92_1.png)
+![png](README/output_92_1.png)
 
 
 
-![png](output_92_2.png)
+![png](README/output_92_2.png)
 
 
 
-![png](output_92_3.png)
+![png](README/output_92_3.png)
 
 
 By default regressions will run using the Kurucz main sequence star SED data. However, we can also specify a different regression SED: (I have also set generate Dphi to False to condense the notebook a little)
@@ -1059,7 +1059,7 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, regressionSed='qsos', generateDph
 
 
 
-![png](output_94_1.png)
+![png](README/output_94_1.png)
 
 
 Like the regression SEDs, we can also set which comparison SEDs to use. By default, computeAtmoFit will always use the remaining SEDs (all of them except the original regression SED).
@@ -1106,7 +1106,7 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, regressionSed='qsos', comparisonS
 
 
 
-![png](output_96_1.png)
+![png](README/output_96_1.png)
 
 
 The default percent error value for dmags in mmags is set to be 0.5%, however we can also set it to other values. For example, we can set it to be 5%:
@@ -1153,7 +1153,7 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, err=0.05, generateDphi=False, pic
 
 
 
-![png](output_98_1.png)
+![png](README/output_98_1.png)
 
 
 One additional feature of interest is the deltaGrey keyword parameter. It is essentially an additional extinction factor implemented to add some offset representative of cloudy and potentially grey skies.
@@ -1205,7 +1205,7 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, deltaGrey=20, generateDphi=False,
 
 
 
-![png](output_100_1.png)
+![png](README/output_100_1.png)
 
 
 
@@ -1250,7 +1250,7 @@ ab.computeAtmoFit('Rayleigh', 'Aerosol', atmo, deltaGrey=-1, generateDphi=False,
 
 
 
-![png](output_101_1.png)
+![png](README/output_101_1.png)
 
 
 
