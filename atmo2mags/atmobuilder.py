@@ -7,7 +7,7 @@ import matplotlib.patches as mp
 import lsst.sims.photUtils.Sed as Sed
 import lsst.sims.photUtils.Bandpass as Bandpass
 
-from Atmo import Atmo
+from atmo2mags.atmo import Atmo
 
 from astroML.plotting.mcmc import convert_to_stdev
 from astroML.decorators import pickle_results
@@ -41,6 +41,8 @@ LABELSIZE = 13
 QSOSREDSHIFT = [0.0, 7.5]
 GALSREDSHIFT = [0.0, 3.0]
 SNREDSHIFT = [0.0, 1.2]
+
+__all__ = ["AtmoBuilder"]
 
 class AtmoBuilder(object):
     """
