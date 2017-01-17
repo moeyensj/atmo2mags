@@ -30,8 +30,8 @@ LOGLDIRECTORY = 'logls/'
 CHISQUAREDDIRECTORY = 'chisquared/'
 
 SEDTYPES = ['mss','qsos','gals','sns','wds','mlts']
-FILTERLIST = ['u','g','r','i','z','y4']
-COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y4']
+FILTERLIST = ['u','g','r','i','z','y']
+COLORS = ['g-i','u-g','g-r','r-i','i-z','z-y','z-y']
 
 FIGUREWIDTH = 10
 FIGUREHEIGHT = 7
@@ -207,7 +207,7 @@ class AtmoBuilder(object):
         # List of filters
         self.filterlist = FILTERLIST
         # List of filter colors
-        self.filtercolors = {'u': 'b', 'g': 'm', 'r': 'r','i': 'g','z': 'y','y4': 'k'}
+        self.filtercolors = {'u': 'b', 'g': 'm', 'r': 'r','i': 'g','z': 'y','y': 'k'}
         
         # SED data set with read functions:
         # Kurucz main sequence stars model data
